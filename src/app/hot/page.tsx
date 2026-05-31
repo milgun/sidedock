@@ -35,7 +35,7 @@ export default async function HotProductsPage(props: {
 
   let query = supabase
     .from("products")
-    .select("*, maker:profiles(*)")
+    .select("*, maker:profiles(id, username, avatar_url, display_name)")
     .eq("source", "curated")
     .eq("status", "published")
     .order("upvote_count", { ascending: false })
@@ -43,18 +43,16 @@ export default async function HotProductsPage(props: {
 
   if (category) query = query.eq("category", category);
 
-  const { data: rawProducts } = await query;
+  const [{ data: rawProducts }, { data: upvotes }] = await Promise.all([
+    query,
+    user
+      ? supabase.from("upvotes").select("product_id").eq("user_id", user.id)
+      : Promise.resolve({ data: [] as { product_id: string }[] }),
+  ]);
 
-  let upvotedIds = new Set<string>();
-  if (user) {
-    const { data: upvotes } = await supabase
-      .from("upvotes")
-      .select("product_id")
-      .eq("user_id", user.id);
-    upvotedIds = new Set(
-      (upvotes ?? []).map((u: { product_id: string }) => u.product_id)
-    );
-  }
+  const upvotedIds = new Set<string>(
+    (upvotes ?? []).map((u: { product_id: string }) => u.product_id)
+  );
 
   type RawProduct = Record<string, unknown>;
   const products = (rawProducts ?? []).map(

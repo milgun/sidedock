@@ -17,20 +17,20 @@ export default async function DevlogPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  const { data: rawPosts } = await supabase
-    .from("devlog_posts")
-    .select("*, author:profiles(*)")
-    .order("created_at", { ascending: false })
-    .limit(50);
+  const [{ data: rawPosts }, { data: likes }] = await Promise.all([
+    supabase
+      .from("devlog_posts")
+      .select("*, author:profiles(id, username, avatar_url, display_name)")
+      .order("created_at", { ascending: false })
+      .limit(50),
+    user
+      ? supabase.from("devlog_likes").select("post_id").eq("user_id", user.id)
+      : Promise.resolve({ data: [] as { post_id: string }[] }),
+  ]);
 
-  let likedIds = new Set<string>();
-  if (user) {
-    const { data: likes } = await supabase
-      .from("devlog_likes")
-      .select("post_id")
-      .eq("user_id", user.id);
-    likedIds = new Set((likes ?? []).map((l: { post_id: string }) => l.post_id));
-  }
+  const likedIds = new Set<string>(
+    (likes ?? []).map((l: { post_id: string }) => l.post_id)
+  );
 
   type Raw = Record<string, unknown>;
   const posts = (rawPosts ?? []).map(

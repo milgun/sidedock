@@ -19,17 +19,12 @@ export default async function ProfilePage(props: {
 
   const supabase = await createClient();
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("username", username)
-    .maybeSingle();
+  const [{ data: profile }, { data: { user } }] = await Promise.all([
+    supabase.from("profiles").select("*").eq("username", username).maybeSingle(),
+    supabase.auth.getUser(),
+  ]);
 
   if (!profile) notFound();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
   const isOwn = user?.id === profile.id;
   const userId = user?.id ?? null;
@@ -97,21 +92,20 @@ export default async function ProfilePage(props: {
       ownProducts = (data ?? []) as OwnProduct[];
     } else {
       // 타인: published만
-      const { data } = await supabase
-        .from("products")
-        .select("*, maker:profiles(*)")
-        .eq("maker_id", profile.id)
-        .eq("status", "published")
-        .order("upvote_count", { ascending: false });
-
-      let upvotedIds = new Set<string>();
-      if (userId) {
-        const { data: uv } = await supabase
-          .from("upvotes")
-          .select("product_id")
-          .eq("user_id", userId);
-        upvotedIds = new Set((uv ?? []).map((u: { product_id: string }) => u.product_id));
-      }
+      const [{ data }, { data: uv }] = await Promise.all([
+        supabase
+          .from("products")
+          .select("*, maker:profiles(id, username, avatar_url, display_name)")
+          .eq("maker_id", profile.id)
+          .eq("status", "published")
+          .order("upvote_count", { ascending: false }),
+        userId
+          ? supabase.from("upvotes").select("product_id").eq("user_id", userId)
+          : Promise.resolve({ data: [] as { product_id: string }[] }),
+      ]);
+      const upvotedIds = new Set<string>(
+        (uv ?? []).map((u: { product_id: string }) => u.product_id)
+      );
       publicProducts = (data ?? []).map((p) => ({
         ...p,
         has_upvoted: upvotedIds.has(p.id as string),
@@ -122,21 +116,20 @@ export default async function ProfilePage(props: {
   // 업보트 탭
   let boostedProducts: ProductWithMaker[] = [];
   if (tab === "boost") {
-    const { data: upvotes } = await supabase
-      .from("upvotes")
-      .select("product:products(*, maker:profiles(*))")
-      .eq("user_id", profile.id)
-      .order("created_at", { ascending: false })
-      .limit(30);
-
-    let myUpvotedIds = new Set<string>();
-    if (userId) {
-      const { data: uv } = await supabase
+    const [{ data: upvotes }, { data: uv }] = await Promise.all([
+      supabase
         .from("upvotes")
-        .select("product_id")
-        .eq("user_id", userId);
-      myUpvotedIds = new Set((uv ?? []).map((u: { product_id: string }) => u.product_id));
-    }
+        .select("product:products(*, maker:profiles(id, username, avatar_url, display_name))")
+        .eq("user_id", profile.id)
+        .order("created_at", { ascending: false })
+        .limit(30),
+      userId
+        ? supabase.from("upvotes").select("product_id").eq("user_id", userId)
+        : Promise.resolve({ data: [] as { product_id: string }[] }),
+    ]);
+    const myUpvotedIds = new Set<string>(
+      (uv ?? []).map((u: { product_id: string }) => u.product_id)
+    );
 
     boostedProducts = (upvotes ?? [])
       .map((u: Record<string, unknown>) => u.product)

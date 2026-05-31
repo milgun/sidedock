@@ -11,45 +11,42 @@ export default async function HomePage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  let upvotedIds = new Set<string>();
-  if (user) {
-    const { data: upvotes } = await supabase
-      .from("upvotes")
-      .select("product_id")
-      .eq("user_id", user.id);
-    upvotedIds = new Set(
-      (upvotes ?? []).map((u: { product_id: string }) => u.product_id),
-    );
-  }
-
   const [
     { data: rawCurated },
     { data: rawNew },
     { data: rawHot },
+    { data: upvotes },
   ] = await Promise.all([
     supabase
       .from("products")
-      .select("*, maker:profiles(*)")
+      .select("*, maker:profiles(id, username, avatar_url, display_name)")
       .eq("source", "curated")
       .eq("status", "published")
       .order("upvote_count", { ascending: false })
       .limit(8),
     supabase
       .from("products")
-      .select("*, maker:profiles(*)")
+      .select("*, maker:profiles(id, username, avatar_url, display_name)")
       .eq("source", "launch")
       .eq("status", "published")
       .order("created_at", { ascending: false })
       .limit(6),
     supabase
       .from("products")
-      .select("*, maker:profiles(*)")
+      .select("*, maker:profiles(id, username, avatar_url, display_name)")
       .eq("source", "launch")
       .eq("status", "published")
       .order("upvote_count", { ascending: false })
       .order("comment_count", { ascending: false })
       .limit(5),
+    user
+      ? supabase.from("upvotes").select("product_id").eq("user_id", user.id)
+      : Promise.resolve({ data: [] as { product_id: string }[] }),
   ]);
+
+  const upvotedIds = new Set<string>(
+    (upvotes ?? []).map((u: { product_id: string }) => u.product_id),
+  );
 
   type RawProduct = Record<string, unknown>;
   const enrich = (p: RawProduct): ProductWithMaker =>
