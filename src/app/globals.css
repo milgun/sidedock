@@ -1,26 +1,57 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@keyframes rocket-fly {
+  0%   { opacity: 1;   transform: translateX(-50%) translateY(0px)   scale(1);   }
+  40%  { opacity: 1;   transform: translateX(-50%) translateY(-22px) scale(1.15); }
+  100% { opacity: 0;   transform: translateX(-50%) translateY(-62px) scale(0.5);  }
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+@theme {
+  --animate-rocket-fly: rocket-fly 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+
+  /* Brand — navy/blue gradient identity */
+  --color-navy-950: #060d1a;
+  --color-navy-900: #0f1b2d;
+  --color-navy-800: #1a2b47;
+  --color-navy-700: #1d3461;
+  --color-blue-700: #1d4ed8;
+  --color-blue-600: #2563eb;
+  --color-blue-500: #3b82f6;
+  --color-blue-400: #60a5fa;
+  --color-blue-50:  #eff6ff;
+  --color-cyan-500: #06b6d4;
+  --color-cyan-400: #22d3ee;
+  --color-cyan-300: #67e8f9;
+
+  /* Surfaces */
+  --color-surface:     #f8fafc;
+  --color-surface-alt: #f1f5f9;
+
+  /* Typography */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  --background: #ffffff;
+  --foreground: #0f172a;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans, Arial, sans-serif);
+  overflow-y: scroll;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button:not(:disabled),
+a,
+[role="button"] {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
 }

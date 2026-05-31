@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 56" fill="none">
+  <defs>
+    <linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#22D3EE"/>
+      <stop offset="45%" stop-color="#2563EB"/>
+      <stop offset="100%" stop-color="#4338CA"/>
+    </linearGradient>
+  </defs>
+  <!-- Pixel S -->
+  <rect x="0" y="0"  width="7" height="7" rx="1.5" fill="url(#sg)"/>
+  <rect x="8" y="0"  width="7" height="7" rx="1.5" fill="url(#sg)"/>
+  <rect x="16" y="0" width="7" height="7" rx="1.5" fill="url(#sg)"/>
+  <rect x="24" y="0" width="7" height="7" rx="1.5" fill="url(#sg)"/>
+  <rect x="0" y="8"  width="7" height="7" rx="1.5" fill="url(#sg)"/>
+  <rect x="0" y="16" width="7" height="7" rx="1.5" fill="url(#sg)"/>
+  <rect x="0" y="24" width="7" height="7" rx="1.5" fill="url(#sg)"/>
+  <rect x="8" y="24" width="7" height="7" rx="1.5" fill="url(#sg)"/>
+  <rect x="16" y="24" width="7" height="7" rx="1.5" fill="url(#sg)"/>
+  <rect x="24" y="24" width="7" height="7" rx="1.5" fill="url(#sg)"/>
+  <rect x="24" y="32" width="7" height="7" rx="1.5" fill="url(#sg)"/>
+  <rect x="24" y="40" width="7" height="7" rx="1.5" fill="url(#sg)"/>
+  <rect x="0"  y="48" width="7" height="7" rx="1.5" fill="url(#sg)"/>
+  <rect x="8"  y="48" width="7" height="7" rx="1.5" fill="url(#sg)"/>
+  <rect x="16" y="48" width="7" height="7" rx="1.5" fill="url(#sg)"/>
+  <rect x="24" y="48" width="7" height="7" rx="1.5" fill="url(#sg)"/>
+  <!-- Bracket D -->
+  <rect x="34" y="0"  width="7" height="7" rx="1.5" fill="#0F1B2D"/>
+  <rect x="34" y="8"  width="7" height="7" rx="1.5" fill="#0F1B2D"/>
+  <rect x="34" y="16" width="7" height="7" rx="1.5" fill="#0F1B2D"/>
+  <rect x="34" y="24" width="7" height="7" rx="1.5" fill="#0F1B2D"/>
+  <rect x="34" y="32" width="7" height="7" rx="1.5" fill="#0F1B2D"/>
+  <rect x="34" y="40" width="7" height="7" rx="1.5" fill="#0F1B2D"/>
+  <rect x="34" y="48" width="7" height="7" rx="1.5" fill="#0F1B2D"/>
+  <rect x="42" y="0"  width="7" height="7" rx="1.5" fill="#0F1B2D"/>
+  <rect x="42" y="48" width="7" height="7" rx="1.5" fill="#0F1B2D"/>
+  <!-- 3 dots -->
+  <rect x="42" y="16" width="7" height="7" rx="1.5" fill="#2563EB"/>
+  <rect x="42" y="24" width="7" height="7" rx="1.5" fill="#2563EB"/>
+  <rect x="42" y="32" width="7" height="7" rx="1.5" fill="#2563EB"/>
+</svg>
