@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getUser } from "@/lib/supabase/server";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -19,9 +19,9 @@ export default async function ProfilePage(props: {
 
   const supabase = await createClient();
 
-  const [{ data: profile }, { data: { user } }] = await Promise.all([
+  const [{ data: profile }, user] = await Promise.all([
     supabase.from("profiles").select("*").eq("username", username).maybeSingle(),
-    supabase.auth.getUser(),
+    getUser(),
   ]);
 
   if (!profile) notFound();

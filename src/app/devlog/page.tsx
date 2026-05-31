@@ -1,4 +1,4 @@
-﻿import { createClient } from "@/lib/supabase/server";
+﻿import { createClient, getUser } from "@/lib/supabase/server";
 import Link from "next/link";
 import type { DevlogPostWithAuthor } from "@/types";
 
@@ -15,7 +15,7 @@ function timeAgo(dateStr: string) {
 
 export default async function DevlogPage() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getUser();
 
   const [{ data: rawPosts }, { data: likes }] = await Promise.all([
     supabase

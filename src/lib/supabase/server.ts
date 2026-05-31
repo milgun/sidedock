@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { cache } from "react";
 
 export async function createClient() {
   const cookieStore = await cookies();
@@ -25,3 +26,13 @@ export async function createClient() {
     }
   );
 }
+
+/**
+ * 한 요청 내에서 getUser()를 여러 컴포넌트(Navbar, Page 등)가 호출해도
+ * Supabase 인증 API는 딱 1번만 실행됩니다 (React.cache per-request memoization).
+ */
+export const getUser = cache(async () => {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  return user;
+});

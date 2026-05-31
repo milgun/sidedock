@@ -1,18 +1,18 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Suspense } from "react";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getUser } from "@/lib/supabase/server";
 import NavbarClient from "./NavbarClient";
 import NavbarTabs from "./NavbarTabs";
 
 export default async function Navbar() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getUser();
 
   let avatarUrl: string | null = null;
   let isAdmin = false;
   let username: string | null = null;
   if (user) {
+    const supabase = await createClient();
     const { data: profile } = await supabase
       .from("profiles")
       .select("avatar_url, is_admin, username")

@@ -1,4 +1,4 @@
-﻿import { createClient } from "@/lib/supabase/server";
+﻿import { createClient, getUser } from "@/lib/supabase/server";
 import Link from "next/link";
 import type { ProductWithMaker } from "@/types";
 import ExpandableProductList from "@/components/home/ExpandableProductList";
@@ -7,9 +7,7 @@ import ProductCard from "@/components/product/ProductCard";
 
 export default async function HomePage() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
 
   const [
     { data: rawCurated },

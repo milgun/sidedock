@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient, getUser } from "@/lib/supabase/server";
 import Link from "next/link";
 import type { ProductWithMaker } from "@/types";
 import ProductCard from "@/components/product/ProductCard";
@@ -20,9 +20,7 @@ export default async function LaunchesPage(props: {
   ) as Period;
 
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getUser();
 
   const now = new Date();
 

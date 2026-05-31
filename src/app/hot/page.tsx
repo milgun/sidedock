@@ -1,4 +1,4 @@
-﻿import { createClient } from "@/lib/supabase/server";
+﻿import { createClient, getUser } from "@/lib/supabase/server";
 import Link from "next/link";
 import type { ProductWithMaker } from "@/types";
 import ProductCard, { CATEGORY_LABELS } from "@/components/product/ProductCard";
@@ -31,7 +31,7 @@ export default async function HotProductsPage(props: {
 }) {
   const { category } = await props.searchParams;
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getUser();
 
   let query = supabase
     .from("products")
