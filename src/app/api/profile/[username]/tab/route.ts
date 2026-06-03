@@ -45,19 +45,44 @@ export async function GET(
     );
     tabData = { publishedCount: publishedCount ?? 0, totalUpvotes };
   } else if (tab === "activity") {
-    const { data } = await supabase
-      .from("comments")
-      .select("id, content, created_at, product:products(id, name)")
-      .eq("user_id", profile.id)
-      .order("created_at", { ascending: false })
-      .limit(30);
-    tabData = { activities: data ?? [] };
+    const [
+      { data: comments },
+      { data: upvoteRows },
+      { data: devlogs },
+    ] = await Promise.all([
+      supabase
+        .from("comments")
+        .select("id, content, created_at, product:products(id, name)")
+        .eq("user_id", profile.id)
+        .order("created_at", { ascending: false })
+        .limit(20),
+      supabase
+        .from("upvotes")
+        .select("created_at, product:products(id, name, thumbnail_url)")
+        .eq("user_id", profile.id)
+        .order("created_at", { ascending: false })
+        .limit(20),
+      supabase
+        .from("devlogs")
+        .select("id, title, created_at")
+        .eq("author_id", profile.id)
+        .order("created_at", { ascending: false })
+        .limit(20),
+    ]);
+    tabData = {
+      comments: comments ?? [],
+      upvotes: (upvoteRows ?? []).map((r: Record<string, unknown>) => ({
+        created_at: r.created_at,
+        product: r.product ?? null,
+      })),
+      devlogs: devlogs ?? [],
+    };
   } else if (tab === "products") {
     if (isOwn) {
       const { data } = await supabase
         .from("products")
         .select(
-          "id, name, tagline, thumbnail_url, status, rejection_reason, created_at, upvote_count",
+          "id, name, tagline, thumbnail_url, status, source, rejection_reason, created_at, upvote_count",
         )
         .eq("maker_id", profile.id)
         .order("created_at", { ascending: false });
@@ -124,7 +149,7 @@ export async function GET(
   } else if (tab === "devlog") {
     const { data } = await supabase
       .from("devlog_posts")
-      .select("id, title, tags, like_count, comment_count, created_at")
+      .select("id, title, tags, thumbnail_url, like_count, comment_count, created_at")
       .eq("author_id", profile.id)
       .order("created_at", { ascending: false })
       .limit(30);

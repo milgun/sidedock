@@ -104,6 +104,7 @@ export interface Profile {
   username: string;
   display_name: string | null;
   avatar_url: string | null;
+  headline: string | null;
   bio: string | null;
   website_url: string | null;
   twitter_url: string | null;
@@ -165,6 +166,7 @@ export interface DevlogPost {
   title: string;
   content: string;
   tags: string[];
+  thumbnail_url: string | null;
   like_count: number;
   comment_count: number;
   created_at: string;

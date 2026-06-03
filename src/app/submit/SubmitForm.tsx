@@ -6,8 +6,36 @@ import { createClient } from "@/lib/supabase/client";
 
 // ── Props ────────────────────────────────────────────────────────────────────
 
+export interface EditProductData {
+  id: string;
+  name: string;
+  tagline: string;
+  description: string;
+  url: string;
+  categories: string[];
+  tags: string;
+  thumbnail_url: string | null;
+  video_url: string | null;
+  gallery_images: string[];
+  is_open_source: boolean;
+  repo_url: string | null;
+  maker_type: "maker" | "hunter";
+  status: string;
+  extra_links: Array<{ type: string; url: string; label: string | null }>;
+  team_members: Array<{ name: string; role: string; profile_id: string | null }>;
+  shoutouts: Array<{ name: string; url: string | null; reason: string }>;
+  investor_info: {
+    founder_reason: string | null;
+    idea_reason: string | null;
+    competitors_text: string | null;
+    revenue_info: string | null;
+    other_info: string | null;
+  } | null;
+}
+
 interface SubmitFormProps {
   username: string | null;
+  editProduct?: EditProductData | null;
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -76,19 +104,62 @@ const inputCls =
 
 // ── Main Component ────────────────────────────────────────────────────────────
 
-export default function SubmitForm({ username }: SubmitFormProps) {
+export default function SubmitForm({ username, editProduct }: SubmitFormProps) {
+  const isEditMode = !!editProduct;
   const [step, setStep] = useState(0);
-  const [form, setForm] = useState<FormData>({
-    name: "", tagline: "", description: "", tags: "",
-    url: "", extra_links: [], is_open_source: false, repo_url: "", repo_type: "github",
-    categories: [],
-    thumbnail_url: "", video_url: "", gallery_images: [],
-    maker_type: "maker", team_members: [],
-    shoutouts: [],
-    investor_founder_reason: "", investor_idea_reason: "",
-    investor_competitors: "", investor_revenue: "", investor_other: "",
+  const [form, setForm] = useState<FormData>(() => {
+    if (editProduct) {
+      return {
+        name: editProduct.name,
+        tagline: editProduct.tagline,
+        description: editProduct.description,
+        tags: editProduct.tags,
+        url: editProduct.url,
+        extra_links: editProduct.extra_links.map((l) => ({
+          id: crypto.randomUUID(),
+          type: l.type,
+          url: l.url,
+          label: l.label ?? "",
+        })),
+        is_open_source: editProduct.is_open_source,
+        repo_url: editProduct.repo_url ?? "",
+        repo_type: "github",
+        categories: editProduct.categories,
+        thumbnail_url: editProduct.thumbnail_url ?? "",
+        video_url: editProduct.video_url ?? "",
+        gallery_images: editProduct.gallery_images,
+        maker_type: editProduct.maker_type,
+        team_members: editProduct.team_members.map((m) => ({
+          id: crypto.randomUUID(),
+          name: m.name,
+          role: m.role,
+          profile_id: m.profile_id ?? undefined,
+        })),
+        shoutouts: editProduct.shoutouts.map((s) => ({
+          id: crypto.randomUUID(),
+          name: s.name,
+          url: s.url ?? "",
+          reason: s.reason,
+        })),
+        investor_founder_reason: editProduct.investor_info?.founder_reason ?? "",
+        investor_idea_reason: editProduct.investor_info?.idea_reason ?? "",
+        investor_competitors: editProduct.investor_info?.competitors_text ?? "",
+        investor_revenue: editProduct.investor_info?.revenue_info ?? "",
+        investor_other: editProduct.investor_info?.other_info ?? "",
+      };
+    }
+    return {
+      name: "", tagline: "", description: "", tags: "",
+      url: "", extra_links: [], is_open_source: false, repo_url: "", repo_type: "github",
+      categories: [],
+      thumbnail_url: "", video_url: "", gallery_images: [],
+      maker_type: "maker", team_members: [],
+      shoutouts: [],
+      investor_founder_reason: "", investor_idea_reason: "",
+      investor_competitors: "", investor_revenue: "", investor_other: "",
+    };
   });
-  const [draftId, setDraftId] = useState<string | null>(null);
+  const [draftId, setDraftId] = useState<string | null>(editProduct?.id ?? null);
   const [submitted, setSubmitted] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -104,6 +175,7 @@ export default function SubmitForm({ username }: SubmitFormProps) {
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isInitialMount = useRef(true);
 
   const isStepComplete = (s: number): boolean => {
     switch (s) {
@@ -160,6 +232,11 @@ export default function SubmitForm({ username }: SubmitFormProps) {
 
   // form 변경 시 자동저장 트리거
   useEffect(() => {
+    // 수정 모드에서 첫 렌더링 시는 자동저장 스킵 (기존 데이터를 다시 저장하는 것 방지)
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      if (isEditMode) return;
+    }
     triggerAutoSave(form, draftId);
     return () => { if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -323,10 +400,20 @@ export default function SubmitForm({ username }: SubmitFormProps) {
       {submitted && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/90 backdrop-blur-sm">
           <div className="max-w-md rounded-3xl border border-green-100 bg-white p-10 text-center shadow-xl">
-            <div className="mb-4 text-5xl">🚀</div>
-            <h2 className="mb-2 text-2xl font-black text-slate-900">검토 요청 완료!</h2>
-            <p className="mb-1 text-slate-600">제품이 운영팀에 제출되었습니다.</p>
-            <p className="mb-6 text-sm text-slate-400">보통 2-3일 이내에 검토 후 승인 또는 반려 알림을 보내드립니다.</p>
+            <div className="mb-4 text-5xl">{isEditMode ? "✏️" : "🚀"}</div>
+            <h2 className="mb-2 text-2xl font-black text-slate-900">
+              {isEditMode ? "수정 완료!" : "검토 요청 완료!"}
+            </h2>
+            <p className="mb-1 text-slate-600">
+              {isEditMode
+                ? "수정 내용이 저장되었습니다."
+                : "제품이 운영팀에 제출되었습니다."}
+            </p>
+            <p className="mb-6 text-sm text-slate-400">
+              {isEditMode
+                ? "순순 등록 제품 수정은 관리자의 재검토가 필요할 수 있습니다."
+                : "보통 2-3일 이내에 검토 후 승인 또는 반려 알림을 보내드립니다."}
+            </p>
             <a href={username ? `/profile/${username}` : "/"} className="inline-block rounded-xl bg-blue-600 px-8 py-3 text-sm font-semibold text-white transition hover:bg-blue-700">
               내 프로필에서 확인 →
             </a>
@@ -349,7 +436,7 @@ export default function SubmitForm({ username }: SubmitFormProps) {
             <div className="min-w-0">
               <p className="truncate text-sm font-bold text-slate-900">{form.name || "새 제품"}</p>
               <p className="text-xs text-amber-500">
-                {isSavingDraft ? "저장 중..." : lastSaved ? `${lastSaved.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })} 저장됨` : "작성 중"}
+                {isSavingDraft ? "저장 중..." : lastSaved ? `${lastSaved.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })} 저장됨` : isEditMode ? "수정 중" : "작성 중"}
               </p>
             </div>
           </div>

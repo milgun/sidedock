@@ -14,7 +14,7 @@ export default async function SettingsPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("username, display_name, bio, website_url, twitter_url, avatar_url")
+    .select("username, display_name, headline, bio, website_url, twitter_url, avatar_url")
     .eq("id", user.id)
     .single();
 
@@ -41,6 +41,7 @@ export default async function SettingsPage() {
           profile={{
             username: profile.username as string,
             display_name: profile.display_name as string | null,
+            headline: profile.headline as string | null,
             bio: profile.bio as string | null,
             website_url: profile.website_url as string | null,
             twitter_url: profile.twitter_url as string | null,

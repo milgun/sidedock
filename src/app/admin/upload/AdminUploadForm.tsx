@@ -3,28 +3,53 @@
 import { useState } from "react";
 import { createCuratedProduct } from "@/lib/actions/product";
 
+type LinkItem = { id: string; type: string; url: string; label: string };
+
 type FormFields = {
   name: string;
   tagline: string;
   url: string;
-  category: string;
+  categories: string[];
   description: string;
   tags: string;
   thumbnail_url: string;
   video_url: string;
   gallery_images: string[];
+  extra_links: LinkItem[];
+  maker_type: "maker" | "hunter";
   is_featured: boolean;
   featured_label: string;
 };
 
-const CATEGORIES = [
-  { value: "ai-tool",      label: "AI 툴" },
-  { value: "saas",         label: "SaaS" },
-  { value: "dev-tool",     label: "개발 툴" },
-  { value: "productivity", label: "생산성" },
-  { value: "design",       label: "디자인" },
-  { value: "marketing",    label: "마케팅" },
-  { value: "other",        label: "기타" },
+const ALL_CATEGORIES = [
+  { value: "ai-tool",           label: "AI 툴",        icon: "🤖" },
+  { value: "saas",              label: "SaaS",          icon: "☁️" },
+  { value: "dev-tool",          label: "개발 툴",       icon: "🛠️" },
+  { value: "productivity",      label: "생산성",        icon: "⚡" },
+  { value: "design",            label: "디자인",        icon: "🎨" },
+  { value: "marketing",         label: "마케팅",        icon: "📈" },
+  { value: "mobile-app",        label: "모바일 앱",     icon: "📱" },
+  { value: "browser-extension", label: "브라우저 확장", icon: "🧩" },
+  { value: "desktop-app",       label: "데스크탑 앱",   icon: "🖥️" },
+  { value: "game",              label: "게임",          icon: "🎮" },
+  { value: "api",               label: "API / 백엔드",  icon: "⚙️" },
+  { value: "education",         label: "교육",          icon: "📚" },
+  { value: "finance",           label: "금융 / 핀테크", icon: "💰" },
+  { value: "health",            label: "헬스 / 웰니스", icon: "❤️" },
+  { value: "social",            label: "소셜",          icon: "💬" },
+  { value: "ecommerce",         label: "이커머스",      icon: "🛒" },
+  { value: "media",             label: "미디어",        icon: "📺" },
+  { value: "other",             label: "기타",          icon: "📦" },
+];
+
+const EXTRA_LINK_TYPES = [
+  { value: "app-store",   label: "App Store (iOS)" },
+  { value: "google-play", label: "Google Play" },
+  { value: "steam",       label: "Steam" },
+  { value: "github",      label: "GitHub" },
+  { value: "bitbucket",   label: "Bitbucket" },
+  { value: "gitlab",      label: "GitLab" },
+  { value: "other",       label: "기타" },
 ];
 
 const inputCls =
@@ -35,12 +60,14 @@ export default function AdminUploadForm() {
     name: "",
     tagline: "",
     url: "",
-    category: "ai-tool",
+    categories: [],
     description: "",
     tags: "",
     thumbnail_url: "",
     video_url: "",
     gallery_images: [],
+    extra_links: [],
+    maker_type: "hunter",
     is_featured: false,
     featured_label: "",
   });
@@ -59,6 +86,20 @@ export default function AdminUploadForm() {
       >
     ) =>
       setForm((f) => ({ ...f, [key]: e.target.value }));
+
+  const toggleCategory = (val: string) =>
+    setForm((f) => {
+      if (f.categories.includes(val)) return { ...f, categories: f.categories.filter((c) => c !== val) };
+      if (f.categories.length >= 3) return f;
+      return { ...f, categories: [...f.categories, val] };
+    });
+
+  const addLink = () =>
+    setForm((f) => ({ ...f, extra_links: [...f.extra_links, { id: crypto.randomUUID(), type: "app-store", url: "", label: "" }] }));
+  const removeLink = (id: string) =>
+    setForm((f) => ({ ...f, extra_links: f.extra_links.filter((l) => l.id !== id) }));
+  const updateLink = (id: string, field: keyof Omit<LinkItem, "id">, value: string) =>
+    setForm((f) => ({ ...f, extra_links: f.extra_links.map((l) => (l.id === id ? { ...l, [field]: value } : l)) }));
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -115,7 +156,8 @@ export default function AdminUploadForm() {
       tagline: form.tagline,
       description: form.description,
       url: form.url,
-      category: form.category,
+      category: form.categories[0] ?? "other",
+      categories: form.categories.length > 0 ? form.categories : ["other"],
       tags: form.tags
         .split(",")
         .map((t) => t.trim())
@@ -123,6 +165,8 @@ export default function AdminUploadForm() {
       thumbnail_url: form.thumbnail_url || undefined,
       video_url: form.video_url || undefined,
       gallery_images: form.gallery_images,
+      extra_links: form.extra_links.filter((l) => l.url.trim()).map((l) => ({ type: l.type, url: l.url.trim(), label: l.label || undefined })),
+      maker_type: form.maker_type,
       is_featured: form.is_featured,
       featured_label: form.featured_label || undefined,
     });
@@ -162,14 +206,73 @@ export default function AdminUploadForm() {
           className={inputCls}
         />
       </Field>
-      <Field label="카테고리" required>
-        <select value={form.category} onChange={set("category")} className={inputCls}>
-          {CATEGORIES.map((c) => (
-            <option key={c.value} value={c.value}>
-              {c.label}
-            </option>
+
+      {/* 추가 링크 */}
+      <div>
+        <div className="mb-2 flex items-center justify-between">
+          <label className="text-sm font-semibold text-slate-700">추가 링크</label>
+          <button type="button" onClick={addLink}
+            className="flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600 transition hover:bg-blue-100">
+            + 링크 추가
+          </button>
+        </div>
+        {form.extra_links.length === 0 && (
+          <p className="text-xs text-slate-400">App Store, Google Play, GitHub 등 추가 링크를 넣어보세요.</p>
+        )}
+        <div className="space-y-2">
+          {form.extra_links.map((link) => (
+            <div key={link.id} className="flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50 p-3">
+              <select value={link.type} onChange={(e) => updateLink(link.id, "type", e.target.value)}
+                className="w-36 flex-shrink-0 rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs text-slate-700 outline-none focus:border-blue-400">
+                {EXTRA_LINK_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+              </select>
+              <input type="url" value={link.url} onChange={(e) => updateLink(link.id, "url", e.target.value)}
+                placeholder="https://..." className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:border-blue-400" />
+              <button type="button" onClick={() => removeLink(link.id)} className="flex-shrink-0 text-slate-300 transition hover:text-red-400">✕</button>
+            </div>
           ))}
-        </select>
+        </div>
+      </div>
+
+      {/* 등록자 유형 */}
+      <div>
+        <label className="mb-2 block text-sm font-semibold text-slate-700">등록자 유형</label>
+        <div className="flex gap-2">
+          {(["hunter", "maker"] as const).map((type) => (
+            <button key={type} type="button" onClick={() => setForm((f) => ({ ...f, maker_type: type }))}
+              className={`flex-1 rounded-xl border px-4 py-2.5 text-sm font-medium transition ${
+                form.maker_type === type ? "border-blue-400 bg-blue-50 text-blue-700" : "border-slate-200 text-slate-600 hover:border-slate-300"
+              }`}>
+              {type === "hunter" ? "🔍 큐레이터 (Hunter)" : "🛠️ 메이커 (Maker)"}
+            </button>
+          ))}
+        </div>
+        <p className="mt-1.5 text-xs text-slate-400">
+          {form.maker_type === "hunter" ? "Hot Products 큐레이션 — 내가 직접 만든 제품이 아닙니다." : "내가 만든 제품 — Launches로 등록하는 걸 권장합니다."}
+        </p>
+      </div>
+      <Field label="카테고리" required hint={`최대 3개 선택 (현재 ${form.categories.length}/3)`}>
+        {form.categories.length === 3 && (
+          <p className="mb-2 rounded-xl bg-amber-50 px-3 py-1.5 text-xs text-amber-600">최대 3개 선택됐습니다.</p>
+        )}
+        <div className="grid grid-cols-3 gap-1.5">
+          {ALL_CATEGORIES.map((cat) => {
+            const selected = form.categories.includes(cat.value);
+            const disabled = !selected && form.categories.length >= 3;
+            return (
+              <button key={cat.value} type="button" onClick={() => toggleCategory(cat.value)} disabled={disabled}
+                className={`flex items-center gap-1.5 rounded-xl border px-2.5 py-2 text-left transition ${
+                  selected ? "border-blue-400 bg-blue-50 font-semibold text-blue-700"
+                    : disabled ? "cursor-not-allowed border-slate-100 bg-slate-50 text-slate-300"
+                    : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+                }`}>
+                <span className="text-sm leading-none">{cat.icon}</span>
+                <span className="flex-1 text-xs leading-tight">{cat.label}</span>
+                {selected && <span className="text-[10px] text-blue-500">✓</span>}
+              </button>
+            );
+          })}
+        </div>
       </Field>
       <Field label="제품 설명" required hint="어떤 문제를 해결하는지 자세히 소개하세요">
         <textarea
@@ -308,7 +411,7 @@ export default function AdminUploadForm() {
 
       <button
         onClick={handleSubmit}
-        disabled={isSubmitting || !form.name || !form.tagline || !form.url || !form.description}
+        disabled={isSubmitting || !form.name || !form.tagline || !form.url || !form.description || form.categories.length === 0}
         className="w-full rounded-xl bg-navy-900 py-3 text-sm font-semibold text-white transition hover:bg-navy-800 disabled:opacity-40"
       >
         {isSubmitting ? "등록 중…" : "Hot Products에 등록하기 🔥"}

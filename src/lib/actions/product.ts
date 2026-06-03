@@ -431,6 +431,69 @@ export async function resubmitProduct(
   return {};
 }
 
+// ── deleteMyProduct ───────────────────────────────────────────────────────────
+// 본인 제품 삭제 (일반 사용자 — launch 제품만)
+
+export async function deleteMyProduct(
+  productId: string
+): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "로그인이 필요합니다." };
+
+  const { data: product } = await supabase
+    .from("products")
+    .select("source")
+    .eq("id", productId)
+    .eq("maker_id", user.id)
+    .single();
+
+  if (!product) return { error: "제품을 찾을 수 없거나 권한이 없습니다." };
+  if (product.source === "curated") return { error: "큐레이션 제품은 관리자만 삭제할 수 있습니다." };
+
+  const { error } = await supabase
+    .from("products")
+    .delete()
+    .eq("id", productId)
+    .eq("maker_id", user.id);
+
+  if (error) return { error: error.message };
+  return {};
+}
+
+// ── deleteAdminProduct ────────────────────────────────────────────────────────
+// 어드민 전용 — 모든 제품(curated 포함) 삭제
+
+export async function deleteAdminProduct(
+  productId: string
+): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "로그인이 필요합니다." };
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("is_admin")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile?.is_admin) return { error: "관리자 권한이 필요합니다." };
+
+  const { error } = await supabase
+    .from("products")
+    .delete()
+    .eq("id", productId);
+
+  if (error) return { error: error.message };
+  return {};
+}
+
 // ── createCuratedProduct ──────────────────────────────────────────────────────
 // 어드민 전용 — 큐레이션 제품 직접 등록 (즉시 published)
 
@@ -445,6 +508,8 @@ interface CreateCuratedInput {
   thumbnail_url?: string;
   video_url?: string;
   gallery_images?: string[];
+  extra_links?: ExtraLink[];
+  maker_type?: "maker" | "hunter";
   is_featured?: boolean;
   featured_label?: string;
 }
@@ -481,7 +546,7 @@ export async function createCuratedProduct(
       video_url: input.video_url?.trim() || null,
       gallery_images: input.gallery_images ?? [],
       is_open_source: false,
-      maker_type: "maker",
+      maker_type: input.maker_type ?? "hunter",
       maker_id: user.id,
       source: "curated",
       status: "published",
@@ -493,6 +558,22 @@ export async function createCuratedProduct(
     .single();
 
   if (error) return { error: error.message };
+
+  // extra_links 저장
+  if (input.extra_links && input.extra_links.length > 0) {
+    const links = input.extra_links.filter((l) => l.url.trim());
+    if (links.length > 0) {
+      await supabase.from("product_links").insert(
+        links.map((l, i) => ({
+          product_id: data.id,
+          link_type: l.type,
+          url: l.url.trim(),
+          label: l.label?.trim() || null,
+          sort_order: i,
+        }))
+      );
+    }
+  }
 
   redirect(`/products/${data.id}`);
 }

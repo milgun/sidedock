@@ -1,5 +1,6 @@
 ﻿import { createClient, getUser } from "@/lib/supabase/server";
 import Link from "next/link";
+import Image from "next/image";
 import type { DevlogPostWithAuthor } from "@/types";
 
 function timeAgo(dateStr: string) {
@@ -38,7 +39,7 @@ export default async function DevlogPage() {
   );
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10">
+    <div className="mx-auto max-w-5xl px-4 py-10">
       <div className="mb-8 flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-black text-slate-900">📝 Dev Log</h1>
@@ -64,23 +65,42 @@ export default async function DevlogPage() {
       </div>
 
       {posts.length > 0 ? (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {posts.map((post) => (
-            <article
+            <Link
               key={post.id}
-              className="rounded-2xl border border-slate-100 bg-white p-5 transition hover:border-blue-200 hover:shadow-sm"
+              href={`/devlog/${post.id}`}
+              className="group flex flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white transition hover:border-blue-200 hover:shadow-md"
             >
-              <Link href={`/devlog/${post.id}`} className="block">
-                <h2 className="font-bold text-slate-900 hover:text-blue-600">
+              {/* 썸네일 */}
+              <div className="relative h-44 w-full flex-shrink-0 bg-gradient-to-br from-slate-100 to-slate-50">
+                {post.thumbnail_url ? (
+                  <Image
+                    src={post.thumbnail_url}
+                    alt={post.title}
+                    fill
+                    className="object-cover transition group-hover:scale-[1.02]"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-4xl select-none">
+                    📝
+                  </div>
+                )}
+              </div>
+
+              {/* 카드 본문 */}
+              <div className="flex flex-1 flex-col p-4">
+                <h2 className="line-clamp-2 font-bold text-slate-900 group-hover:text-blue-600 leading-snug">
                   {post.title}
                 </h2>
-                <p className="mt-1 line-clamp-2 text-sm text-slate-500">
-                  {post.content.replace(/[#*`>\[\]!]/g, "").slice(0, 120)}
+                <p className="mt-1.5 line-clamp-2 text-sm text-slate-500 leading-relaxed">
+                  {post.content.replace(/[#*`>\[\]!]/g, "").slice(0, 100)}
                 </p>
-              </Link>
-              <div className="mt-3 flex items-center gap-4">
+
+                {/* 태그 */}
                 {post.tags.length > 0 && (
-                  <div className="flex gap-1.5">
+                  <div className="mt-3 flex flex-wrap gap-1">
                     {post.tags.slice(0, 3).map((tag) => (
                       <span key={tag} className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
                         #{tag}
@@ -88,14 +108,33 @@ export default async function DevlogPage() {
                     ))}
                   </div>
                 )}
-                <div className="ml-auto flex items-center gap-3 text-xs text-slate-400">
-                  <span>❤️ {post.like_count}</span>
-                  <span>💬 {post.comment_count}</span>
-                  <span>@{post.author?.username}</span>
-                  <span>{timeAgo(post.created_at)}</span>
+
+                {/* 작성자 + 메타 */}
+                <div className="mt-auto pt-4 flex items-center gap-2">
+                  {post.author?.avatar_url ? (
+                    <Image
+                      src={post.author.avatar_url}
+                      alt={post.author.display_name ?? post.author.username ?? ""}
+                      width={24}
+                      height={24}
+                      className="rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="h-6 w-6 rounded-full bg-slate-200 flex items-center justify-center text-xs text-slate-500">
+                      {(post.author?.display_name ?? post.author?.username ?? "?")[0].toUpperCase()}
+                    </div>
+                  )}
+                  <span className="text-xs text-slate-500 truncate">
+                    {post.author?.display_name ?? post.author?.username}
+                  </span>
+                  <div className="ml-auto flex items-center gap-2.5 text-xs text-slate-400 flex-shrink-0">
+                    <span>❤️ {post.like_count}</span>
+                    <span>💬 {post.comment_count}</span>
+                    <span>{timeAgo(post.created_at)}</span>
+                  </div>
                 </div>
               </div>
-            </article>
+            </Link>
           ))}
         </div>
       ) : (

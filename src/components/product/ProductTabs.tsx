@@ -11,7 +11,7 @@ import { createReview } from "@/lib/actions/review";
 
 // ── Local Types ────────────────────────────────────────────────────────────────
 
-type MakerInfo = Pick<Profile, "username" | "display_name" | "avatar_url" | "bio">;
+type MakerInfo = Pick<Profile, "username" | "display_name" | "avatar_url" | "headline">;
 
 export interface ReviewWithProfile {
   id: string;
@@ -41,6 +41,8 @@ export interface ProductTabsProps {
   galleryImages: string[];
   maker: MakerInfo | null;
   makerType: "maker" | "hunter";
+  isCurated?: boolean;
+  makerProducts?: { id: string; name: string; thumbnail_url: string | null }[];
   teamMembers: TeamMemberWithProfile[];
   shoutouts: ProductShoutout[];
   reviews: ReviewWithProfile[];
@@ -144,6 +146,8 @@ export default function ProductTabs({
   galleryImages,
   maker,
   makerType,
+  isCurated,
+  makerProducts,
   teamMembers,
   shoutouts,
   reviews,
@@ -205,7 +209,7 @@ export default function ProductTabs({
           {maker && (
             <section className="mb-10 rounded-2xl border border-slate-100 bg-slate-50 p-5">
               <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
-                {makerType === "maker" ? "메이커" : "큐레이터"}
+                {isCurated ? "큐레이터" : makerType === "maker" ? "메이커" : "큐레이터"}
               </p>
               <div className="flex items-center gap-3">
                 <Avatar
@@ -213,18 +217,39 @@ export default function ProductTabs({
                   name={maker.display_name ?? maker.username ?? "?"}
                   size={40}
                 />
-                <div>
+                <div className="min-w-0 flex-1">
                   <Link
                     href={`/profile/${maker.username}`}
                     className="font-semibold text-slate-900 hover:text-blue-700"
                   >
                     {maker.display_name ?? maker.username}
                   </Link>
-                  {maker.bio && (
-                    <p className="text-sm text-slate-500">{maker.bio}</p>
+                  {maker.headline && (
+                    <p className="text-sm text-slate-500">{maker.headline}</p>
                   )}
                 </div>
               </div>
+              {makerProducts && makerProducts.length > 0 && (
+                <div className="mt-3 border-t border-slate-200 pt-3">
+                  <p className="mb-2 text-xs text-slate-400">출시한 제품</p>
+                  <div className="flex flex-wrap gap-2">
+                    {makerProducts.map((p) => (
+                      <Link key={p.id} href={`/products/${p.id}`}
+                        className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 transition hover:border-blue-300 hover:text-blue-700">
+                        {p.thumbnail_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={p.thumbnail_url} alt={p.name} className="h-4 w-4 rounded object-cover" />
+                        ) : (
+                          <span className="flex h-4 w-4 items-center justify-center rounded bg-slate-200 text-[9px] font-bold text-slate-500">
+                            {p.name[0]?.toUpperCase()}
+                          </span>
+                        )}
+                        {p.name}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
             </section>
           )}
 
@@ -294,13 +319,34 @@ export default function ProductTabs({
       {/* ── 팀 ── */}
       {activeTab === "team" && (
         <div>
-          {teamMembers.length === 0 ? (
+          {teamMembers.length === 0 && !(makerType === "maker" && maker) ? (
             <div className="py-16 text-center text-slate-400">
               <p className="mb-3 text-5xl">👥</p>
               <p className="text-sm">팀 정보가 없습니다.</p>
             </div>
           ) : (
             <div className="space-y-3">
+              {/* Launches인 경우 메이커(창업자)를 팀 상단에 표시 */}
+              {makerType === "maker" && maker && (
+                <div className="flex items-center gap-4 rounded-2xl border border-blue-100 bg-blue-50 p-4">
+                  <Avatar url={maker.avatar_url} name={maker.display_name ?? maker.username ?? "?"} size={48} />
+                  <div className="flex-1">
+                    {maker.username ? (
+                      <Link href={`/profile/${maker.username}`} className="font-semibold text-slate-900 hover:text-blue-700">
+                        {maker.display_name ?? maker.username}
+                      </Link>
+                    ) : (
+                      <p className="font-semibold text-slate-900">{maker.display_name ?? maker.username}</p>
+                    )}
+                    <p className="text-sm text-slate-500">창업자</p>
+                  </div>
+                  {maker.username && (
+                    <Link href={`/profile/${maker.username}`} className="rounded-lg border border-blue-200 bg-white px-3 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-100">
+                      프로필 →
+                    </Link>
+                  )}
+                </div>
+              )}
               {teamMembers.map((member) => (
                 <div
                   key={member.id}

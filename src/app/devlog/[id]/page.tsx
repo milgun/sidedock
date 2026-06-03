@@ -102,6 +102,7 @@ export default async function DevlogDetailPage(props: {
           likeCount={post.like_count}
           initialHasLiked={hasLiked}
           userId={userId}
+          isOwner={userId === post.author_id}
           comments={comments}
         />
       </article>

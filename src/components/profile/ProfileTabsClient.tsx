@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useTransition } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import type { ProductWithMaker } from "@/types";
 import ProductCard from "@/components/product/ProductCard";
 import ProfileProducts from "@/components/profile/ProfileProducts";
+import { deleteDevlogPostSilent } from "@/lib/actions/devlog";
 
 // ── Tab definition ────────────────────────────────────────────────────────────
 const TABS = [
@@ -21,16 +23,23 @@ type TabId = (typeof TABS)[number]["id"];
 // ── Tab data types ────────────────────────────────────────────────────────────
 interface AboutData   { publishedCount: number; totalUpvotes: number }
 interface ActivityData {
-  activities: Array<{
+  comments: Array<{
     id: string; content: string; created_at: string;
     product: { id: string; name: string } | null;
+  }>;
+  upvotes: Array<{
+    created_at: string;
+    product: { id: string; name: string; thumbnail_url: string | null } | null;
+  }>;
+  devlogs: Array<{
+    id: string; title: string; created_at: string;
   }>;
 }
 interface ProductsData {
   isOwn: boolean;
   ownProducts?: Array<{
     id: string; name: string; tagline: string; thumbnail_url: string | null;
-    status: string; rejection_reason: string | null; created_at: string; upvote_count: number;
+    status: string; source?: string; rejection_reason: string | null; created_at: string; upvote_count: number;
   }>;
   publicProducts?: ProductWithMaker[];
 }
@@ -44,6 +53,7 @@ interface ReviewsData {
 interface DevlogData {
   devlogs: Array<{
     id: string; title: string; tags: string[];
+    thumbnail_url: string | null;
     like_count: number; comment_count: number; created_at: string;
   }>;
 }
@@ -54,6 +64,7 @@ type TabData = AboutData | ActivityData | ProductsData | BoostData | ReviewsData
 interface ProfileTabsClientProps {
   username: string;
   isOwn: boolean;
+  isAdmin: boolean;
   userId: string | null;
   initialTab: string;
   publishedCount: number;
@@ -65,6 +76,7 @@ interface ProfileTabsClientProps {
 export default function ProfileTabsClient({
   username,
   isOwn,
+  isAdmin,
   userId,
   initialTab,
   publishedCount,
@@ -99,6 +111,18 @@ export default function ProfileTabsClient({
   useEffect(() => {
     fetchTab(validTab);
   }, [fetchTab, validTab]);
+
+  // bfcache 복원(뒤로 가기) 감지 → 탭 데이터 재요청
+  useEffect(() => {
+    const handlePageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) {
+        fetchedTabs.current.clear();
+        void fetchTab(activeTab);
+      }
+    };
+    window.addEventListener("pageshow", handlePageShow);
+    return () => window.removeEventListener("pageshow", handlePageShow);
+  }, [activeTab, fetchTab]);
 
   const handleTabChange = (tab: TabId) => {
     setActiveTab(tab);
@@ -150,11 +174,21 @@ export default function ProfileTabsClient({
           tab={activeTab}
           data={currentData}
           isOwn={isOwn}
+          isAdmin={isAdmin}
           userId={userId}
-          username={username}
           publishedCount={publishedCount}
           profileCreatedAt={profileCreatedAt}
           profileBio={profileBio}
+          onDevlogDeleted={(id) => {
+            setTabData((prev) => {
+              const cur = prev["devlog"] as DevlogData | undefined;
+              if (!cur) return prev;
+              return {
+                ...prev,
+                devlog: { devlogs: cur.devlogs.filter((d) => d.id !== id) },
+              };
+            });
+          }}
         />
       )}
     </>
@@ -166,20 +200,22 @@ function TabContent({
   tab,
   data,
   isOwn,
+  isAdmin,
   userId,
-  username,
   publishedCount,
   profileCreatedAt,
   profileBio,
+  onDevlogDeleted,
 }: {
   tab: TabId;
   data: TabData | undefined;
   isOwn: boolean;
+  isAdmin: boolean;
   userId: string | null;
-  username: string;
   publishedCount: number;
   profileCreatedAt: string;
   profileBio: string | null;
+  onDevlogDeleted: (id: string) => void;
 }) {
   if (!data) return null;
 
@@ -217,27 +253,77 @@ function TabContent({
   }
 
   if (tab === "activity") {
-    const { activities } = data as ActivityData;
-    return activities.length === 0 ? (
+    const { comments, upvotes, devlogs } = data as ActivityData;
+
+    // 시간순 병합
+    type ActivityItem =
+      | { kind: "comment"; id: string; content: string; created_at: string; product: { id: string; name: string } | null }
+      | { kind: "upvote"; created_at: string; product: { id: string; name: string; thumbnail_url: string | null } | null }
+      | { kind: "devlog"; id: string; title: string; created_at: string };
+
+    const items: ActivityItem[] = [
+      ...comments.map((c) => ({ kind: "comment" as const, ...c })),
+      ...upvotes.map((u) => ({ kind: "upvote" as const, ...u })),
+      ...devlogs.map((d) => ({ kind: "devlog" as const, ...d })),
+    ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    return items.length === 0 ? (
       <EmptyState message="아직 활동 내역이 없습니다." />
     ) : (
       <div className="space-y-3">
-        {activities.map((a) => (
-          <div key={a.id} className="rounded-2xl border border-slate-100 bg-white p-4">
-            {a.product && (
-              <Link
-                href={`/products/${a.product.id}`}
-                className="mb-1 block text-xs font-semibold text-blue-600 hover:underline"
-              >
-                {a.product.name}
+        {items.map((item, idx) => {
+          if (item.kind === "comment") {
+            return (
+              <div key={`c-${item.id}`} className="rounded-2xl border border-slate-100 bg-white p-4">
+                <div className="mb-1.5 flex items-center gap-2">
+                  <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-600">💬 댓글</span>
+                  {item.product && (
+                    <Link href={`/products/${item.product.id}`} className="text-xs font-semibold text-slate-700 hover:text-blue-600 hover:underline">
+                      {item.product.name}
+                    </Link>
+                  )}
+                </div>
+                <p className="text-sm text-slate-700">{item.content}</p>
+                <p className="mt-2 text-xs text-slate-300">{new Date(item.created_at).toLocaleDateString("ko-KR")}</p>
+              </div>
+            );
+          }
+          if (item.kind === "upvote") {
+            return (
+              <div key={`u-${idx}`} className="rounded-2xl border border-slate-100 bg-white p-4">
+                <div className="flex items-center gap-3">
+                  {item.product?.thumbnail_url && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={item.product.thumbnail_url} alt="" className="h-9 w-9 flex-shrink-0 rounded-xl object-cover" />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-0.5 flex items-center gap-2">
+                      <span className="rounded-full bg-orange-50 px-2 py-0.5 text-[11px] font-semibold text-orange-500">🚀 Boost</span>
+                      {item.product && (
+                        <Link href={`/products/${item.product.id}`} className="text-xs font-semibold text-slate-700 hover:text-blue-600 hover:underline">
+                          {item.product.name}
+                        </Link>
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-300">{new Date(item.created_at).toLocaleDateString("ko-KR")}</p>
+                  </div>
+                </div>
+              </div>
+            );
+          }
+          // devlog
+          return (
+            <div key={`d-${item.id}`} className="rounded-2xl border border-slate-100 bg-white p-4">
+              <div className="mb-1.5 flex items-center gap-2">
+                <span className="rounded-full bg-violet-50 px-2 py-0.5 text-[11px] font-semibold text-violet-600">📝 Dev Log</span>
+              </div>
+              <Link href={`/devlog/${item.id}`} className="text-sm font-semibold text-slate-800 hover:text-blue-600 hover:underline">
+                {item.title}
               </Link>
-            )}
-            <p className="text-sm text-slate-700">{a.content}</p>
-            <p className="mt-2 text-xs text-slate-300">
-              {new Date(a.created_at).toLocaleDateString("ko-KR")}
-            </p>
-          </div>
-        ))}
+              <p className="mt-1.5 text-xs text-slate-300">{new Date(item.created_at).toLocaleDateString("ko-KR")}</p>
+            </div>
+          );
+        })}
       </div>
     );
   }
@@ -245,7 +331,7 @@ function TabContent({
   if (tab === "products") {
     const { isOwn: tabIsOwn, ownProducts, publicProducts } = data as ProductsData;
     if (tabIsOwn && ownProducts) {
-      return <ProfileProducts products={ownProducts} isOwn={true} />;
+      return <ProfileProducts products={ownProducts} isOwn={true} isAdmin={isAdmin} />;
     }
     if (!publicProducts || publicProducts.length === 0) {
       return <EmptyState message="아직 등록한 제품이 없습니다." />;
@@ -312,45 +398,99 @@ function TabContent({
 
   if (tab === "devlog") {
     const { devlogs } = data as DevlogData;
-    return devlogs.length === 0 ? (
+    return (
+      <DevlogTabContent
+        devlogs={devlogs}
+        isOwn={isOwn}
+        onDevlogDeleted={onDevlogDeleted}
+      />
+    );
+  }
+
+  return null;
+}
+
+// ── DevlogTabContent (태그 필터 포함) ─────────────────────────────────────────
+function DevlogTabContent({
+  devlogs,
+  isOwn,
+  onDevlogDeleted,
+}: {
+  devlogs: DevlogData["devlogs"];
+  isOwn: boolean;
+  onDevlogDeleted: (id: string) => void;
+}) {
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+
+  // 전체 태그 목록 (중복 제거, 사용 빈도순)
+  const tagCounts = devlogs.reduce<Record<string, number>>((acc, post) => {
+    post.tags.forEach((tag) => { acc[tag] = (acc[tag] ?? 0) + 1; });
+    return acc;
+  }, {});
+  const allTags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]).map(([tag]) => tag);
+
+  const filtered = selectedTag
+    ? devlogs.filter((p) => p.tags.includes(selectedTag))
+    : devlogs;
+
+  if (devlogs.length === 0) {
+    return (
       <EmptyState
         message="아직 작성한 Dev Log가 없습니다."
         href={isOwn ? "/devlog/new" : undefined}
         linkText="첫 Dev Log 작성하기 →"
       />
-    ) : (
-      <div className="space-y-3">
-        {devlogs.map((post) => (
-          <Link
-            key={post.id}
-            href={`/devlog/${post.id}`}
-            className="block rounded-2xl border border-slate-100 bg-white p-5 transition hover:border-blue-200 hover:shadow-sm"
-          >
-            <h3 className="font-semibold text-slate-900">{post.title}</h3>
-            {post.tags.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-1">
-                {post.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500"
-                  >
-                    #{tag}
-                  </span>
-                ))}
-              </div>
-            )}
-            <div className="mt-3 flex items-center gap-3 text-xs text-slate-300">
-              <span>❤️ {post.like_count}</span>
-              <span>💬 {post.comment_count}</span>
-              <span>{new Date(post.created_at).toLocaleDateString("ko-KR")}</span>
-            </div>
-          </Link>
-        ))}
-      </div>
     );
   }
 
-  return null;
+  return (
+    <div className="space-y-4">
+      {/* 태그 필터 */}
+      {allTags.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setSelectedTag(null)}
+            className={`rounded-full px-3 py-1 text-xs font-medium transition ${
+              selectedTag === null
+                ? "bg-slate-900 text-white"
+                : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+            }`}
+          >
+            전체 <span className={`ml-0.5 ${selectedTag === null ? "text-slate-300" : "text-slate-400"}`}>{devlogs.length}</span>
+          </button>
+          {allTags.map((tag) => (
+            <button
+              key={tag}
+              onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
+              className={`rounded-full px-3 py-1 text-xs font-medium transition ${
+                selectedTag === tag
+                  ? "bg-slate-900 text-white"
+                  : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+              }`}
+            >
+              #{tag} <span className={`ml-0.5 ${selectedTag === tag ? "text-slate-300" : "text-slate-400"}`}>{tagCounts[tag]}</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* 글 목록 */}
+      {filtered.length === 0 ? (
+        <p className="py-8 text-center text-sm text-slate-400">해당 태그의 글이 없습니다.</p>
+      ) : (
+        <div className="space-y-3">
+          {filtered.map((post) => (
+            <DevlogCard
+              key={post.id}
+              post={post}
+              isOwn={isOwn}
+              onDeleted={onDevlogDeleted}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -359,6 +499,95 @@ function StatCard({ label, value }: { label: string; value: number | string }) {
     <div className="rounded-2xl border border-slate-100 bg-white p-4 text-center">
       <p className="text-2xl font-black text-navy-900">{value}</p>
       <p className="mt-0.5 text-xs text-slate-400">{label}</p>
+    </div>
+  );
+}
+
+// ── DevlogCard ────────────────────────────────────────────────────────────────
+function DevlogCard({
+  post,
+  isOwn,
+  onDeleted,
+}: {
+  post: {
+    id: string; title: string; tags: string[];
+    thumbnail_url: string | null;
+    like_count: number; comment_count: number; created_at: string;
+  };
+  isOwn: boolean;
+  onDeleted: (id: string) => void;
+}) {
+  const [isPending, startTransition] = useTransition();
+
+  const handleDelete = () => {
+    if (!window.confirm("정말 이 Dev Log를 삭제할까요? 되돌릴 수 없습니다.")) return;
+    startTransition(async () => {
+      const result = await deleteDevlogPostSilent(post.id);
+      if (result.success) onDeleted(post.id);
+      else alert(result.error ?? "삭제에 실패했습니다.");
+    });
+  };
+
+  return (
+    <div className="rounded-2xl border border-slate-100 bg-white p-4 transition hover:border-blue-200 hover:shadow-sm">
+      <div className="flex items-start gap-4">
+        {/* 썸네일 */}
+        <Link href={`/devlog/${post.id}`} className="relative h-20 w-28 flex-shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-slate-100 to-slate-50">
+          {post.thumbnail_url ? (
+            <Image
+              src={post.thumbnail_url}
+              alt={post.title}
+              fill
+              className="object-cover"
+              sizes="112px"
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center text-2xl select-none">📝</div>
+          )}
+        </Link>
+
+        {/* 텍스트 영역 */}
+        <div className="flex min-w-0 flex-1 flex-col">
+          <Link href={`/devlog/${post.id}`} className="font-semibold text-slate-900 hover:text-blue-600 leading-snug line-clamp-2">
+            {post.title}
+          </Link>
+
+          {post.tags.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {post.tags.slice(0, 3).map((tag) => (
+                <span key={tag} className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-3 flex items-center gap-3 text-xs text-slate-400">
+            <span>❤️ {post.like_count}</span>
+            <span>💬 {post.comment_count}</span>
+            <span className="ml-auto">{new Date(post.created_at).toLocaleDateString("ko-KR")}</span>
+          </div>
+
+          {/* 수정/삭제 (본인만) */}
+          {isOwn && (
+            <div className="mt-3 flex gap-2 border-t border-slate-100 pt-3">
+              <Link
+                href={`/devlog/${post.id}/edit`}
+                className="rounded-lg border border-slate-200 px-3 py-1 text-xs font-medium text-slate-600 transition hover:border-blue-400 hover:text-blue-600"
+              >
+                수정
+              </Link>
+              <button
+                onClick={handleDelete}
+                disabled={isPending}
+                className="rounded-lg border border-slate-200 px-3 py-1 text-xs font-medium text-slate-600 transition hover:border-red-400 hover:text-red-600 disabled:opacity-40"
+              >
+                {isPending ? "삭제 중…" : "삭제"}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

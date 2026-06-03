@@ -1,4 +1,5 @@
 import { createClient, getUser } from "@/lib/supabase/server";
+import { getIsAdmin } from "@/lib/admin";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -22,6 +23,7 @@ export default async function ProfilePage(props: {
 
   const isOwn = user?.id === profile.id;
   const userId = user?.id ?? null;
+  const isAdmin = user ? await getIsAdmin() : false;
 
   const { count: publishedCount } = await supabase
     .from("products")
@@ -95,6 +97,7 @@ export default async function ProfilePage(props: {
       <ProfileTabsClient
         username={username}
         isOwn={isOwn}
+        isAdmin={isAdmin}
         userId={userId}
         initialTab={initialTab}
         publishedCount={publishedCount ?? 0}

@@ -249,12 +249,12 @@ function ListCard({
             <span className="flex items-center gap-1 text-xs text-slate-400">
               <span
                 className={
-                  product.maker_type === "maker"
-                    ? "font-semibold text-blue-500"
-                    : "font-semibold text-violet-500"
+                  product.source === "curated" || product.maker_type === "hunter"
+                    ? "font-semibold text-violet-500"
+                    : "font-semibold text-blue-500"
                 }
               >
-                {product.maker_type === "maker" ? "메이커" : "큐레이터"}
+                {product.source === "curated" || product.maker_type === "hunter" ? "큐레이터" : "메이커"}
               </span>
               {product.maker.display_name ?? product.maker.username}
             </span>

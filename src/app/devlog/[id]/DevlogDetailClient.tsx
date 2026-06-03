@@ -1,9 +1,10 @@
 ﻿"use client";
 
 import { useState, useTransition, useRef } from "react";
+import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { toggleDevlogLike, createDevlogComment } from "@/lib/actions/devlog";
+import { toggleDevlogLike, createDevlogComment, deleteDevlogPost } from "@/lib/actions/devlog";
 import type { DevlogComment, Profile } from "@/types";
 import Image from "next/image";
 import Link from "next/link";
@@ -14,6 +15,7 @@ interface Props {
   likeCount: number;
   initialHasLiked: boolean;
   userId: string | null;
+  isOwner: boolean;
   comments: (DevlogComment & { author: Profile })[];
 }
 
@@ -27,21 +29,43 @@ function timeAgo(dateStr: string) {
   return days < 30 ? `${days}일 전` : new Date(dateStr).toLocaleDateString("ko-KR");
 }
 
+function withSoftBreaks(content: string): string {
+  const parts = content.split(/(```[\s\S]*?```)/g);
+  return parts
+    .map((part, i) => {
+      if (i % 2 === 1) return part;
+      return part.replace(/(?<!\n)\n(?!\n)/g, "  \n");
+    })
+    .join("");
+}
+
 export default function DevlogDetailClient({
   postId,
   content,
   likeCount,
   initialHasLiked,
   userId,
+  isOwner,
   comments: initialComments,
 }: Props) {
+  const router = useRouter();
   const [hasLiked, setHasLiked] = useState(initialHasLiked);
   const [count, setCount] = useState(likeCount);
   const [comments, setComments] = useState(initialComments);
   const [commentText, setCommentText] = useState("");
   const [commentError, setCommentError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [isDeleting, startDeleteTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
+
+  const handleDelete = () => {
+    if (!window.confirm("정말 이 Dev Log를 삭제할까요? 되돌릴 수 없습니다.")) return;
+    startDeleteTransition(async () => {
+      await deleteDevlogPost(postId);
+      router.push("/devlog");
+      router.refresh();
+    });
+  };
 
   const handleLike = () => {
     if (!userId) { window.location.href = "/login"; return; }
@@ -67,9 +91,115 @@ export default function DevlogDetailClient({
 
   return (
     <>
+      {/* 글쓴이 전용 수정/삭제 버튼 */}
+      {isOwner && (
+        <div className="mt-5 flex gap-2">
+          <Link
+            href={`/devlog/${postId}/edit`}
+            className="rounded-lg border border-slate-200 px-4 py-1.5 text-xs font-medium text-slate-600 transition hover:border-blue-400 hover:text-blue-600"
+          >
+            수정
+          </Link>
+          <button
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="rounded-lg border border-slate-200 px-4 py-1.5 text-xs font-medium text-slate-600 transition hover:border-red-400 hover:text-red-600 disabled:opacity-40"
+          >
+            {isDeleting ? "삭제 중…" : "삭제"}
+          </button>
+        </div>
+      )}
+
       {/* Markdown body */}
-      <div className="prose prose-slate mt-8 max-w-none">
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+      <div className="mt-8 max-w-none">
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          components={{
+            h1: ({ children }) => (
+              <h1 className="mb-3 mt-8 text-2xl font-black text-slate-900 first:mt-0">{children}</h1>
+            ),
+            h2: ({ children }) => (
+              <h2 className="mb-2 mt-7 text-xl font-bold text-slate-900">{children}</h2>
+            ),
+            h3: ({ children }) => (
+              <h3 className="mb-2 mt-5 text-base font-bold text-slate-800">{children}</h3>
+            ),
+            p: ({ children }) => (
+              <p className="mb-4 leading-7 text-slate-700">{children}</p>
+            ),
+            strong: ({ children }) => (
+              <strong className="font-bold text-slate-900">{children}</strong>
+            ),
+            em: ({ children }) => (
+              <em className="italic text-slate-700">{children}</em>
+            ),
+            blockquote: ({ children }) => (
+              <blockquote className="my-4 border-l-4 border-blue-300 pl-4 italic text-slate-500">
+                {children}
+              </blockquote>
+            ),
+            code: ({
+              inline,
+              children,
+              ...props
+            }: {
+              inline?: boolean;
+              className?: string;
+              children?: React.ReactNode;
+            }) =>
+              inline ? (
+                <code
+                  className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-sm text-pink-600"
+                  {...props}
+                >
+                  {children}
+                </code>
+              ) : (
+                <pre className="my-4 overflow-x-auto rounded-xl bg-slate-900 px-5 py-4">
+                  <code className="font-mono text-sm text-slate-100" {...props}>
+                    {children}
+                  </code>
+                </pre>
+              ),
+            ul: ({ children }) => (
+              <ul className="mb-4 ml-6 list-disc space-y-1.5 text-slate-700">{children}</ul>
+            ),
+            ol: ({ children }) => (
+              <ol className="mb-4 ml-6 list-decimal space-y-1.5 text-slate-700">{children}</ol>
+            ),
+            li: ({ children }) => <li className="leading-7">{children}</li>,
+            hr: () => <hr className="my-6 border-slate-200" />,
+            a: ({ href, children }) => (
+              <a
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 underline hover:text-blue-800"
+              >
+                {children}
+              </a>
+            ),
+            img: ({ src, alt }) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={src} alt={alt ?? ""} className="my-4 max-w-full rounded-xl" />
+            ),
+            table: ({ children }) => (
+              <div className="my-4 overflow-x-auto">
+                <table className="w-full border-collapse text-sm">{children}</table>
+              </div>
+            ),
+            th: ({ children }) => (
+              <th className="border border-slate-200 bg-slate-50 px-3 py-2 text-left font-semibold text-slate-700">
+                {children}
+              </th>
+            ),
+            td: ({ children }) => (
+              <td className="border border-slate-200 px-3 py-2 text-slate-600">{children}</td>
+            ),
+          }}
+        >
+          {withSoftBreaks(content)}
+        </ReactMarkdown>
       </div>
 
       {/* Like button */}

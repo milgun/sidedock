@@ -107,6 +107,23 @@ export default async function ProductDetailPage(props: {
       supabase.from("reviews").select("*, profile:profiles(id, username, display_name, avatar_url)").eq("product_id", id).order("created_at", { ascending: false }),
     ]);
 
+  // 메이커가 출시한 다른 제품 — Launches 제품에만 표시 (curated 제외)
+  const productSource = product.source as string;
+  const makerId = product.maker_id as string;
+  let rawMakerProducts: { id: string; name: string; thumbnail_url: string | null }[] | null = null;
+  if (productSource === "launch") {
+    const { data } = await supabase
+      .from("products")
+      .select("id, name, thumbnail_url")
+      .eq("maker_id", makerId)
+      .eq("status", "published")
+      .eq("source", "launch")
+      .neq("id", id)
+      .order("launched_at", { ascending: false })
+      .limit(5);
+    rawMakerProducts = data as typeof rawMakerProducts;
+  }
+
   const user = earlyUser;
 
   let hasUpvoted = false;
@@ -142,7 +159,9 @@ export default async function ProductDetailPage(props: {
   const teamMembers = (rawTeam ?? []) as unknown as (ProductTeamMember & { profile: Pick<Profile, "id" | "username" | "display_name" | "avatar_url"> | null })[];
   const shoutouts = (rawShoutouts ?? []) as unknown as ProductShoutout[];
   const reviews = (rawReviews ?? []) as unknown as { id: string; rating: number; content: string; created_at: string; profile: Pick<Profile, "username" | "display_name" | "avatar_url"> | null }[];
+  const makerProducts = (rawMakerProducts ?? []) as { id: string; name: string; thumbnail_url: string | null }[];
   const userId = user?.id ?? null;
+  const isCurated = productSource === "curated";
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
@@ -255,6 +274,8 @@ export default async function ProductDetailPage(props: {
         galleryImages={product.gallery_images ?? []}
         maker={typedProduct.maker ?? null}
         makerType={typedProduct.maker_type}
+        isCurated={isCurated}
+        makerProducts={makerProducts}
         teamMembers={teamMembers}
         shoutouts={shoutouts}
         reviews={reviews}

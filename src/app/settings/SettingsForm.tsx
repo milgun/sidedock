@@ -6,6 +6,7 @@ import Image from "next/image";
 
 type Profile = {
   display_name: string | null;
+  headline: string | null;
   bio: string | null;
   website_url: string | null;
   twitter_url: string | null;
@@ -16,6 +17,7 @@ type Profile = {
 export default function SettingsForm({ profile }: { profile: Profile }) {
   const [form, setForm] = useState<UpdateProfileInput>({
     display_name: profile.display_name ?? "",
+    headline: profile.headline ?? "",
     bio: profile.bio ?? "",
     website_url: profile.website_url ?? "",
     twitter_url: profile.twitter_url ?? "",
@@ -158,6 +160,21 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
           <span className="text-sm text-slate-500">{profile.username}</span>
           <span className="ml-auto rounded-full bg-slate-200 px-2 py-0.5 text-[10px] text-slate-400">변경 불가</span>
         </div>
+      </Field>
+
+      {/* Headline */}
+      <Field
+        label="헤드라인"
+        hint="한 줄로 자신을 소개하세요 (예: Sidedock 창업자, AI 개발자)"
+      >
+        <input
+          type="text"
+          value={form.headline}
+          onChange={(e) => set("headline", e.target.value)}
+          maxLength={100}
+          placeholder="예: froppy 창업자 · iOS 개발자"
+          className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+        />
       </Field>
 
       {/* Bio */}

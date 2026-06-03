@@ -29,15 +29,21 @@ export default async function Navbar() {
         {/* Logo */}
         <Link href="/" className="flex flex-shrink-0 items-center gap-2">
           <Image
-            src="/logo.svg"
+            src="/logo.png"
             alt="Sidedock"
-            width={28}
-            height={30}
+            width={120}
+            height={72}
             className="h-7 w-auto"
+            unoptimized
           />
-          <span className="font-mono text-lg font-bold tracking-tight text-navy-900">
-            Sidedock
-          </span>
+          <Image
+            src="/logo-text.png"
+            alt="Sidedock"
+            width={200}
+            height={40}
+            className="h-5 w-auto"
+            unoptimized
+          />
         </Link>
 
         {/* Category Tabs */}
