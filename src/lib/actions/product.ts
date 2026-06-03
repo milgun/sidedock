@@ -578,12 +578,69 @@ export async function createCuratedProduct(
   redirect(`/products/${data.id}`);
 }
 
+// ── updateCuratedProduct ──────────────────────────────────────────────────────
+// 어드민 전용 — 큐레이션 제품 수정
 
-interface ExtraLink {
-  type: string;
-  url: string;
-  label?: string;
+export async function updateCuratedProduct(
+  productId: string,
+  input: CreateCuratedInput
+): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "로그인이 필요합니다." };
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("is_admin")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile?.is_admin) return { error: "관리자 권한이 필요합니다." };
+
+  const { error } = await supabase
+    .from("products")
+    .update({
+      name: input.name.trim(),
+      tagline: input.tagline.trim(),
+      description: input.description.trim(),
+      url: input.url.trim(),
+      category: input.category,
+      categories: input.categories ?? [input.category],
+      tags: input.tags.filter(Boolean),
+      thumbnail_url: input.thumbnail_url?.trim() || null,
+      video_url: input.video_url?.trim() || null,
+      gallery_images: input.gallery_images ?? [],
+      maker_type: input.maker_type ?? "hunter",
+      is_featured: input.is_featured ?? false,
+      featured_label: input.featured_label?.trim() || null,
+    })
+    .eq("id", productId);
+
+  if (error) return { error: error.message };
+
+  // extra_links 교체
+  await supabase.from("product_links").delete().eq("product_id", productId);
+  if (input.extra_links && input.extra_links.length > 0) {
+    const links = input.extra_links.filter((l) => l.url.trim());
+    if (links.length > 0) {
+      await supabase.from("product_links").insert(
+        links.map((l, i) => ({
+          product_id: productId,
+          link_type: l.type,
+          url: l.url.trim(),
+          label: l.label?.trim() || null,
+          sort_order: i,
+        }))
+      );
+    }
+  }
+
+  redirect(`/products/${productId}`);
 }
+
 
 interface TeamMemberInput {
   name: string;

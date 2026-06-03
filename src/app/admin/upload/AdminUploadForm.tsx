@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { createCuratedProduct } from "@/lib/actions/product";
+import { createCuratedProduct, updateCuratedProduct } from "@/lib/actions/product";
 
 type LinkItem = { id: string; type: string; url: string; label: string };
 
@@ -19,6 +19,27 @@ type FormFields = {
   maker_type: "maker" | "hunter";
   is_featured: boolean;
   featured_label: string;
+};
+
+export type AdminUploadInitialData = {
+  name: string;
+  tagline: string;
+  url: string;
+  categories: string[];
+  description: string;
+  tags: string[];
+  thumbnail_url: string;
+  video_url: string;
+  gallery_images: string[];
+  extra_links: LinkItem[];
+  maker_type: "maker" | "hunter";
+  is_featured: boolean;
+  featured_label: string;
+};
+
+type Props = {
+  productId?: string;
+  initialData?: AdminUploadInitialData;
 };
 
 const ALL_CATEGORIES = [
@@ -55,8 +76,15 @@ const EXTRA_LINK_TYPES = [
 const inputCls =
   "w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 transition focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100";
 
-export default function AdminUploadForm() {
-  const [form, setForm] = useState<FormFields>({
+export default function AdminUploadForm({ productId, initialData }: Props = {}) {
+  const isEditMode = !!productId;
+  const [form, setForm] = useState<FormFields>(
+    initialData
+      ? {
+          ...initialData,
+          tags: initialData.tags.join(", "),
+        }
+      : {
     name: "",
     tagline: "",
     url: "",
@@ -151,7 +179,7 @@ export default function AdminUploadForm() {
   const handleSubmit = async () => {
     setIsSubmitting(true);
     setServerError(null);
-    const result = await createCuratedProduct({
+    const input = {
       name: form.name,
       tagline: form.tagline,
       description: form.description,
@@ -169,7 +197,10 @@ export default function AdminUploadForm() {
       maker_type: form.maker_type,
       is_featured: form.is_featured,
       featured_label: form.featured_label || undefined,
-    });
+    };
+    const result = isEditMode
+      ? await updateCuratedProduct(productId!, input)
+      : await createCuratedProduct(input);
     setIsSubmitting(false);
     if (result?.error) setServerError(result.error);
   };
@@ -414,7 +445,7 @@ export default function AdminUploadForm() {
         disabled={isSubmitting || !form.name || !form.tagline || !form.url || !form.description || form.categories.length === 0}
         className="w-full rounded-xl bg-navy-900 py-3 text-sm font-semibold text-white transition hover:bg-navy-800 disabled:opacity-40"
       >
-        {isSubmitting ? "등록 중…" : "Hot Products에 등록하기 🔥"}
+        {isSubmitting ? "저장 중…" : isEditMode ? "수정 저장하기 ✏️" : "Hot Products에 등록하기 🔥"}
       </button>
     </div>
   );

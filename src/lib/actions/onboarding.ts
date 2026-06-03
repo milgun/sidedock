@@ -55,6 +55,9 @@ export async function completeOnboarding(_prevState: unknown, formData: FormData
 
   console.log("[onboarding] updated rows:", count, "for user:", user.id);
 
+  // JWT metadata 업데이트 → 미들웨어 리다이렉트 해제
+  await supabase.auth.updateUser({ data: { onboarding_completed: true } });
+
   revalidatePath("/", "layout");
   redirect(`/profile/${username}`);
 }

@@ -159,8 +159,10 @@ export default function ProductTabs({
 
   const tabs: { id: Tab; label: string; count?: number }[] = [
     { id: "overview", label: "개요" },
-    { id: "team", label: "팀", count: teamMembers.length },
-    { id: "shoutouts", label: "추천 도구", count: shoutouts.length },
+    ...(!isCurated ? [
+      { id: "team" as Tab, label: "팀", count: teamMembers.length },
+      { id: "shoutouts" as Tab, label: "추천 도구", count: shoutouts.length },
+    ] : []),
     { id: "reviews", label: "리뷰", count: reviews.length },
   ];
 

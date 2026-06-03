@@ -19,6 +19,8 @@ export async function GET(request: Request) {
           .single();
 
         if (!profile || !profile.onboarding_completed) {
+          // JWT metadata에 미완료 상태 기록 → 미들웨어가 탈출 방지
+          await supabase.auth.updateUser({ data: { onboarding_completed: false } });
           return NextResponse.redirect(`${origin}/onboarding`);
         }
       }

@@ -26,7 +26,20 @@ export async function proxy(request: NextRequest) {
   );
 
   // 세션 갱신 (토큰 만료 방지)
-  await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // 온보딩 미완료 유저 → /onboarding 강제 리다이렉트
+  const { pathname } = request.nextUrl;
+  const isProtected =
+    !pathname.startsWith("/auth/") &&
+    pathname !== "/onboarding" &&
+    pathname !== "/login" &&
+    pathname !== "/terms" &&
+    pathname !== "/privacy";
+
+  if (isProtected && user?.user_metadata?.onboarding_completed === false) {
+    return NextResponse.redirect(new URL("/onboarding", request.url));
+  }
 
   return supabaseResponse;
 }
