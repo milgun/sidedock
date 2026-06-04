@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { createClient, getUser } from "@/lib/supabase/server";
 import NavbarClient from "./NavbarClient";
 import NavbarTabs from "./NavbarTabs";
+import MobileNavTabs from "./MobileNavTabs";
 
 export default async function Navbar() {
   const user = await getUser();
@@ -46,7 +47,7 @@ export default async function Navbar() {
           />
         </Link>
 
-        {/* Category Tabs */}
+        {/* Category Tabs — desktop only */}
         <Suspense fallback={<div className="hidden h-9 flex-1 md:block" />}>
           <NavbarTabs />
         </Suspense>
@@ -54,6 +55,9 @@ export default async function Navbar() {
         {/* Right: Submit + User */}
         <NavbarClient user={user} avatarUrl={avatarUrl} isAdmin={isAdmin} username={username} />
       </div>
+
+      {/* Mobile tab bar — shown only below md breakpoint */}
+      <MobileNavTabs />
     </header>
   );
 }

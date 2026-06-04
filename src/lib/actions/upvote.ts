@@ -31,6 +31,35 @@ export async function toggleUpvote(
       .from("upvotes")
       .insert({ user_id: user.id, product_id: productId });
     if (error) return { success: false };
+
+    // 업보트 알림 — 제품 제작자에게 (본인 제품 제외)
+    const [{ data: product }, { data: actorProfile }] = await Promise.all([
+      supabase
+        .from("products")
+        .select("maker_id, name")
+        .eq("id", productId)
+        .single(),
+      supabase
+        .from("profiles")
+        .select("username, display_name")
+        .eq("id", user.id)
+        .single(),
+    ]);
+
+    if (product && product.maker_id !== user.id) {
+      await supabase.from("notifications").insert({
+        user_id: product.maker_id,
+        type: "upvote",
+        payload: {
+          product_id: productId,
+          product_name: product.name,
+          actor_id: user.id,
+          actor_username:
+            actorProfile?.display_name ?? actorProfile?.username ?? "누군가",
+        },
+      });
+    }
+
     return { success: true, hasUpvoted: true };
   }
 }

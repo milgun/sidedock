@@ -43,33 +43,73 @@ src/
 │   ├── layout.tsx              # 루트 레이아웃 (Navbar, Footer)
 │   ├── page.tsx                # 홈페이지 (오늘의 런칭)
 │   ├── auth/
-│   │   ├── callback/route.ts   # OAuth 콜백 핸들러
+│   │   ├── callback/route.ts   # OAuth 콜백 핸들러 (온보딩 메타데이터 설정)
 │   │   └── error/page.tsx      # 인증 오류 페이지
-│   ├── login/                  # 로그인 페이지 (구현 예정)
+│   ├── login/page.tsx          # 소셜 로그인 (Google / Kakao)
+│   ├── onboarding/page.tsx     # 신규 가입 프로필 설정 (완료 전 이탈 방지)
+│   ├── submit/page.tsx         # 제품 등록 폼
 │   ├── products/
-│   │   ├── page.tsx            # 전체 제품 목록 (구현 예정)
-│   │   ├── new/page.tsx        # 제품 등록 폼 (구현 예정)
-│   │   └── [id]/page.tsx       # 제품 상세 페이지 (구현 예정)
-│   └── profile/[id]/page.tsx   # 메이커 프로필 (구현 예정)
+│   │   ├── page.tsx            # 전체 제품 목록 + 카테고리 필터
+│   │   └── [id]/page.tsx       # 제품 상세 (업보트, 댓글, 리뷰)
+│   ├── hot/page.tsx            # 인기 제품 랭킹
+│   ├── launches/page.tsx       # 런칭 피드
+│   ├── devlog/
+│   │   ├── page.tsx            # 개발 로그 커뮤니티
+│   │   ├── new/page.tsx        # 개발 로그 작성
+│   │   └── [id]/
+│   │       ├── page.tsx        # 개발 로그 상세
+│   │       └── edit/page.tsx   # 개발 로그 수정 (작성자 전용)
+│   ├── profile/[username]/page.tsx  # 메이커 프로필
+│   ├── settings/page.tsx       # 계정 설정
+│   ├── admin/
+│   │   ├── moderation/page.tsx # 제품 심사 (관리자 전용)
+│   │   └── upload/
+│   │       ├── page.tsx        # Hot Product 등록 (관리자 전용)
+│   │       └── [id]/page.tsx   # Hot Product 수정 (관리자 전용)
+│   ├── terms/page.tsx          # 이용약관
+│   └── privacy/page.tsx        # 개인정보처리방침
 │
 ├── components/
 │   ├── layout/
 │   │   ├── Navbar.tsx          # 서버 컴포넌트 네비게이션 바
-│   │   └── NavbarClient.tsx    # 클라이언트 컴포넌트 (로그인/로그아웃)
+│   │   ├── NavbarClient.tsx    # 클라이언트 컴포넌트 (로그인/로그아웃)
+│   │   └── NavbarTabs.tsx      # 탭 네비게이션
+│   ├── home/
+│   │   ├── FeaturedHeroCard.tsx
+│   │   ├── ExpandableProductList.tsx
+│   │   └── WelcomeBanner.tsx
 │   ├── product/
-│   │   └── ProductCard.tsx     # 제품 카드 (목록 아이템)
-│   └── ui/                     # 공용 UI 컴포넌트 (Button, Modal 등)
+│   │   ├── ProductCard.tsx     # 제품 카드 (목록 아이템)
+│   │   ├── ProductTabs.tsx     # 제품 상세 탭 (큐레이션 제품은 팀/추천 탭 숨김)
+│   │   ├── CommentForm.tsx
+│   │   ├── MediaGallery.tsx
+│   │   └── UpvoteButton.tsx
+│   ├── profile/
+│   │   ├── ProfileProducts.tsx
+│   │   └── ProfileTabNav.tsx
+│   └── ui/
+│       ├── SearchBar.tsx
+│       └── DragScroll.tsx
 │
 ├── lib/
-│   └── supabase/
-│       ├── server.ts           # 서버사이드 Supabase 클라이언트 (SSR)
-│       └── client.ts           # 브라우저 Supabase 클라이언트
+│   ├── supabase/
+│   │   ├── server.ts           # 서버사이드 Supabase 클라이언트 (SSR)
+│   │   └── client.ts           # 브라우저 Supabase 클라이언트
+│   ├── admin.ts                # 관리자 권한 확인 유틸
+│   └── actions/                # Server Actions
+│       ├── product.ts          # 제품 CRUD (createCuratedProduct, updateCuratedProduct 포함)
+│       ├── comment.ts
+│       ├── upvote.ts
+│       ├── review.ts
+│       ├── devlog.ts
+│       ├── onboarding.ts       # 온보딩 완료 처리 (JWT 메타데이터 업데이트)
+│       └── profile.ts
 │
 ├── types/
 │   └── index.ts                # TypeScript 공통 타입 정의
 │
-├── hooks/                      # 커스텀 훅 (구현 예정)
-└── proxy.ts                    # 세션 갱신 미들웨어 (Next.js 16)
+├── hooks/                      # 커스텀 훅
+└── proxy.ts                    # 세션 갱신 + 온보딩 이탈 방지 미들웨어 (Next.js 16)
 ```
 
 ---
@@ -220,6 +260,8 @@ npm run dev
 | 2 | `supabase/migration_v2.sql` | **제품 등록 확장** — `product_category` enum 추가(모바일앱·브라우저확장 등), `products`에 `categories`·`is_open_source`·`repo_url`·`maker_type` 컬럼 추가. `product_links`(플랫폼별 링크), `product_team_members`, `product_shoutouts`, `product_investor_info` 테이블 생성. |
 | 3 | `supabase/migration_v3.sql` | **리뷰 시스템** — `reviews` 테이블 생성 (별점 1–5, 10자 이상 본문, 유저당 제품 리뷰 1개 제한). RLS 적용. |
 | 4 | `supabase/migration_v4.sql` | **심사 워크플로우 + 알림** — `product_status` enum(`draft` / `pending_review` / `published` / `rejected`) 추가, `products`에 `status`·`rejection_reason` 컬럼 추가. `notifications` 테이블 생성. 관리자 전용 RLS 정책 추가. |
+| 5 | `supabase/migration_v5.sql` | **프로필 확장** — `profiles`에 `headline` 컬럼 추가. |
+| 6 | `supabase/migration_v6.sql` | **개발 로그 썸네일** — `devlog_posts`에 `thumbnail_url` 컬럼 추가. `devlog_posts` DELETE RLS 정책 추가. |
 
 > **주의**: 이미 운영 중인 DB에 v4를 적용하면 기존 `draft` 상태 제품이 모두 `published`로 백필됩니다 (의도된 동작).
 
@@ -267,10 +309,12 @@ npx tsc --noEmit
 | `/devlog` | 개발 로그 커뮤니티 | ✅ 완료 |
 | `/devlog/new` | 개발 로그 작성 | ✅ 완료 |
 | `/devlog/[id]` | 개발 로그 상세 | ✅ 완료 |
+| `/devlog/[id]/edit` | 개발 로그 수정 (작성자 전용) | ✅ 완료 |
 | `/profile/[username]` | 메이커 프로필 | ✅ 완료 |
 | `/settings` | 계정 설정 | ✅ 완료 |
 | `/admin/moderation` | 제품 심사 (관리자 전용) | ✅ 완료 |
-| `/admin/upload` | 파일 업로드 관리 (관리자 전용) | ✅ 완료 |
+| `/admin/upload` | Hot Product 등록 (관리자 전용) | ✅ 완료 |
+| `/admin/upload/[id]` | Hot Product 수정 (관리자 전용) | ✅ 완료 |
 | `/auth/callback` | OAuth 콜백 (수정 금지) | ✅ 완료 |
 | `/terms` | 이용약관 | ✅ 완료 |
 | `/privacy` | 개인정보처리방침 | ✅ 완료 |
@@ -303,10 +347,10 @@ saved_products   ← 북마크
 
 - [ ] `npm run build` 로컬 빌드 성공 확인
 - [ ] Vercel 프로젝트에 환경변수 5개 설정 (위 환경 변수 표 참고)
-- [ ] 운영용 Supabase 프로젝트에 schema.sql → v2 → v3 → v4 순서로 실행 완료
+- [ ] 운영용 Supabase 프로젝트에 schema.sql → v2 → v3 → v4 → v5 → v6 순서로 실행 완료
 - [ ] Supabase → Authentication → Site URL을 `https://sidedock.io` 로 변경
 - [ ] Supabase → Authentication → Redirect URLs에 `https://sidedock.io/auth/callback` 추가
-- [ ] **파일 업로드 Supabase Storage 전환 완료** (`src/app/api/upload/route.ts` 참고)
+- [x] ~~**파일 업로드 Supabase Storage 전환 완료**~~ (`src/app/api/upload/route.ts` 참고)
 
 ### Vercel 배포 명령
 
@@ -329,6 +373,18 @@ git push origin main
 | `CNAME` | `www` | `cname.vercel-dns.com` |
 
 > SSL 인증서는 Vercel이 자동 발급합니다.
+
+---
+
+## 온보딩 플로우
+
+소셜 로그인 신규 가입 시 온보딩 완료를 강제합니다.
+
+1. `/auth/callback` — OAuth 콜백에서 `user_metadata.onboarding_completed = false` 설정 후 `/onboarding` 리디렉트
+2. `/onboarding` 완료 시 `onboarding.ts` Server Action이 `onboarding_completed = true` 로 업데이트
+3. `proxy.ts` (미들웨어)에서 `onboarding_completed === false` 인 유저가 `/onboarding` 외 보호된 경로 접근 시 `/onboarding` 으로 강제 리디렉트
+
+> 기존에 가입된 유저는 `onboarding_completed` 값이 없으므로 리디렉트되지 않습니다.
 
 ---
 

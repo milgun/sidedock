@@ -396,7 +396,7 @@ export default function SubmitForm({ username, editProduct }: SubmitFormProps) {
   };
 
   return (
-    <div className="flex gap-8">
+    <div className="flex flex-col gap-4 md:flex-row md:gap-8">
       {submitted && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/90 backdrop-blur-sm">
           <div className="max-w-md rounded-3xl border border-green-100 bg-white p-10 text-center shadow-xl">
@@ -420,8 +420,63 @@ export default function SubmitForm({ username, editProduct }: SubmitFormProps) {
           </div>
         </div>
       )}
-      {/* ── Sidebar ── */}
-      <aside className="w-52 flex-shrink-0">
+
+      {/* ── Mobile Step Bar (md 미만에서만 표시) ── */}
+      <div className="md:hidden">
+        {/* 제품 헤더 */}
+        <div className="mb-3 flex items-center gap-3 rounded-2xl border border-slate-100 bg-white p-3 shadow-sm">
+          {form.thumbnail_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={form.thumbnail_url} alt="" className="h-9 w-9 rounded-xl object-cover" />
+          ) : (
+            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-base font-black text-white">
+              {form.name?.[0]?.toUpperCase() ?? "?"}
+            </div>
+          )}
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-bold text-slate-900">{form.name || "새 제품"}</p>
+            <p className="text-xs text-amber-500">
+              {isSavingDraft ? "저장 중..." : lastSaved ? `${lastSaved.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })} 저장됨` : isEditMode ? "수정 중" : "작성 중"}
+            </p>
+          </div>
+          <span className="flex-shrink-0 rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-600">
+            {step + 1}/{NAV_STEPS.length}
+          </span>
+        </div>
+
+        {/* 스텝 아이콘 가로 스크롤 */}
+        <div className="flex gap-1 overflow-x-auto rounded-2xl border border-slate-100 bg-white p-2 shadow-sm scrollbar-none">
+          {NAV_STEPS.map((s) => {
+            const done = isStepComplete(s.id);
+            const active = step === s.id;
+            return (
+              <button
+                key={s.id}
+                onClick={() => setStep(s.id)}
+                className={`relative flex min-w-0 flex-1 flex-col items-center rounded-xl px-1.5 py-2 transition ${
+                  active
+                    ? "bg-blue-50"
+                    : "hover:bg-slate-50"
+                }`}
+              >
+                <span className="text-lg leading-none">{s.icon}</span>
+                <span className={`mt-1 text-center text-[10px] leading-tight ${active ? "font-semibold text-blue-700" : "text-slate-500"}`}>
+                  {s.label}
+                </span>
+                {done && !active && (
+                  <span className="absolute right-1 top-1 text-[9px] text-green-500">✓</span>
+                )}
+                {active && (
+                  <span className="absolute bottom-0 left-1/2 h-0.5 w-4 -translate-x-1/2 rounded-full bg-blue-500" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── Sidebar (md 이상에서만 표시) ── */}
+      <aside className="hidden w-52 flex-shrink-0 md:block">
         {/* Sidebar header with draft status */}
         <div className="mb-5 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
           <div className="flex items-center gap-3">
@@ -464,7 +519,7 @@ export default function SubmitForm({ username, editProduct }: SubmitFormProps) {
 
       {/* ── Content ── */}
       <div className="min-w-0 flex-1">
-        <div className="rounded-2xl border border-slate-100 bg-white p-8 shadow-sm">
+        <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm md:p-8">
 
           {step === 0 && (
             <div className="space-y-6">
