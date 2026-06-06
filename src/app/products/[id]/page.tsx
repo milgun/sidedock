@@ -215,14 +215,14 @@ export default async function ProductDetailPage(props: {
 
         {/* Meta */}
         <div className="flex-1">
-          <div className="flex items-start gap-3">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-3">
             <div className="min-w-0 flex-1">
               <h1 className="text-2xl font-black text-slate-900 sm:text-3xl">
                 {product.name}
               </h1>
               <p className="mt-1 text-slate-500">{product.tagline}</p>
             </div>
-            {/* 버튼: 항상 오른쪽 고정 — flex-shrink-0으로 절대 밀리지 않음 */}
+            {/* 버튼: 모바일에서는 아래 줄, sm 이상에서는 오른쪽 고정 */}
             <div className="flex flex-shrink-0 items-center gap-2">
               <StackButton
                 productId={product.id}
