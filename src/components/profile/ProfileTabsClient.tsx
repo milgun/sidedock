@@ -16,6 +16,7 @@ const TABS = [
   { id: "boost",    label: "업보트" },
   { id: "reviews",  label: "리뷰" },
   { id: "devlog",   label: "Dev Log" },
+  { id: "stack",    label: "스택" },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -44,6 +45,7 @@ interface ProductsData {
   publicProducts?: ProductWithMaker[];
 }
 interface BoostData   { boostedProducts: ProductWithMaker[] }
+interface StackData   { savedProducts: ProductWithMaker[] }
 interface ReviewsData {
   reviews: Array<{
     id: string; rating: number; content: string; created_at: string;
@@ -58,7 +60,7 @@ interface DevlogData {
   }>;
 }
 
-type TabData = AboutData | ActivityData | ProductsData | BoostData | ReviewsData | DevlogData;
+type TabData = AboutData | ActivityData | ProductsData | BoostData | StackData | ReviewsData | DevlogData;
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 interface ProfileTabsClientProps {
@@ -135,34 +137,38 @@ export default function ProfileTabsClient({
   return (
     <>
       {/* ── Tab Navigation ── */}
-      <nav className="mb-8 flex gap-1 border-b border-slate-100">
-        {TABS.map((tab) => {
-          const active = activeTab === tab.id;
-          const count = tab.id === "products" ? publishedCount : undefined;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => handleTabChange(tab.id)}
-              className={`flex items-center gap-1.5 px-4 py-3 text-sm font-medium transition border-b-2 -mb-px ${
-                active
-                  ? "border-slate-900 text-slate-900"
-                  : "border-transparent text-slate-400 hover:text-slate-600"
-              }`}
-            >
-              {tab.label}
-              {count !== undefined && count > 0 && (
-                <span
-                  className={`rounded-full px-1.5 py-0.5 text-xs leading-none ${
-                    active ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-400"
-                  }`}
-                >
-                  {count}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </nav>
+      <div className="relative mb-8">
+        <nav className="flex gap-0.5 overflow-x-auto border-b border-slate-100 scrollbar-none">
+          {TABS.filter((t) => t.id !== "stack" || isOwn).map((tab) => {
+            const active = activeTab === tab.id;
+            const count = tab.id === "products" ? publishedCount : undefined;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => handleTabChange(tab.id)}
+                className={`flex flex-shrink-0 items-center gap-1 px-2.5 py-2.5 text-xs font-medium transition border-b-2 -mb-px sm:gap-1.5 sm:px-4 sm:text-sm ${
+                  active
+                    ? "border-slate-900 text-slate-900"
+                    : "border-transparent text-slate-400 hover:text-slate-600"
+                }`}
+              >
+                {tab.label}
+                {count !== undefined && count > 0 && (
+                  <span
+                    className={`rounded-full px-1.5 py-0.5 text-xs leading-none ${
+                      active ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-400"
+                    }`}
+                  >
+                    {count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </nav>
+        {/* 오른쪽 페이드 — 스크롤 가능 안내 */}
+        <div className="pointer-events-none absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-white to-transparent" />
+      </div>
 
       {/* ── Tab Content ── */}
       {loading && !currentData ? (
@@ -404,6 +410,25 @@ function TabContent({
         isOwn={isOwn}
         onDevlogDeleted={onDevlogDeleted}
       />
+    );
+  }
+
+  if (tab === "stack") {
+    const { savedProducts } = data as StackData;
+    return savedProducts.length === 0 ? (
+      <div className="rounded-2xl border border-dashed border-slate-200 py-16 text-center">
+        <p className="text-3xl">🔖</p>
+        <p className="mt-3 text-sm font-semibold text-slate-600">스택이 비어있습니다</p>
+        <p className="mt-1 text-xs text-slate-400">
+          제품 카드나 상세 페이지의 <strong>스택</strong> 버튼으로 나중에 볼 제품을 저장해보세요.
+        </p>
+      </div>
+    ) : (
+      <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white">
+        {savedProducts.map((p, i) => (
+          <ProductCard key={p.id} product={p} rank={i + 1} variant="list" userId={userId} />
+        ))}
+      </div>
     );
   }
 

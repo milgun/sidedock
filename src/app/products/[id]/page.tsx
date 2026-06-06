@@ -5,6 +5,8 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import type { ProductWithMaker, Comment, Profile, ProductLink, ProductTeamMember, ProductShoutout } from "@/types";
 import UpvoteButton from "@/components/product/UpvoteButton";
+import StackButton from "@/components/product/StackButton";
+import ShareButton from "@/components/product/ShareButton";
 import ProductTabs from "@/components/product/ProductTabs";
 import { CATEGORY_LABELS, CATEGORY_COLORS } from "@/components/product/ProductCard";
 
@@ -127,6 +129,7 @@ export default async function ProductDetailPage(props: {
   const user = earlyUser;
 
   let hasUpvoted = false;
+  let hasSaved = false;
   if (user) {
     const { data: upvote } = await supabase
       .from("upvotes")
@@ -146,6 +149,14 @@ export default async function ProductDetailPage(props: {
       .eq("product_id", id)
       .maybeSingle();
     userHasReview = !!existingReview;
+
+    const { data: savedRow } = await supabase
+      .from("saved_products")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("product_id", id)
+      .maybeSingle();
+    hasSaved = !!savedRow;
   }
 
   const typedProduct = {
@@ -204,20 +215,34 @@ export default async function ProductDetailPage(props: {
 
         {/* Meta */}
         <div className="flex-1">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
+          <div className="flex items-start gap-3">
+            <div className="min-w-0 flex-1">
               <h1 className="text-2xl font-black text-slate-900 sm:text-3xl">
                 {product.name}
               </h1>
               <p className="mt-1 text-slate-500">{product.tagline}</p>
             </div>
-            <UpvoteButton
-              productId={product.id}
-              initialCount={product.upvote_count}
-              initialHasUpvoted={hasUpvoted}
-              userId={userId}
-              variant="detail"
-            />
+            {/* 버튼: 항상 오른쪽 고정 — flex-shrink-0으로 절대 밀리지 않음 */}
+            <div className="flex flex-shrink-0 items-center gap-2">
+              <StackButton
+                productId={product.id}
+                initialHasSaved={hasSaved}
+                userId={userId}
+                variant="detail"
+              />
+              <ShareButton
+                title={product.name as string}
+                path={`/products/${product.id}`}
+                variant="detail"
+              />
+              <UpvoteButton
+                productId={product.id}
+                initialCount={product.upvote_count}
+                initialHasUpvoted={hasUpvoted}
+                userId={userId}
+                variant="detail"
+              />
+            </div>
           </div>
 
           {/* Badges */}

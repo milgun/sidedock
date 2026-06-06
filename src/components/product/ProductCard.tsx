@@ -118,7 +118,7 @@ function GridCard({
           {product.tagline}
         </p>
       </div>
-      <div className="relative z-10 flex items-center justify-between">
+      <div className="relative z-10 flex flex-col gap-2">
         <div className="flex flex-wrap gap-1">
           {cats.map((cat) => (
             <span key={cat} className={`rounded-full px-2 py-0.5 text-xs font-medium ${CATEGORY_COLORS[cat] ?? CATEGORY_COLORS.other}`}>
@@ -126,7 +126,7 @@ function GridCard({
             </span>
           ))}
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center justify-end gap-1.5">
           <Link
             href={`/products/${product.id}#comments`}
             className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-0.5 text-xs text-slate-400 transition hover:border-slate-300 hover:text-slate-600"
@@ -234,7 +234,7 @@ function ListCard({
         <p className="mt-0.5 truncate text-sm text-slate-500 sm:hidden">
           {product.tagline}
         </p>
-        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">
+        <div className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
           {cats.map((cat) => (
             <span key={cat} className={`rounded-full px-2 py-0.5 text-xs font-medium ${CATEGORY_COLORS[cat] ?? CATEGORY_COLORS.other}`}>
               {CATEGORY_LABELS[cat] ?? cat}
@@ -245,6 +245,8 @@ function ListCard({
               {timeAgo(product.created_at, nowMs)}
             </span>
           )}
+        </div>
+        <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0">
           {product.maker && (
             <span className="flex items-center gap-1 text-xs text-slate-400">
               <span
@@ -268,11 +270,11 @@ function ListCard({
         </div>
       </div>
 
-      <div className="relative z-10 flex items-center gap-2">
+      <div className="relative z-10 flex flex-shrink-0 items-center gap-1.5">
         {context !== "launch-feed" && (
           <Link
             href={`/products/${product.id}#comments`}
-            className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-400 transition hover:border-slate-300 hover:text-slate-600"
+            className="hidden items-center gap-1 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-400 transition hover:border-slate-300 hover:text-slate-600 sm:flex"
           >
             <CommentIcon />
             <span className="font-medium">{product.comment_count}</span>

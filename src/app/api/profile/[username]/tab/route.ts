@@ -154,6 +154,36 @@ export async function GET(
       .order("created_at", { ascending: false })
       .limit(30);
     tabData = { devlogs: data ?? [] };
+  } else if (tab === "stack") {
+    if (!isOwn) {
+      tabData = { savedProducts: [] };
+    } else {
+      const [{ data: saved }, { data: uv }] = await Promise.all([
+        supabase
+          .from("saved_products")
+          .select("product:products(*, maker:profiles(id, username, avatar_url, display_name))")
+          .eq("user_id", profile.id)
+          .order("created_at", { ascending: false })
+          .limit(30),
+        userId
+          ? supabase.from("upvotes").select("product_id").eq("user_id", userId)
+          : Promise.resolve({ data: [] as { product_id: string }[] }),
+      ]);
+      const upvotedIds = new Set<string>(
+        (uv ?? []).map((u: { product_id: string }) => u.product_id),
+      );
+      const savedProducts = (saved ?? [])
+        .map((s: Record<string, unknown>) => s.product)
+        .filter(
+          (p): p is Record<string, unknown> =>
+            Boolean(p) && (p as { status?: string }).status === "published",
+        )
+        .map((p) => ({
+          ...p,
+          has_upvoted: upvotedIds.has((p as { id: string }).id),
+        }));
+      tabData = { savedProducts };
+    }
   }
 
   return NextResponse.json({ tab, isOwn, userId, ...tabData });
