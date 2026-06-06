@@ -388,6 +388,51 @@ git push origin main
 
 ---
 
+## 이메일 설정 (비즈니스 메일)
+
+**설정일**: 2026-06-06  
+**서비스**: [ImprovMX](https://app.improvmx.com) (무료 플랜) + Gmail SMTP
+
+### 구조
+
+```
+외부 → contact@sidedock.io → ImprovMX 포워딩 → froppy.world@gmail.com
+외부 → privacy@sidedock.io  → ImprovMX 포워딩 → froppy.world@gmail.com
+Gmail 발신 시 → 보내는 사람을 contact@sidedock.io 로 선택 가능 (Gmail SMTP 설정)
+```
+
+### 계정 정보
+
+| 항목 | 내용 |
+|------|------|
+| ImprovMX 계정 | `froppy.world@gmail.com` |
+| 등록 도메인 | `sidedock.io` |
+| 포워딩 대상 | `froppy.world@gmail.com` |
+| 현재 별칭 | `*` (와일드카드 — 모든 `@sidedock.io` 수신) |
+
+### DNS 설정 (Cloudflare)
+
+가비아에서 도메인을 구입했지만 **네임서버가 Cloudflare**로 위임되어 있어 실제 DNS는 Cloudflare에서 관리.
+
+| Type | Name | Value | Priority |
+|------|------|-------|----------|
+| MX | `@` | `mx1.improvmx.com` | 10 |
+| MX | `@` | `mx2.improvmx.com` | 20 |
+
+### Gmail 발신 설정
+
+Gmail → 설정 → 계정 및 가져오기 → "다른 이메일 주소로 메일 보내기"  
+- SMTP 서버: `smtp.gmail.com`, 포트: `587`  
+- 사용자 이름: `froppy.world@gmail.com`  
+- 비밀번호: Gmail 앱 비밀번호 (16자리, Google 계정 보안에서 재발급 가능)
+
+### 무료 플랜 한도
+
+- 도메인 1개, 별칭 25개, 수신 무제한
+- SMTP 발신은 유료($9/월)만 지원 → Gmail SMTP로 우회 중 (무제한 사용 가능 via gmail 메일 발신)
+
+---
+
 ## 주의사항
 
 - `src/proxy.ts` 는 Next.js 16에서 `middleware.ts` 를 대체합니다. 파일명/함수명을 바꾸지 마세요.
