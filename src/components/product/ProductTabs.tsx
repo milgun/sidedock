@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import type { ProductTeamMember, ProductShoutout, Profile } from "@/types";
+import type { ProductTeamMember, ProductShoutout, Profile, Comment } from "@/types";
 import MediaGallery from "./MediaGallery";
-import CommentForm from "./CommentForm";
+import CommentItem from "./CommentItem";
 import { createReview } from "@/lib/actions/review";
 
 // ── Local Types ────────────────────────────────────────────────────────────────
@@ -21,12 +21,9 @@ export interface ReviewWithProfile {
   profile: Pick<Profile, "username" | "display_name" | "avatar_url"> | null;
 }
 
-export interface CommentWithProfile {
-  id: string;
-  content: string;
-  created_at: string;
+export type CommentWithProfile = Comment & {
   profile: Pick<Profile, "username" | "display_name" | "avatar_url"> | null;
-}
+};
 
 type TeamMemberWithProfile = ProductTeamMember & {
   profile?: Pick<Profile, "id" | "username" | "display_name" | "avatar_url"> | null;
@@ -85,6 +82,45 @@ function Avatar({
         </span>
       )}
     </div>
+  );
+}
+
+// ── Top-level Comment Form ─────────────────────────────────────────────────────
+
+function CommentTopForm({ productId }: { productId: string }) {
+  const formRef = useRef<HTMLFormElement>(null);
+  const [isPending, startTransition] = useTransition();
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    fd.set("product_id", productId);
+    startTransition(async () => {
+      const { createComment } = await import("@/lib/actions/comment");
+      await createComment(fd);
+      formRef.current?.reset();
+    });
+  };
+
+  return (
+    <form ref={formRef} onSubmit={handleSubmit} className="mb-8">
+      <textarea
+        name="content"
+        placeholder="이 제품에 대한 생각을 공유해 주세요…"
+        rows={3}
+        required
+        className="w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder-slate-400 transition focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+      />
+      <div className="mt-2 flex justify-end">
+        <button
+          type="submit"
+          disabled={isPending}
+          className="rounded-xl bg-blue-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50"
+        >
+          {isPending ? "작성 중…" : "댓글 작성"}
+        </button>
+      </div>
+    </form>
   );
 }
 
@@ -263,7 +299,7 @@ export default function ProductTabs({
               </span>
             </h2>
             {userId ? (
-              <CommentForm productId={productId} />
+              <CommentTopForm productId={productId} />
             ) : (
               <div className="mb-6 rounded-xl border border-dashed border-slate-200 py-5 text-center">
                 <p className="text-sm text-slate-500">
@@ -278,35 +314,14 @@ export default function ProductTabs({
                 </p>
               </div>
             )}
-            <div className="space-y-5">
+            <div className="space-y-6">
               {comments.map((comment) => (
-                <div key={comment.id} className="flex gap-3">
-                  <Avatar
-                    url={comment.profile?.avatar_url}
-                    name={
-                      comment.profile?.display_name ??
-                      comment.profile?.username ??
-                      "?"
-                    }
-                    size={32}
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-sm font-semibold text-slate-900">
-                        {comment.profile?.display_name ??
-                          comment.profile?.username}
-                      </span>
-                      <span className="text-xs text-slate-400">
-                        {new Date(comment.created_at).toLocaleDateString(
-                          "ko-KR",
-                        )}
-                      </span>
-                    </div>
-                    <p className="mt-1 text-sm leading-relaxed text-slate-600">
-                      {comment.content}
-                    </p>
-                  </div>
-                </div>
+                <CommentItem
+                  key={comment.id}
+                  comment={comment as Comment}
+                  productId={productId}
+                  userId={userId}
+                />
               ))}
               {comments.length === 0 && (
                 <p className="py-4 text-center text-sm text-slate-400">

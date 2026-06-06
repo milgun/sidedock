@@ -119,13 +119,26 @@ export interface Upvote {
   created_at: string;
 }
 
+export type ReactionEmoji = string; // valid values: 🚀 🔥 💡 ❤️ ✨ 🥺 (enforced by DB CHECK constraint)
+
+export interface CommentReaction {
+  id: string;
+  comment_id: string;
+  user_id: string;
+  emoji: ReactionEmoji;
+  created_at: string;
+}
+
 export interface Comment {
   id: string;
   user_id: string;
   product_id: string;
   content: string;
+  parent_id: string | null;
   created_at: string;
   profile?: Profile;
+  reactions?: CommentReaction[];
+  replies?: Comment[];
 }
 
 export interface Review {

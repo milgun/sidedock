@@ -64,6 +64,12 @@ function notificationInfo(n: Notification): {
         text: `${p.actor_username ?? "누군가"} 님이 '${p.product_name}'에 댓글을 달았습니다`,
         href: p.product_id ? `/products/${p.product_id}` : undefined,
       };
+    case "reply":
+      return {
+        icon: "↩️",
+        text: `${p.actor_username ?? "누군가"} 님이 내 댓글에 답글을 달았습니다`,
+        href: p.product_id ? `/products/${p.product_id}` : undefined,
+      };
     default:
       return { icon: "🔔", text: "새 알림이 있습니다" };
   }

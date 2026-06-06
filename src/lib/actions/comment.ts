@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import type { ReactionEmoji } from "@/types";
 
 export async function createComment(formData: FormData) {
   const supabase = await createClient();
@@ -13,6 +14,7 @@ export async function createComment(formData: FormData) {
 
   const productId = formData.get("product_id") as string;
   const content = (formData.get("content") as string)?.trim();
+  const parentId = (formData.get("parent_id") as string) || null;
 
   if (!content || !productId) return;
 
@@ -20,9 +22,10 @@ export async function createComment(formData: FormData) {
     user_id: user.id,
     product_id: productId,
     content,
+    parent_id: parentId,
   });
 
-  // 댓글 알림 — 제품 제작자에게 (본인 제품 제외)
+  // 알림 발송
   const [{ data: product }, { data: actorProfile }] = await Promise.all([
     supabase
       .from("products")
@@ -36,20 +39,84 @@ export async function createComment(formData: FormData) {
       .single(),
   ]);
 
-  if (product && product.maker_id !== user.id) {
-    await supabase.from("notifications").insert({
-      user_id: product.maker_id,
-      type: "comment",
-      payload: {
-        product_id: productId,
-        product_name: product.name,
-        actor_id: user.id,
-        actor_username:
-          actorProfile?.display_name ?? actorProfile?.username ?? "누군가",
-        comment_preview: content.slice(0, 100),
-      },
+  const actorName = actorProfile?.display_name ?? actorProfile?.username ?? "누군가";
+  const notificationsToInsert: object[] = [];
+
+  if (parentId) {
+    // 대댓글: 원댓글 작성자에게 알림 (본인 제외)
+    const { data: parentComment } = await supabase
+      .from("comments")
+      .select("user_id")
+      .eq("id", parentId)
+      .single();
+
+    if (parentComment && parentComment.user_id !== user.id) {
+      notificationsToInsert.push({
+        user_id: parentComment.user_id,
+        type: "reply",
+        payload: {
+          product_id: productId,
+          product_name: product?.name ?? "",
+          actor_id: user.id,
+          actor_username: actorName,
+          comment_preview: content.slice(0, 100),
+        },
+      });
+    }
+  } else {
+    // 최상위 댓글: 제품 제작자에게 알림 (본인 제외)
+    if (product && product.maker_id !== user.id) {
+      notificationsToInsert.push({
+        user_id: product.maker_id,
+        type: "comment",
+        payload: {
+          product_id: productId,
+          product_name: product.name,
+          actor_id: user.id,
+          actor_username: actorName,
+          comment_preview: content.slice(0, 100),
+        },
+      });
+    }
+  }
+
+  if (notificationsToInsert.length > 0) {
+    await supabase.from("notifications").insert(notificationsToInsert);
+  }
+
+  revalidatePath(`/products/${productId}`);
+}
+
+export async function toggleReaction(
+  commentId: string,
+  productId: string,
+  emoji: ReactionEmoji
+) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return;
+
+  const { data: existing } = await supabase
+    .from("comment_reactions")
+    .select("id")
+    .eq("comment_id", commentId)
+    .eq("user_id", user.id)
+    .eq("emoji", emoji)
+    .maybeSingle();
+
+  if (existing) {
+    await supabase.from("comment_reactions").delete().eq("id", existing.id);
+  } else {
+    await supabase.from("comment_reactions").insert({
+      comment_id: commentId,
+      user_id: user.id,
+      emoji,
     });
   }
 
   revalidatePath(`/products/${productId}`);
 }
+

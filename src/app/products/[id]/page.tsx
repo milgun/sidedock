@@ -100,13 +100,17 @@ export default async function ProductDetailPage(props: {
     notFound();
   }
 
-  const [{ data: rawComments }, { data: rawLinks }, { data: rawTeam }, { data: rawShoutouts }, { data: rawReviews }] =
+  const [{ data: rawComments }, { data: rawLinks }, { data: rawTeam }, { data: rawShoutouts }, { data: rawReviews }, { data: rawReactions }] =
     await Promise.all([
       supabase.from("comments").select("*, profile:profiles(*)").eq("product_id", id).order("created_at", { ascending: true }),
       supabase.from("product_links").select("*").eq("product_id", id).order("sort_order"),
       supabase.from("product_team_members").select("*, profile:profiles(id, username, display_name, avatar_url)").eq("product_id", id),
       supabase.from("product_shoutouts").select("*").eq("product_id", id).order("sort_order"),
       supabase.from("reviews").select("*, profile:profiles(id, username, display_name, avatar_url)").eq("product_id", id).order("created_at", { ascending: false }),
+      supabase.from("comment_reactions").select("*").in(
+        "comment_id",
+        ((await supabase.from("comments").select("id").eq("product_id", id)).data ?? []).map((c: { id: string }) => c.id)
+      ),
     ]);
 
   // 메이커가 출시한 다른 제품 — Launches 제품에만 표시 (curated 제외)
@@ -165,7 +169,25 @@ export default async function ProductDetailPage(props: {
   } as unknown as ProductWithMaker;
 
   type CommentRow = Comment & { profile: Profile | null };
-  const comments = (rawComments ?? []) as unknown as CommentRow[];
+  const allComments = (rawComments ?? []) as unknown as CommentRow[];
+
+  // Attach reactions to each comment, then nest replies
+  const reactions = (rawReactions ?? []) as unknown as import("@/types").CommentReaction[];
+  const commentsWithReactions = allComments.map((c) => ({
+    ...c,
+    reactions: reactions.filter((r) => r.comment_id === c.id),
+    replies: [] as CommentRow[],
+  }));
+  const commentMap = new Map(commentsWithReactions.map((c) => [c.id, c]));
+  const topLevelComments: typeof commentsWithReactions = [];
+  for (const c of commentsWithReactions) {
+    if (c.parent_id && commentMap.has(c.parent_id)) {
+      commentMap.get(c.parent_id)!.replies.push(c);
+    } else {
+      topLevelComments.push(c);
+    }
+  }
+  const comments = topLevelComments;
   const productLinks = (rawLinks ?? []) as unknown as ProductLink[];
   const teamMembers = (rawTeam ?? []) as unknown as (ProductTeamMember & { profile: Pick<Profile, "id" | "username" | "display_name" | "avatar_url"> | null })[];
   const shoutouts = (rawShoutouts ?? []) as unknown as ProductShoutout[];
