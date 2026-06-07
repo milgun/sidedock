@@ -21,14 +21,15 @@ const PLATFORM_ICONS: Record<string, { icon: string; label: string }> = {
 };
 
 export async function generateMetadata(
-  props: { params: Promise<{ id: string }> }
+  props: { params: Promise<{ slug: string }> }
 ): Promise<Metadata> {
-  const { id } = await props.params;
+  const { slug: rawSlug } = await props.params;
+  const slug = decodeURIComponent(rawSlug);
   const supabase = await createClient();
   const { data: product } = await supabase
     .from("products")
     .select("name, tagline, thumbnail_url, description")
-    .eq("id", id)
+    .eq("slug", slug)
     .single();
 
   if (!product) return {};
@@ -63,19 +64,22 @@ export async function generateMetadata(
 }
 
 export default async function ProductDetailPage(props: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }) {
-  const { id } = await props.params;
+  const { slug: rawSlug } = await props.params;
+  const slug = decodeURIComponent(rawSlug);
   const supabase = await createClient();
 
   const {
     data: { user: earlyUser },
   } = await supabase.auth.getUser();
 
+  // slug 먼저 조회, 없으면 UUID 폴백
+  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
   const { data: product, error } = await supabase
     .from("products")
     .select("*, maker:profiles(*)")
-    .eq("id", id)
+    .eq(isUUID ? "id" : "slug", slug)
     .single();
 
   if (!product || error) notFound();
@@ -102,29 +106,29 @@ export default async function ProductDetailPage(props: {
 
   const [{ data: rawComments }, { data: rawLinks }, { data: rawTeam }, { data: rawShoutouts }, { data: rawReviews }, { data: rawReactions }] =
     await Promise.all([
-      supabase.from("comments").select("*, profile:profiles(*)").eq("product_id", id).order("created_at", { ascending: true }),
-      supabase.from("product_links").select("*").eq("product_id", id).order("sort_order"),
-      supabase.from("product_team_members").select("*, profile:profiles(id, username, display_name, avatar_url)").eq("product_id", id),
-      supabase.from("product_shoutouts").select("*").eq("product_id", id).order("sort_order"),
-      supabase.from("reviews").select("*, profile:profiles(id, username, display_name, avatar_url)").eq("product_id", id).order("created_at", { ascending: false }),
+      supabase.from("comments").select("*, profile:profiles(*)").eq("product_id", product.id).order("created_at", { ascending: true }),
+      supabase.from("product_links").select("*").eq("product_id", product.id).order("sort_order"),
+      supabase.from("product_team_members").select("*, profile:profiles(id, username, display_name, avatar_url)").eq("product_id", product.id),
+      supabase.from("product_shoutouts").select("*").eq("product_id", product.id).order("sort_order"),
+      supabase.from("reviews").select("*, profile:profiles(id, username, display_name, avatar_url)").eq("product_id", product.id).order("created_at", { ascending: false }),
       supabase.from("comment_reactions").select("*").in(
         "comment_id",
-        ((await supabase.from("comments").select("id").eq("product_id", id)).data ?? []).map((c: { id: string }) => c.id)
+        ((await supabase.from("comments").select("id").eq("product_id", product.id)).data ?? []).map((c: { id: string }) => c.id)
       ),
     ]);
 
   // 메이커가 출시한 다른 제품 — Launches 제품에만 표시 (curated 제외)
   const productSource = product.source as string;
   const makerId = product.maker_id as string;
-  let rawMakerProducts: { id: string; name: string; thumbnail_url: string | null }[] | null = null;
+  let rawMakerProducts: { id: string; name: string; slug: string; thumbnail_url: string | null }[] | null = null;
   if (productSource === "launch") {
     const { data } = await supabase
       .from("products")
-      .select("id, name, thumbnail_url")
+      .select("id, name, slug, thumbnail_url")
       .eq("maker_id", makerId)
       .eq("status", "published")
       .eq("source", "launch")
-      .neq("id", id)
+      .neq("id", product.id)
       .order("launched_at", { ascending: false })
       .limit(5);
     rawMakerProducts = data as typeof rawMakerProducts;
@@ -139,7 +143,7 @@ export default async function ProductDetailPage(props: {
       .from("upvotes")
       .select("id")
       .eq("user_id", user.id)
-      .eq("product_id", id)
+      .eq("product_id", product.id)
       .maybeSingle();
     hasUpvoted = !!upvote;
   }
@@ -150,7 +154,7 @@ export default async function ProductDetailPage(props: {
       .from("reviews")
       .select("id")
       .eq("user_id", user.id)
-      .eq("product_id", id)
+      .eq("product_id", product.id)
       .maybeSingle();
     userHasReview = !!existingReview;
 
@@ -158,7 +162,7 @@ export default async function ProductDetailPage(props: {
       .from("saved_products")
       .select("id")
       .eq("user_id", user.id)
-      .eq("product_id", id)
+      .eq("product_id", product.id)
       .maybeSingle();
     hasSaved = !!savedRow;
   }
@@ -207,7 +211,7 @@ export default async function ProductDetailPage(props: {
         </div>
         {viewerProfile?.is_admin && isCurated && (
           <Link
-            href={`/admin/upload/${id}`}
+            href={`/admin/upload/${product.id}`}
             className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-blue-300 hover:text-blue-600"
           >
             ✏️ 수정
@@ -254,7 +258,7 @@ export default async function ProductDetailPage(props: {
               />
               <ShareButton
                 title={product.name as string}
-                path={`/products/${product.id}`}
+                path={`/products/${product.slug}`}
                 variant="detail"
               />
               <UpvoteButton

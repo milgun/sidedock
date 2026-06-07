@@ -141,6 +141,86 @@ export default function DevlogEditor({
     applyInsert(textareaRef.current, mode, setContent);
   }, []);
 
+  // 번호 목록 버튼: 이전 줄의 번호를 감지해 자동 증가
+  const insertOrderedListItem = useCallback(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    const { value, selectionStart: ss } = textarea;
+    const lineStart = value.lastIndexOf("\n", ss - 1) + 1;
+    let prevNum = 0;
+    let pos = lineStart - 1;
+    while (pos >= 0) {
+      const end = pos;
+      const start = value.lastIndexOf("\n", end - 1) + 1;
+      const line = value.slice(start, end);
+      const m = line.match(/^[ \t]*(\d+)\.[ \t]/);
+      if (m) { prevNum = parseInt(m[1]); break; }
+      if (line.trim()) break;
+      pos = start - 1;
+    }
+    applyInsert(textarea, { type: "line", prefix: `${prevNum + 1}. ` }, setContent);
+  }, []);
+
+  // Enter 키: 목록 자동 계속 / 빈 항목에서 목록 탈출
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    const textarea = textareaRef.current!;
+
+    if (e.key === "Tab") {
+      e.preventDefault();
+      applyInsert(textarea, { type: "wrap", before: "  ", after: "", placeholder: "" }, setContent);
+      return;
+    }
+
+    if (e.key === "Enter") {
+      const { value, selectionStart: ss } = textarea;
+      const lineStart = value.lastIndexOf("\n", ss - 1) + 1;
+      const lineEnd = value.indexOf("\n", ss);
+      const end = lineEnd === -1 ? value.length : lineEnd;
+      const currentLine = value.slice(lineStart, end);
+
+      // 비순서 목록 (-, *, +)
+      const ulMatch = currentLine.match(/^([ \t]*)([-*+])[ \t]+(.*)$/);
+      if (ulMatch) {
+        e.preventDefault();
+        const [, indent, bullet, rest] = ulMatch;
+        if (!rest.trim()) {
+          // 빈 항목 → 목록 탈출
+          const newValue = value.slice(0, lineStart) + "\n" + value.slice(end);
+          setContent(newValue);
+          requestAnimationFrame(() => textarea.setSelectionRange(lineStart + 1, lineStart + 1));
+        } else {
+          const prefix = `\n${indent}${bullet} `;
+          const newValue = value.slice(0, ss) + prefix + value.slice(ss);
+          setContent(newValue);
+          const newPos = ss + prefix.length;
+          requestAnimationFrame(() => textarea.setSelectionRange(newPos, newPos));
+        }
+        return;
+      }
+
+      // 순서 목록 (1. 2. ...)
+      const olMatch = currentLine.match(/^([ \t]*)(\d+)\.[ \t]+(.*)$/);
+      if (olMatch) {
+        e.preventDefault();
+        const [, indent, numStr, rest] = olMatch;
+        if (!rest.trim()) {
+          // 빈 항목 → 목록 탈출
+          const newValue = value.slice(0, lineStart) + "\n" + value.slice(end);
+          setContent(newValue);
+          requestAnimationFrame(() => textarea.setSelectionRange(lineStart + 1, lineStart + 1));
+        } else {
+          const nextNum = parseInt(numStr) + 1;
+          const prefix = `\n${indent}${nextNum}. `;
+          const newValue = value.slice(0, ss) + prefix + value.slice(ss);
+          setContent(newValue);
+          const newPos = ss + prefix.length;
+          requestAnimationFrame(() => textarea.setSelectionRange(newPos, newPos));
+        }
+        return;
+      }
+    }
+  }, []);
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -463,7 +543,7 @@ export default function DevlogEditor({
               <circle cx="4" cy="18" r="1.5" fill="currentColor" stroke="none" />
             </svg>
           </ToolBtn>
-          <ToolBtn title="번호 목록" onClick={() => insert({ type: "line", prefix: "1. " })}>
+          <ToolBtn title="번호 목록" onClick={insertOrderedListItem}>
             <svg
               viewBox="0 0 24 24"
               className="h-3.5 w-3.5"
@@ -490,12 +570,7 @@ export default function DevlogEditor({
               ref={textareaRef}
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Tab") {
-                  e.preventDefault();
-                  insert({ type: "wrap", before: "  ", after: "", placeholder: "" });
-                }
-              }}
+              onKeyDown={handleKeyDown}
               placeholder={
                 "마크다운으로 작성하세요.\n\n## 오늘 배운 것\n\n- 항목 1\n- 항목 2\n\n```ts\nconst hello = \"world\";\n```"
               }

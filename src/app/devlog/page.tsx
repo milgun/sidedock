@@ -69,7 +69,7 @@ export default async function DevlogPage() {
           {posts.map((post) => (
             <Link
               key={post.id}
-              href={`/devlog/${post.id}`}
+              href={`/devlog/${post.slug ?? post.id}`}
               className="group flex flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white transition hover:border-blue-200 hover:shadow-md"
             >
               {/* 썸네일 */}

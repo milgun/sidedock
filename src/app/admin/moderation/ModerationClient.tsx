@@ -96,7 +96,7 @@ export default function ModerationClient({
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <a
-                  href={`/products/${product.id}`}
+                  href={`/products/${product.slug ?? product.id}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-bold text-slate-900 hover:text-blue-600"

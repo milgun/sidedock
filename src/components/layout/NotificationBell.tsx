@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
@@ -78,28 +78,18 @@ function notificationInfo(n: Notification): {
 export default function NotificationBell({ user }: NotificationBellProps) {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [ringing, setRinging] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   const unreadCount = notifications.filter((n) => !n.read_at).length;
 
-  const fetchNotifications = useCallback(async () => {
-    setLoading(true);
-    const res = await fetch("/api/notifications");
-    if (res.ok) {
-      const data = (await res.json()) as { notifications: Notification[] };
-      setNotifications(data.notifications);
-    }
-    setLoading(false);
-  }, []);
-
-  const markAllRead = useCallback(async () => {
+  const markAllRead = async () => {
     await fetch("/api/notifications", { method: "PATCH" });
     setNotifications((prev) =>
       prev.map((n) => ({ ...n, read_at: n.read_at ?? new Date().toISOString() }))
     );
-  }, []);
+  };
 
   // Close on outside click
   useEffect(() => {
@@ -114,8 +104,12 @@ export default function NotificationBell({ user }: NotificationBellProps) {
 
   // Fetch on mount
   useEffect(() => {
-    void fetchNotifications();
-  }, [fetchNotifications]);
+    fetch("/api/notifications")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { notifications: Notification[] } | null) => {
+        if (data) setNotifications(data.notifications);
+      });
+  }, []);
 
   // Supabase Realtime — 새 알림 실시간 수신
   useEffect(() => {
@@ -131,6 +125,8 @@ export default function NotificationBell({ user }: NotificationBellProps) {
         },
         (payload) => {
           setNotifications((prev) => [payload.new as Notification, ...prev]);
+          setRinging(true);
+          setTimeout(() => setRinging(false), 1000);
         }
       )
       .subscribe();
@@ -157,7 +153,7 @@ export default function NotificationBell({ user }: NotificationBellProps) {
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5"
+          className={`h-5 w-5 transition-transform ${ringing ? "animate-bell-ring" : ""}`}
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -193,11 +189,7 @@ export default function NotificationBell({ user }: NotificationBellProps) {
 
           {/* List */}
           <div className="max-h-[360px] overflow-y-auto">
-            {loading ? (
-              <div className="py-10 text-center text-sm text-slate-400">
-                불러오는 중...
-              </div>
-            ) : notifications.length === 0 ? (
+            {notifications.length === 0 ? (
               <div className="py-10 text-center">
                 <p className="text-2xl">🔔</p>
                 <p className="mt-2 text-sm text-slate-400">알림이 없습니다</p>

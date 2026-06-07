@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useTransition, useRef } from "react";
+import { useState, useTransition, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { toggleReaction, createComment } from "@/lib/actions/comment";
+import { toggleReaction, createComment, updateComment, deleteComment } from "@/lib/actions/comment";
 import type { Comment, ReactionEmoji } from "@/types";
 
 const REACTIONS: { emoji: ReactionEmoji; label: string; color: string; bg: string; ring: string }[] = [
@@ -173,6 +173,44 @@ export default function CommentItem({
   const [isPending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
 
+  // 수정/삭제 메뉴
+  const [showMenu, setShowMenu] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(comment.content);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const isOwn = userId === comment.user_id;
+
+  // 메뉴 외부 클릭 시 닫기
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setShowMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const handleEdit = () => {
+    setShowMenu(false);
+    setIsEditing(true);
+  };
+
+  const handleEditSubmit = () => {
+    startTransition(async () => {
+      await updateComment(comment.id, productId, editContent);
+      setIsEditing(false);
+    });
+  };
+
+  const handleDelete = () => {
+    setShowMenu(false);
+    if (!confirm("댓글을 삭제하시겠습니까?")) return;
+    startTransition(async () => {
+      await deleteComment(comment.id, productId);
+    });
+  };
+
   const displayName =
     comment.profile?.display_name ?? comment.profile?.username ?? "알 수 없음";
   const isReply = depth > 0;
@@ -214,12 +252,67 @@ export default function CommentItem({
           <span className="text-xs text-slate-400">
             {new Date(comment.created_at).toLocaleDateString("ko-KR")}
           </span>
+          {/* ... 메뉴 (본인 댓글만) */}
+          {isOwn && (
+            <div className="relative ml-auto" ref={menuRef}>
+              <button
+                onClick={() => setShowMenu((v) => !v)}
+                className="flex h-6 w-6 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-600"
+                aria-label="댓글 옵션"
+              >
+                ···
+              </button>
+              {showMenu && (
+                <div className="absolute right-0 top-7 z-30 min-w-[96px] overflow-hidden rounded-xl border border-slate-100 bg-white shadow-lg">
+                  <button
+                    onClick={handleEdit}
+                    className="flex w-full items-center gap-2 px-4 py-2 text-sm text-slate-700 transition hover:bg-slate-50"
+                  >
+                    ✏️ 수정
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    disabled={isPending}
+                    className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-500 transition hover:bg-red-50"
+                  >
+                    🗑️ 삭제
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Body */}
-        <p className="mt-0.5 text-sm leading-relaxed text-slate-600 whitespace-pre-wrap">
-          {comment.content}
-        </p>
+        {isEditing ? (
+          <div className="mt-1 flex flex-col gap-2">
+            <textarea
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
+              rows={3}
+              className="w-full resize-none rounded-xl border border-blue-300 bg-white px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-100"
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={handleEditSubmit}
+                disabled={isPending}
+                className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50"
+              >
+                {isPending ? "…" : "저장"}
+              </button>
+              <button
+                onClick={() => { setIsEditing(false); setEditContent(comment.content); }}
+                className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50"
+              >
+                취소
+              </button>
+            </div>
+          </div>
+        ) : (
+          <p className="mt-0.5 text-sm leading-relaxed text-slate-600 whitespace-pre-wrap">
+            {comment.content}
+          </p>
+        )}
 
         {/* Reactions + Reply button on one line */}
         <ReactionBar

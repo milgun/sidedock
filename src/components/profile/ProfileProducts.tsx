@@ -21,6 +21,7 @@ const STATUS_FILTERS = [
 
 type Product = {
   id: string;
+  slug?: string;
   name: string;
   tagline: string;
   thumbnail_url: string | null;
@@ -189,7 +190,7 @@ export default function ProfileProducts({
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <a
-                        href={`/products/${product.id}`}
+                        href={`/products/${product.slug ?? product.id}`}
                         className="font-semibold text-slate-900 hover:text-blue-600"
                       >
                         {product.name}

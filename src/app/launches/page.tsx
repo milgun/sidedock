@@ -3,14 +3,14 @@ import Link from "next/link";
 import type { ProductWithMaker } from "@/types";
 import LaunchesClient from "@/components/launches/LaunchesClient";
 
-type Period = "today" | "week" | "month";
+type Period = "today" | "week" | "month" | "all";
 
 export default async function LaunchesPage(props: {
   searchParams: Promise<{ period?: string }>;
 }) {
   const { period: rawPeriod } = await props.searchParams;
   const period = (
-    ["today", "week", "month"].includes(rawPeriod ?? "") ? rawPeriod : "today"
+    ["today", "week", "month", "all"].includes(rawPeriod ?? "") ? rawPeriod : "today"
   ) as Period;
 
   const supabase = await createClient();
@@ -30,9 +30,14 @@ export default async function LaunchesPage(props: {
   } else if (period === "week") {
     const weekAgo = new Date(now.getTime() - 7 * 24 * 3_600_000).toISOString();
     query = query.gte("created_at", weekAgo).order("upvote_count", { ascending: false });
-  } else {
+  } else if (period === "month") {
     const monthAgo = new Date(now.getTime() - 30 * 24 * 3_600_000).toISOString();
     query = query.gte("created_at", monthAgo).order("upvote_count", { ascending: false });
+  } else {
+    // all: 역대 인기순 (boost + 댓글)
+    query = query
+      .order("upvote_count", { ascending: false })
+      .order("comment_count", { ascending: false });
   }
 
   const [{ data: rawProducts }, { data: upvotes }] = await Promise.all([

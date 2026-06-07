@@ -16,15 +16,17 @@ function timeAgo(dateStr: string) {
 }
 
 export default async function DevlogDetailPage(props: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }) {
-  const { id } = await props.params;
+  const { slug: rawSlug } = await props.params;
+  const slug = decodeURIComponent(rawSlug);
   const supabase = await createClient();
 
+  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
   const { data: rawPost } = await supabase
     .from("devlog_posts")
     .select("*, author:profiles(*)")
-    .eq("id", id)
+    .eq(isUUID ? "id" : "slug", slug)
     .maybeSingle();
 
   if (!rawPost) notFound();
@@ -37,7 +39,7 @@ export default async function DevlogDetailPage(props: {
       .from("devlog_likes")
       .select("id")
       .eq("user_id", user.id)
-      .eq("post_id", id)
+      .eq("post_id", rawPost.id)
       .maybeSingle();
     hasLiked = !!like;
   }
@@ -45,7 +47,7 @@ export default async function DevlogDetailPage(props: {
   const { data: rawComments } = await supabase
     .from("devlog_comments")
     .select("*, author:profiles(*)")
-    .eq("post_id", id)
+    .eq("post_id", rawPost.id)
     .order("created_at", { ascending: true });
 
   const post = { ...rawPost, has_liked: hasLiked } as unknown as DevlogPostWithAuthor;
@@ -98,6 +100,7 @@ export default async function DevlogDetailPage(props: {
         {/* Markdown content */}
         <DevlogDetailClient
           postId={post.id}
+          postSlug={post.slug}
           content={post.content}
           likeCount={post.like_count}
           initialHasLiked={hasLiked}

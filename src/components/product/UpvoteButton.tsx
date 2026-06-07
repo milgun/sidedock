@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toggleUpvote } from "@/lib/actions/upvote";
+import { createClient } from "@/lib/supabase/client";
 
 interface UpvoteButtonProps {
   productId: string;
@@ -24,6 +25,43 @@ export default function UpvoteButton({
   const [isPending, startTransition] = useTransition();
   const [rockets, setRockets] = useState<number[]>([]);
   const router = useRouter();
+  // 본인 낙관적 업데이트와 실시간 이벤트 중복 방지용
+  const pendingRef = useRef(false);
+  const supabase = useMemo(() => createClient(), []);
+
+  // 상세 페이지에서만 다른 유저의 upvote를 실시간 반영
+  useEffect(() => {
+    if (variant !== "detail") return;
+
+    const channel = supabase
+      .channel(`product-upvote-count:${productId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "products",
+          filter: `id=eq.${productId}`,
+        },
+        (payload) => {
+          if (pendingRef.current) return;
+          const newCount = (payload.new as { upvote_count: number }).upvote_count;
+          const prevCount = (payload.old as { upvote_count?: number }).upvote_count;
+          if (typeof newCount === "number") {
+            // 카운트가 올라갔을 때만 로켓 애니메이션
+            if (prevCount !== undefined && newCount > prevCount) {
+              const key = Date.now();
+              setRockets((prev) => [...prev, key]);
+              setTimeout(() => setRockets((prev) => prev.filter((k) => k !== key)), 800);
+            }
+            setCount(newCount);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => { void supabase.removeChannel(channel); };
+  }, [productId, variant, supabase]);
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -46,12 +84,14 @@ export default function UpvoteButton({
     setHasUpvoted(!prevUpvoted);
     setCount(prevUpvoted ? count - 1 : count + 1);
 
+    pendingRef.current = true;
     startTransition(async () => {
       const result = await toggleUpvote(productId);
       if (!result.success) {
         setHasUpvoted(prevUpvoted);
         setCount(prevCount);
       }
+      pendingRef.current = false;
     });
   };
 

@@ -87,6 +87,45 @@ export async function createComment(formData: FormData) {
   revalidatePath(`/products/${productId}`);
 }
 
+export async function updateComment(
+  commentId: string,
+  productId: string,
+  content: string
+) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "로그인이 필요합니다." };
+
+  const trimmed = content.trim();
+  if (!trimmed) return { error: "내용을 입력해주세요." };
+
+  const { error } = await supabase
+    .from("comments")
+    .update({ content: trimmed })
+    .eq("id", commentId)
+    .eq("user_id", user.id);
+
+  if (error) return { error: error.message };
+  revalidatePath(`/products/${productId}`);
+  return { ok: true };
+}
+
+export async function deleteComment(commentId: string, productId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "로그인이 필요합니다." };
+
+  const { error } = await supabase
+    .from("comments")
+    .delete()
+    .eq("id", commentId)
+    .eq("user_id", user.id);
+
+  if (error) return { error: error.message };
+  revalidatePath(`/products/${productId}`);
+  return { ok: true };
+}
+
 export async function toggleReaction(
   commentId: string,
   productId: string,

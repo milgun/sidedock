@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, getUser } from "@/lib/supabase/server";
 
-type Period = "today" | "week" | "month";
+type Period = "today" | "week" | "month" | "all";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const rawPeriod = searchParams.get("period") ?? "today";
-  const period = (["today", "week", "month"].includes(rawPeriod) ? rawPeriod : "today") as Period;
+  const period = (["today", "week", "month", "all"].includes(rawPeriod) ? rawPeriod : "today") as Period;
 
   const supabase = await createClient();
   const user = await getUser();
@@ -24,9 +24,14 @@ export async function GET(req: NextRequest) {
   } else if (period === "week") {
     const weekAgo = new Date(now.getTime() - 7 * 24 * 3_600_000).toISOString();
     query = query.gte("created_at", weekAgo).order("upvote_count", { ascending: false });
-  } else {
+  } else if (period === "month") {
     const monthAgo = new Date(now.getTime() - 30 * 24 * 3_600_000).toISOString();
     query = query.gte("created_at", monthAgo).order("upvote_count", { ascending: false });
+  } else {
+    // all: 역대 인기순 (boost + 댓글)
+    query = query
+      .order("upvote_count", { ascending: false })
+      .order("comment_count", { ascending: false });
   }
 
   const [{ data: rawProducts }, { data: upvotes }] = await Promise.all([

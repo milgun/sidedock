@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { generateUniqueSlug } from "@/lib/slug";
 
 // ── Shared input types ────────────────────────────────────────────────────────
 
@@ -60,6 +61,8 @@ export async function createProductDraft(
 
   if (!user) return { error: "로그인이 필요합니다." };
 
+  const slug = await generateUniqueSlug(input.name.trim() || "product", supabase);
+
   const { data, error } = await supabase
     .from("products")
     .insert({
@@ -79,6 +82,7 @@ export async function createProductDraft(
       maker_id: user.id,
       source: "launch",
       status: "draft",
+      slug,
     })
     .select("id")
     .single();
@@ -176,6 +180,7 @@ export async function submitProductForReview(
   if (!user) return { error: "로그인이 필요합니다." };
 
   // 1. 제품 필드 업데이트 + status → pending_review
+  const slug = await generateUniqueSlug(input.name.trim(), supabase, productId);
   const { error: updateError } = await supabase
     .from("products")
     .update({
@@ -193,6 +198,7 @@ export async function submitProductForReview(
       repo_url: input.is_open_source ? (input.repo_url?.trim() || null) : null,
       maker_type: input.maker_type,
       status: "pending_review",
+      slug,
     })
     .eq("id", productId)
     .eq("maker_id", user.id);
@@ -532,6 +538,8 @@ export async function createCuratedProduct(
 
   if (!profile?.is_admin) return { error: "관리자 권한이 필요합니다." };
 
+  const slug = await generateUniqueSlug(input.name.trim(), supabase);
+
   const { data, error } = await supabase
     .from("products")
     .insert({
@@ -553,8 +561,9 @@ export async function createCuratedProduct(
       launched_at: new Date().toISOString(),
       is_featured: input.is_featured ?? false,
       featured_label: input.featured_label?.trim() || null,
+      slug,
     })
-    .select("id")
+    .select("id, slug")
     .single();
 
   if (error) return { error: error.message };
@@ -575,7 +584,7 @@ export async function createCuratedProduct(
     }
   }
 
-  redirect(`/products/${data.id}`);
+  redirect(`/products/${data.slug}`);
 }
 
 // ── updateCuratedProduct ──────────────────────────────────────────────────────
@@ -600,6 +609,8 @@ export async function updateCuratedProduct(
 
   if (!profile?.is_admin) return { error: "관리자 권한이 필요합니다." };
 
+  const slug = await generateUniqueSlug(input.name.trim(), supabase, productId);
+
   const { error } = await supabase
     .from("products")
     .update({
@@ -616,6 +627,7 @@ export async function updateCuratedProduct(
       maker_type: input.maker_type ?? "hunter",
       is_featured: input.is_featured ?? false,
       featured_label: input.featured_label?.trim() || null,
+      slug,
     })
     .eq("id", productId);
 
@@ -638,7 +650,7 @@ export async function updateCuratedProduct(
     }
   }
 
-  redirect(`/products/${productId}`);
+  redirect(`/products/${slug}`);
 }
 
 

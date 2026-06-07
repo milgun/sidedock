@@ -6,8 +6,20 @@
   100% { opacity: 0;   transform: translateX(-50%) translateY(-62px) scale(0.5);  }
 }
 
+@keyframes bell-ring {
+  0%   { transform: rotate(0deg);    }
+  10%  { transform: rotate(18deg);   }
+  25%  { transform: rotate(-16deg);  }
+  40%  { transform: rotate(14deg);   }
+  55%  { transform: rotate(-10deg);  }
+  70%  { transform: rotate(7deg);    }
+  85%  { transform: rotate(-4deg);   }
+  100% { transform: rotate(0deg);    }
+}
+
 @theme {
   --animate-rocket-fly: rocket-fly 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  --animate-bell-ring: bell-ring 0.9s ease-in-out;
 
   /* Brand — navy/blue gradient identity */
   --color-navy-950: #060d1a;

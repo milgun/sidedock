@@ -104,7 +104,7 @@ function GridCard({
     <div className="group relative flex flex-col gap-3 rounded-2xl border border-slate-100 bg-white p-4 transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-lg cursor-pointer">
       {/* Full-cover link */}
       <Link
-        href={`/products/${product.id}`}
+        href={`/products/${product.slug}`}
         className="absolute inset-0 rounded-2xl"
         aria-hidden="true"
         tabIndex={-1}
@@ -128,7 +128,7 @@ function GridCard({
         </div>
         <div className="flex items-center justify-end gap-1.5">
           <Link
-            href={`/products/${product.id}#comments`}
+            href={`/products/${product.slug}#comments`}
             className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-0.5 text-xs text-slate-400 transition hover:border-slate-300 hover:text-slate-600"
           >
             <CommentIcon />
@@ -184,7 +184,7 @@ function ListCard({
     <div className="relative flex cursor-pointer items-center gap-3 border-b border-slate-100 bg-white px-3 py-3.5 transition last:border-0 hover:bg-slate-50/70 first:rounded-t-2xl last:rounded-b-2xl">
       {/* Full-cover link */}
       <Link
-        href={`/products/${product.id}`}
+        href={`/products/${product.slug}`}
         className="absolute inset-0"
         aria-hidden="true"
         tabIndex={-1}
@@ -273,7 +273,7 @@ function ListCard({
       <div className="relative z-10 flex flex-shrink-0 items-center gap-1.5">
         {context !== "launch-feed" && (
           <Link
-            href={`/products/${product.id}#comments`}
+            href={`/products/${product.slug}#comments`}
             className="hidden items-center gap-1 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-400 transition hover:border-slate-300 hover:text-slate-600 sm:flex"
           >
             <CommentIcon />

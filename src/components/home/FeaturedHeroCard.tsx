@@ -11,7 +11,7 @@ export default function FeaturedHeroCard({ product }: FeaturedHeroCardProps) {
   const label = product.featured_label || "에디터 픽";
 
   return (
-    <Link href={`/products/${product.id}`} className="block group">
+    <Link href={`/products/${product.slug}`} className="block group">
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-navy-900 via-navy-800 to-blue-700 p-6 sm:p-8 text-white transition ring-1 ring-white/5 group-hover:ring-cyan-400/30">
         {/* bg glows */}
         <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-cyan-400/10 blur-3xl" />

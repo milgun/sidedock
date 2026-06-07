@@ -4,22 +4,26 @@ import Link from "next/link";
 import DevlogEditor from "@/app/devlog/new/DevlogEditor";
 
 export default async function DevlogEditPage(props: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }) {
-  const { id } = await props.params;
+  const { slug: rawSlug } = await props.params;
+  const slug = decodeURIComponent(rawSlug);
   const supabase = await createClient();
   const user = await getUser();
 
-  if (!user) redirect(`/login?next=/devlog/${id}/edit`);
+  if (!user) redirect(`/login?next=/devlog/${slug}/edit`);
 
+  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
   const { data: post } = await supabase
     .from("devlog_posts")
-    .select("id, author_id, title, content, tags, thumbnail_url")
-    .eq("id", id)
+    .select("id, author_id, slug, title, content, tags, thumbnail_url")
+    .eq(isUUID ? "id" : "slug", slug)
     .maybeSingle();
 
   if (!post) notFound();
   if (post.author_id !== user.id) notFound();
+
+  const postSlug = (post.slug as string) || (post.id as string);
 
   const initialData = {
     title: post.title as string,
@@ -33,14 +37,14 @@ export default async function DevlogEditPage(props: {
       <div className="mb-6 flex items-center gap-2 text-sm text-slate-400">
         <Link href="/devlog" className="hover:text-blue-600">Dev Log</Link>
         <span>/</span>
-        <Link href={`/devlog/${id}`} className="hover:text-blue-600 truncate max-w-xs">{initialData.title}</Link>
+        <Link href={`/devlog/${postSlug}`} className="hover:text-blue-600 truncate max-w-xs">{initialData.title}</Link>
         <span>/</span>
         <span className="text-slate-600">수정</span>
       </div>
 
       <h1 className="mb-6 text-2xl font-black text-slate-900">Dev Log 수정</h1>
 
-      <DevlogEditor mode="edit" postId={id} initialData={initialData} />
+      <DevlogEditor mode="edit" postId={post.id as string} initialData={initialData} />
     </div>
   );
 }

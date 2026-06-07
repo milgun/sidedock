@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { generateUniqueSlug } from "@/lib/slug";
 
 export async function createDevlogPost(formData: FormData): Promise<{ error?: string }> {
   const supabase = await createClient();
@@ -19,16 +20,17 @@ export async function createDevlogPost(formData: FormData): Promise<{ error?: st
   if (content.length < 20) return { error: "내용은 20자 이상 입력해주세요." };
 
   const tags = tagsRaw.split(",").map((t) => t.trim()).filter(Boolean).slice(0, 5);
+  const slug = await generateUniqueSlug(title, supabase as never, undefined, "devlog_posts");
 
   const { data, error } = await supabase
     .from("devlog_posts")
-    .insert({ author_id: user.id, title, content, tags, thumbnail_url })
-    .select("id")
+    .insert({ author_id: user.id, title, content, tags, thumbnail_url, slug })
+    .select("id, slug")
     .single();
 
   if (error) return { error: error.message };
 
-  redirect(`/devlog/${data.id}`);
+  redirect(`/devlog/${data.slug}`);
 }
 
 export async function updateDevlogPost(postId: string, formData: FormData): Promise<{ error?: string }> {
@@ -46,17 +48,18 @@ export async function updateDevlogPost(postId: string, formData: FormData): Prom
   if (content.length < 20) return { error: "내용은 20자 이상 입력해주세요." };
 
   const tags = tagsRaw.split(",").map((t) => t.trim()).filter(Boolean).slice(0, 5);
+  const slug = await generateUniqueSlug(title, supabase as never, postId, "devlog_posts");
 
   const { error } = await supabase
     .from("devlog_posts")
-    .update({ title, content, tags, thumbnail_url, updated_at: new Date().toISOString() })
+    .update({ title, content, tags, thumbnail_url, slug, updated_at: new Date().toISOString() })
     .eq("id", postId)
     .eq("author_id", user.id);
 
   if (error) return { error: error.message };
 
-  revalidatePath(`/devlog/${postId}`);
-  redirect(`/devlog/${postId}`);
+  revalidatePath(`/devlog/${slug}`);
+  redirect(`/devlog/${slug}`);
 }
 
 export async function deleteDevlogPost(postId: string): Promise<{ error?: string }> {

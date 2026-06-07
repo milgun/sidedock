@@ -11,6 +11,7 @@ import Link from "next/link";
 
 interface Props {
   postId: string;
+  postSlug: string;
   content: string;
   likeCount: number;
   initialHasLiked: boolean;
@@ -41,6 +42,7 @@ function withSoftBreaks(content: string): string {
 
 export default function DevlogDetailClient({
   postId,
+  postSlug,
   content,
   likeCount,
   initialHasLiked,
@@ -95,7 +97,7 @@ export default function DevlogDetailClient({
       {isOwner && (
         <div className="mt-5 flex gap-2">
           <Link
-            href={`/devlog/${postId}/edit`}
+            href={`/devlog/${postSlug}/edit`}
             className="rounded-lg border border-slate-200 px-4 py-1.5 text-xs font-medium text-slate-600 transition hover:border-blue-400 hover:text-blue-600"
           >
             수정

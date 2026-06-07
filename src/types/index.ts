@@ -47,6 +47,7 @@ export interface Product {
   comment_count: number;
   is_featured: boolean;
   featured_label: string | null;
+  slug: string;
   source: 'curated' | 'launch';
   gallery_images: string[];
   is_open_source: boolean;
@@ -177,6 +178,7 @@ export interface DevlogPost {
   id: string;
   author_id: string;
   title: string;
+  slug: string;
   content: string;
   tags: string[];
   thumbnail_url: string | null;

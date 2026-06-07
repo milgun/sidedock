@@ -65,7 +65,7 @@ export default async function HomePage() {
           icon="📌"
           title="에디터 큐레이션"
           desc="Sidedock 팀이 직접 고른 유용한 도구들"
-          href="/products"
+          href="/hot"
           linkText="큐레이션 전체 보기"
         />
         {curatedProducts.length > 0 ? (
@@ -121,7 +121,7 @@ export default async function HomePage() {
           icon="🔥"
           title="인기 런치"
           desc="Boost · 댓글 기준 상위 5개"
-          href="/hot"
+          href="/launches?period=all"
           linkText="전체 보기"
         />
         {hotLaunches.length > 0 ? (

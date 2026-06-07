@@ -26,11 +26,11 @@ interface AboutData   { publishedCount: number; totalUpvotes: number }
 interface ActivityData {
   comments: Array<{
     id: string; content: string; created_at: string;
-    product: { id: string; name: string } | null;
+    product: { id: string; slug?: string; name: string } | null;
   }>;
   upvotes: Array<{
     created_at: string;
-    product: { id: string; name: string; thumbnail_url: string | null } | null;
+    product: { id: string; slug?: string; name: string; thumbnail_url: string | null } | null;
   }>;
   devlogs: Array<{
     id: string; title: string; created_at: string;
@@ -49,12 +49,12 @@ interface StackData   { savedProducts: ProductWithMaker[] }
 interface ReviewsData {
   reviews: Array<{
     id: string; rating: number; content: string; created_at: string;
-    product: { id: string; name: string; thumbnail_url: string | null } | null;
+    product: { id: string; slug?: string; name: string; thumbnail_url: string | null } | null;
   }>;
 }
 interface DevlogData {
   devlogs: Array<{
-    id: string; title: string; tags: string[];
+    id: string; slug?: string; title: string; tags: string[];
     thumbnail_url: string | null;
     like_count: number; comment_count: number; created_at: string;
   }>;
@@ -263,8 +263,8 @@ function TabContent({
 
     // 시간순 병합
     type ActivityItem =
-      | { kind: "comment"; id: string; content: string; created_at: string; product: { id: string; name: string } | null }
-      | { kind: "upvote"; created_at: string; product: { id: string; name: string; thumbnail_url: string | null } | null }
+      | { kind: "comment"; id: string; content: string; created_at: string; product: { id: string; slug?: string; name: string } | null }
+      | { kind: "upvote"; created_at: string; product: { id: string; slug?: string; name: string; thumbnail_url: string | null } | null }
       | { kind: "devlog"; id: string; title: string; created_at: string };
 
     const items: ActivityItem[] = [
@@ -284,7 +284,7 @@ function TabContent({
                 <div className="mb-1.5 flex items-center gap-2">
                   <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-600">💬 댓글</span>
                   {item.product && (
-                    <Link href={`/products/${item.product.id}`} className="text-xs font-semibold text-slate-700 hover:text-blue-600 hover:underline">
+                    <Link href={`/products/${item.product.slug ?? item.product.id}`} className="text-xs font-semibold text-slate-700 hover:text-blue-600 hover:underline">
                       {item.product.name}
                     </Link>
                   )}
@@ -306,7 +306,7 @@ function TabContent({
                     <div className="mb-0.5 flex items-center gap-2">
                       <span className="rounded-full bg-orange-50 px-2 py-0.5 text-[11px] font-semibold text-orange-500">🚀 Boost</span>
                       {item.product && (
-                        <Link href={`/products/${item.product.id}`} className="text-xs font-semibold text-slate-700 hover:text-blue-600 hover:underline">
+                        <Link href={`/products/${item.product.slug ?? item.product.id}`} className="text-xs font-semibold text-slate-700 hover:text-blue-600 hover:underline">
                           {item.product.name}
                         </Link>
                       )}
@@ -373,7 +373,7 @@ function TabContent({
         {reviews.map((r) => (
           <div key={r.id} className="rounded-2xl border border-slate-100 bg-white p-5">
             {r.product && (
-              <Link href={`/products/${r.product.id}`} className="mb-2 flex items-center gap-2">
+              <Link href={`/products/${r.product.slug ?? r.product.id}`} className="mb-2 flex items-center gap-2">
                 {r.product.thumbnail_url && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -535,7 +535,7 @@ function DevlogCard({
   onDeleted,
 }: {
   post: {
-    id: string; title: string; tags: string[];
+    id: string; slug?: string; title: string; tags: string[];
     thumbnail_url: string | null;
     like_count: number; comment_count: number; created_at: string;
   };
@@ -557,7 +557,7 @@ function DevlogCard({
     <div className="rounded-2xl border border-slate-100 bg-white p-4 transition hover:border-blue-200 hover:shadow-sm">
       <div className="flex items-start gap-4">
         {/* 썸네일 */}
-        <Link href={`/devlog/${post.id}`} className="relative h-20 w-28 flex-shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-slate-100 to-slate-50">
+        <Link href={`/devlog/${post.slug ?? post.id}`} className="relative h-20 w-28 flex-shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-slate-100 to-slate-50">
           {post.thumbnail_url ? (
             <Image
               src={post.thumbnail_url}
@@ -573,7 +573,7 @@ function DevlogCard({
 
         {/* 텍스트 영역 */}
         <div className="flex min-w-0 flex-1 flex-col">
-          <Link href={`/devlog/${post.id}`} className="font-semibold text-slate-900 hover:text-blue-600 leading-snug line-clamp-2">
+          <Link href={`/devlog/${post.slug ?? post.id}`} className="font-semibold text-slate-900 hover:text-blue-600 leading-snug line-clamp-2">
             {post.title}
           </Link>
 
@@ -597,7 +597,7 @@ function DevlogCard({
           {isOwn && (
             <div className="mt-3 flex gap-2 border-t border-slate-100 pt-3">
               <Link
-                href={`/devlog/${post.id}/edit`}
+                href={`/devlog/${post.slug ?? post.id}/edit`}
                 className="rounded-lg border border-slate-200 px-3 py-1 text-xs font-medium text-slate-600 transition hover:border-blue-400 hover:text-blue-600"
               >
                 수정

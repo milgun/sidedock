@@ -272,7 +272,7 @@ export default function ProductTabs({
                   <p className="mb-2 text-xs text-slate-400">출시한 제품</p>
                   <div className="flex flex-wrap gap-2">
                     {makerProducts.map((p) => (
-                      <Link key={p.id} href={`/products/${p.id}`}
+                      <Link key={p.id} href={`/products/${p.slug ?? p.id}`}
                         className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 transition hover:border-blue-300 hover:text-blue-700">
                         {p.thumbnail_url ? (
                           // eslint-disable-next-line @next/next/no-img-element
