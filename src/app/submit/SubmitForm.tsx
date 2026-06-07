@@ -396,7 +396,22 @@ export default function SubmitForm({ username, editProduct }: SubmitFormProps) {
   };
 
   return (
-    <div className="flex flex-col gap-4 md:flex-row md:gap-8">
+    <div className="flex flex-col gap-4">
+      {/* 가이드라인 팁 배너 */}
+      {!isEditMode && (
+        <div className="flex items-center gap-3 rounded-xl border border-violet-100 bg-violet-50 px-4 py-3">
+          <span className="text-base">📖</span>
+          <p className="text-xs text-slate-600">
+            처음 등록하시나요?{" "}
+            <a href="/guidelines" className="font-semibold text-violet-600 hover:underline">
+              제품 등록 가이드라인
+            </a>
+            을 먼저 확인해 보세요. 등록 기준, 이미지 규격, 반려 사유를 미리 알 수 있습니다.
+          </p>
+        </div>
+      )}
+
+      <div className="flex flex-col gap-4 md:flex-row md:gap-8">
       {submitted && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/90 backdrop-blur-sm">
           <div className="max-w-md rounded-3xl border border-green-100 bg-white p-10 text-center shadow-xl">
@@ -891,6 +906,7 @@ export default function SubmitForm({ username, editProduct }: SubmitFormProps) {
         )}
       </div>
     </div>
+  </div>
   );
 }
 
