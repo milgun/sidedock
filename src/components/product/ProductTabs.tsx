@@ -39,7 +39,7 @@ export interface ProductTabsProps {
   maker: MakerInfo | null;
   makerType: "maker" | "hunter";
   isCurated?: boolean;
-  makerProducts?: { id: string; name: string; thumbnail_url: string | null }[];
+  makerProducts?: { id: string; slug?: string; name: string; thumbnail_url: string | null }[];
   teamMembers: TeamMemberWithProfile[];
   shoutouts: ProductShoutout[];
   reviews: ReviewWithProfile[];

@@ -5,6 +5,7 @@ import { approveProduct, rejectProduct } from "@/lib/actions/product";
 
 type PendingProduct = {
   id: string;
+  slug: string;
   name: string;
   tagline: string;
   description: string;

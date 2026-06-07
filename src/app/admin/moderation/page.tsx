@@ -22,7 +22,7 @@ export default async function ModerationPage() {
 
   const { data: pending } = await supabase
     .from("products")
-    .select("id, name, tagline, description, url, thumbnail_url, category, categories, created_at, maker:profiles(id, username, display_name, avatar_url)")
+    .select("id, slug, name, tagline, description, url, thumbnail_url, category, categories, created_at, maker:profiles(id, username, display_name, avatar_url)")
     .eq("status", "pending_review")
     .order("created_at", { ascending: true });
 
