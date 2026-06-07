@@ -71,6 +71,7 @@ export default function RootLayout({
               <p>대표번호: 043-907-5072</p>
               <p>고객센터 운영시간: 평일 10:00~17:00</p>
               <p>개인정보보호책임자: 이현석</p>
+              <p>이메일: <a href="mailto:contact@sidedock.io" className="hover:text-blue-500">contact@sidedock.io</a></p>
             </div>
           </details>
         </footer>
