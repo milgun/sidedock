@@ -116,7 +116,7 @@ src/
 
 ## 개발환경 셋업
 
-### 사전 요구사항
+### 사전 요구사항 
 
 - **Node.js** 20.x 이상 ([다운로드](https://nodejs.org/))
 - **npm** 10.x 이상 (Node.js와 함께 설치됨)
@@ -135,7 +135,7 @@ src/
 npx create-next-app@latest sidedock
 ```
 
-`create-next-app` 질문 응답:
+`create-next-app` 질문 응답:::
 
 | 질문 | 선택 |
 |------|------|
