@@ -45,13 +45,13 @@ export default function WelcomeBanner() {
       <div className="relative">
         <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium text-cyan-300">
           <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan-400" />
-          지금 오픈 베타 운영 중
+          First 100 Makers
         </div>
         <h2 className="text-2xl font-black text-white sm:text-3xl">
           Sidedock에 오신 걸 환영합니다 👋
         </h2>
         <p className="mt-2 text-blue-200">
-          국내 AI 툴 · SaaS · 사이드프로젝트를 발견하고, 공유하고, 함께 성장하는 공간입니다.
+          AI 툴 · SaaS · 사이드프로젝트를 발견하고, 공유하고, 함께 성장하는 공간입니다.
         </p>
         <p className="mt-5 text-2xl font-black tracking-tight text-white sm:text-3xl">
           Build Something.{" "}
