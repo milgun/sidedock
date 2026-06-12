@@ -7,6 +7,7 @@ const TABS = [
   { label: "🔥 Hot Products", href: "/hot" },
   { label: "🚀 Launches",     href: "/launches" },
   { label: "📝 Dev Log",      href: "/devlog" },
+  { label: "❓ Why Sidedock", href: "/about" },
 ];
 
 export default function NavbarTabs() {

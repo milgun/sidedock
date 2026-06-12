@@ -7,6 +7,7 @@ const TABS = [
   { label: "🔥 Hot", href: "/hot" },
   { label: "🚀 Launches", href: "/launches" },
   { label: "📝 Dev Log", href: "/devlog" },
+  { label: "❓ Why", href: "/about" },
 ];
 
 export default function MobileNavTabs() {
