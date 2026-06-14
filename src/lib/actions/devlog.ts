@@ -2,10 +2,9 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { generateUniqueSlug } from "@/lib/slug";
 
-export async function createDevlogPost(formData: FormData): Promise<{ error?: string }> {
+export async function createDevlogPost(formData: FormData): Promise<{ error?: string; slug?: string }> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "로그인이 필요합니다." };
@@ -30,10 +29,11 @@ export async function createDevlogPost(formData: FormData): Promise<{ error?: st
 
   if (error) return { error: error.message };
 
-  redirect(`/devlog/${data.slug}`);
+  revalidatePath("/devlog");
+  return { slug: data.slug };
 }
 
-export async function updateDevlogPost(postId: string, formData: FormData): Promise<{ error?: string }> {
+export async function updateDevlogPost(postId: string, formData: FormData): Promise<{ error?: string; slug?: string }> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "로그인이 필요합니다." };
@@ -59,7 +59,7 @@ export async function updateDevlogPost(postId: string, formData: FormData): Prom
   if (error) return { error: error.message };
 
   revalidatePath(`/devlog/${slug}`);
-  redirect(`/devlog/${slug}`);
+  return { slug };
 }
 
 export async function deleteDevlogPost(postId: string): Promise<{ error?: string }> {
@@ -76,7 +76,7 @@ export async function deleteDevlogPost(postId: string): Promise<{ error?: string
   if (error) return { error: error.message };
 
   revalidatePath("/devlog");
-  redirect("/devlog");
+  return {};
 }
 
 /** 프로필 탭 등 리다이렉트 없이 삭제할 때 사용 */

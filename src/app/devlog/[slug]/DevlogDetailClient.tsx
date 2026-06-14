@@ -35,7 +35,22 @@ function withSoftBreaks(content: string): string {
   return parts
     .map((part, i) => {
       if (i % 2 === 1) return part;
-      return part.replace(/(?<!\n)\n(?!\n)/g, "  \n");
+      const lines = part.split("\n");
+      return lines
+        .map((line, j) => {
+          const next = lines[j + 1] ?? "";
+          // 테이블 행(현재 또는 다음 줄이 |로 시작)은 soft break 제외
+          if (line.trimStart().startsWith("|") || next.trimStart().startsWith("|")) {
+            return line;
+          }
+          // 단독 줄바꿈에만 trailing 공백 두 개 추가 (soft break)
+          const prev = j > 0 ? lines[j - 1] : "";
+          if (line !== "" && prev !== "" && next !== "") {
+            return line + "  ";
+          }
+          return line;
+        })
+        .join("\n");
     })
     .join("");
 }

@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useState, useRef, useTransition, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -67,7 +68,7 @@ function applyInsert(
 
   setter(newText);
   requestAnimationFrame(() => {
-    textarea.focus();
+    textarea.focus({ preventScroll: true });
     textarea.setSelectionRange(newSs, newSe);
   });
 }
@@ -113,6 +114,7 @@ export default function DevlogEditor({
   postId?: string;
   initialData?: DevlogInitialData;
 }) {
+  const router = useRouter();
   const [title, setTitle] = useState(initialData?.title ?? "");
   const [content, setContent] = useState(initialData?.content ?? "");
   const [tags, setTags] = useState(initialData?.tags ?? "");
@@ -273,13 +275,17 @@ export default function DevlogEditor({
       fd.append("tags", tags);
       if (thumbnail) fd.append("thumbnail_url", thumbnail);
 
-      let result: { error?: string } | undefined;
+      let result: { error?: string; slug?: string } | undefined;
       if (mode === "edit" && postId) {
         result = await updateDevlogPost(postId, fd);
       } else {
         result = await createDevlogPost(fd);
       }
-      if (result?.error) setError(result.error);
+      if (result?.error) {
+        setError(result.error);
+      } else if (result?.slug) {
+        router.push(`/devlog/${result.slug}`);
+      }
     });
   };
 
@@ -629,7 +635,21 @@ function withSoftBreaks(content: string): string {
   return parts
     .map((part, i) => {
       if (i % 2 === 1) return part; // 코드 블록은 건드리지 않음
-      return part.replace(/(?<!\n)\n(?!\n)/g, "  \n");
+      const lines = part.split("\n");
+      return lines
+        .map((line, j) => {
+          const next = lines[j + 1] ?? "";
+          // 테이블 행(현재 또는 다음 줄이 |로 시작)은 soft break 제외
+          if (line.trimStart().startsWith("|") || next.trimStart().startsWith("|")) {
+            return line;
+          }
+          const prev = j > 0 ? lines[j - 1] : "";
+          if (line !== "" && prev !== "" && next !== "") {
+            return line + "  ";
+          }
+          return line;
+        })
+        .join("\n");
     })
     .join("");
 }
