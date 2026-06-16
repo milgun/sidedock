@@ -643,8 +643,8 @@ function withSoftBreaks(content: string): string {
           if (line.trimStart().startsWith("|") || next.trimStart().startsWith("|")) {
             return line;
           }
-          const prev = j > 0 ? lines[j - 1] : "";
-          if (line !== "" && prev !== "" && next !== "") {
+          // 현재 줄이 비어있지 않고 다음 줄도 비어있지 않으면 soft break
+          if (line !== "" && next !== "") {
             return line + "  ";
           }
           return line;
