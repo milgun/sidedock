@@ -46,7 +46,7 @@ export default function LoginPage() {
         {/* 로고 */}
         <div className="mb-6 flex items-center justify-center gap-2">
           <Image src="/logo.svg" alt="Sidedock" width={28} height={30} className="h-7 w-auto" />
-          <span className="font-mono text-lg font-bold tracking-tight text-navy-900">Sidedock</span>
+          <Image src="/logo-text.png" alt="Sidedock" width={100} height={24} className="h-5 w-auto" priority />
         </div>
 
         {/* 제목 */}
