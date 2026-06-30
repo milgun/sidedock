@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
     .order("upvote_count", { ascending: false })
     .limit(50);
 
-  if (category) query = query.eq("category", category);
+  if (category) query = query.or(`category.eq.${category},categories.cs.{${category}}`);
 
   const [{ data: rawProducts }, { data: upvotes }] = await Promise.all([
     query,

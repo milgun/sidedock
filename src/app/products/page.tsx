@@ -31,7 +31,7 @@ export default async function ProductsPage(props: {
   // Build query
   let query = supabase.from("products").select("*, maker:profiles(*)");
 
-  if (category) query = query.eq("category", category);
+  if (category) query = query.or(`category.eq.${category},categories.cs.{${category}}`);
 
   if (q) {
     query = query.textSearch("search_vector", q, { type: "websearch" });

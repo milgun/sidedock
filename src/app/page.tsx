@@ -3,7 +3,6 @@ import Link from "next/link";
 import type { ProductWithMaker } from "@/types";
 import ExpandableProductList from "@/components/home/ExpandableProductList";
 import WelcomeBanner from "@/components/home/WelcomeBanner";
-import ProductCard from "@/components/product/ProductCard";
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -21,14 +20,14 @@ export default async function HomePage() {
       .eq("source", "curated")
       .eq("status", "published")
       .order("upvote_count", { ascending: false })
-      .limit(8),
+      .limit(50),
     supabase
       .from("products")
       .select("*, maker:profiles(id, username, avatar_url, display_name)")
       .eq("source", "launch")
       .eq("status", "published")
       .order("created_at", { ascending: false })
-      .limit(6),
+      .limit(50),
     supabase
       .from("products")
       .select("*, maker:profiles(id, username, avatar_url, display_name)")
@@ -36,7 +35,7 @@ export default async function HomePage() {
       .eq("status", "published")
       .order("upvote_count", { ascending: false })
       .order("comment_count", { ascending: false })
-      .limit(5),
+      .limit(50),
     user
       ? supabase.from("upvotes").select("product_id").eq("user_id", user.id)
       : Promise.resolve({ data: [] as { product_id: string }[] }),
@@ -72,6 +71,7 @@ export default async function HomePage() {
           <ExpandableProductList
             products={curatedProducts}
             initialCount={5}
+            pageSize={10}
             userId={userId}
             context="launch-rank"
           />
@@ -95,16 +95,13 @@ export default async function HomePage() {
           linkText="런치 전체 보기"
         />
         {newLaunches.length > 0 ? (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-            {newLaunches.map((p) => (
-              <ProductCard
-                key={p.id}
-                product={p}
-                variant="grid"
-                userId={userId}
-              />
-            ))}
-          </div>
+          <ExpandableProductList
+            products={newLaunches}
+            initialCount={6}
+            pageSize={10}
+            userId={userId}
+            variant="grid"
+          />
         ) : (
           <EmptyState
             icon="🚀"
@@ -120,23 +117,18 @@ export default async function HomePage() {
         <SectionHeader
           icon="🔥"
           title="인기 런치"
-          desc="Boost · 댓글 기준 상위 5개"
+          desc="Boost · 댓글 기준 상위 제품들"
           href="/launches?period=all"
           linkText="전체 보기"
         />
         {hotLaunches.length > 0 ? (
-          <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white">
-            {hotLaunches.map((p, i) => (
-              <ProductCard
-                key={p.id}
-                product={p}
-                rank={i + 1}
-                variant="list"
-                userId={userId}
-                context="hot"
-              />
-            ))}
-          </div>
+          <ExpandableProductList
+            products={hotLaunches}
+            initialCount={5}
+            pageSize={10}
+            userId={userId}
+            context="hot"
+          />
         ) : (
           <EmptyState
             icon="🔥"
