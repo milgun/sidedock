@@ -1,6 +1,8 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { resend, EMAIL_FROM } from "@/lib/resend";
+import { WelcomeEmail } from "@/lib/emails/welcome";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -57,6 +59,16 @@ export async function completeOnboarding(_prevState: unknown, formData: FormData
 
   // JWT metadata 업데이트 → 미들웨어 리다이렉트 해제
   await supabase.auth.updateUser({ data: { onboarding_completed: true } });
+
+  // 환영 이메일 발송 (실패해도 온보딩은 완료 처리)
+  if (user.email) {
+    await resend.emails.send({
+      from: EMAIL_FROM,
+      to: user.email,
+      subject: "Sidedock에 오신 것을 환영합니다!",
+      html: WelcomeEmail({ username: displayName }),
+    }).catch((err: unknown) => console.error("[resend] welcome email failed:", err));
+  }
 
   revalidatePath("/", "layout");
   redirect(`/profile/${username}`);

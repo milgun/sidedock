@@ -116,7 +116,7 @@ src/
 
 ## 개발환경 셋업
 
-### 사전 요구사항 
+### 사전 요구사항
 
 - **Node.js** 20.x 이상 ([다운로드](https://nodejs.org/))
 - **npm** 10.x 이상 (Node.js와 함께 설치됨)
@@ -135,7 +135,7 @@ src/
 npx create-next-app@latest sidedock
 ```
 
-`create-next-app` 질문 응답:::
+`create-next-app` 질문 응답:
 
 | 질문 | 선택 |
 |------|------|
@@ -227,7 +227,7 @@ npm run dev
 | `NEXT_PUBLIC_APP_URL` | 앱 베이스 URL (개발: `http://localhost:3000`, 운영: `https://sidedock.io`) | 공통 | ✅ |
 | `UPLOAD_DIR` | 파일 업로드 로컬 저장 경로 (운영은 Supabase Storage로 교체 필요) | 개발 only | - |
 
-> - `.env.local` 은 `.gitignore`에 포함되어 있어 Git에 올라가지 않습니다.
+> - `.env.local` 은 `.gitignore`에 포함되어 있어 Git에 올라가지 않습니다.SUPABASE_STORAGE_BUCKET
 > - `.env.example` 을 참고해 값을 채우세요 (이 파일은 Git에 커밋됩니다).
 > - `NEXT_PUBLIC_` 접두사가 없는 키는 브라우저에 절대 노출되지 않습니다.
 > - `SUPABASE_SERVICE_ROLE_KEY` 는 RLS를 우회하므로 서버 코드(`app/api/`, `actions/`)에서만 사용하세요.
