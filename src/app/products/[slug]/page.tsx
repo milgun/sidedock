@@ -8,6 +8,7 @@ import UpvoteButton from "@/components/product/UpvoteButton";
 import StackButton from "@/components/product/StackButton";
 import ShareButton from "@/components/product/ShareButton";
 import ProductTabs from "@/components/product/ProductTabs";
+import ClaimButton from "@/components/product/ClaimButton";
 import { CATEGORY_LABELS, CATEGORY_COLORS } from "@/components/product/ProductCard";
 
 const PLATFORM_ICONS: Record<string, { icon: string; label: string }> = {
@@ -167,6 +168,23 @@ export default async function ProductDetailPage(props: {
     hasSaved = !!savedRow;
   }
 
+  // 소유권 클레임 상태 (본인 기준) — 헌터가 소유 중인 제품(curated 또는 hunter 등록)만 대상
+  let claimStatus: "pending" | "approved" | "rejected" | null = null;
+  const isClaimable =
+    (product.source as string) === "curated" ||
+    (product.maker_type as string) === "hunter";
+  if (user && isClaimable && user.id !== (product.maker_id as string)) {
+    const { data: claimRow } = await supabase
+      .from("product_claims")
+      .select("status")
+      .eq("product_id", product.id)
+      .eq("claimant_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    claimStatus = (claimRow?.status as "pending" | "approved" | "rejected" | undefined) ?? null;
+  }
+
   const typedProduct = {
     ...product,
     has_upvoted: hasUpvoted,
@@ -323,6 +341,18 @@ export default async function ProductDetailPage(props: {
           </div>
         </div>
       </div>
+
+      {/* 헌터가 소유 중인 제품 소유권 클레임 */}
+      {isClaimable && !isProductOwner && (
+        <div className="mt-4">
+          <ClaimButton
+            productId={product.id}
+            productName={product.name as string}
+            userId={userId}
+            existingStatus={claimStatus}
+          />
+        </div>
+      )}
 
       <hr className="my-8 border-slate-100" />
 

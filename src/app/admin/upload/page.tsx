@@ -25,6 +25,12 @@ export default async function AdminUploadPage() {
     .select("id", { count: "exact", head: true })
     .eq("status", "pending_review");
 
+  // Get pending claim count for nav badge
+  const { count: claimCount } = await supabase
+    .from("product_claims")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "pending");
+
   return (
     <div className="mx-auto max-w-2xl px-4 py-12">
       {/* Admin Nav */}
@@ -40,6 +46,17 @@ export default async function AdminUploadPage() {
           {(pendingCount ?? 0) > 0 && (
             <span className="flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-white text-[10px] font-black">
               {pendingCount}
+            </span>
+          )}
+        </Link>
+        <Link
+          href="/admin/claims"
+          className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 transition hover:bg-blue-100"
+        >
+          🙋 소유권 요청
+          {(claimCount ?? 0) > 0 && (
+            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-white text-[10px] font-black">
+              {claimCount}
             </span>
           )}
         </Link>

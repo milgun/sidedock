@@ -52,6 +52,28 @@ function notificationInfo(n: Notification): {
         text: `'${p.product_name}' 심사 요청이 접수되었습니다`,
         href: "/admin/moderation",
       };
+    case "product_claimed":
+      return {
+        icon: "🙋",
+        text: `'${p.product_name}' 소유권 요청이 접수되었습니다`,
+        href: "/admin/claims",
+      };
+    case "product_claim_approved":
+      return {
+        icon: "🎉",
+        text: `'${p.product_name}' 소유권이 승인되었습니다!`,
+        href: p.product_slug
+          ? `/products/${p.product_slug}`
+          : p.product_id
+          ? `/products/${p.product_id}`
+          : undefined,
+      };
+    case "product_claim_rejected":
+      return {
+        icon: "🚫",
+        text: `'${p.product_name}' 소유권 요청이 반려되었습니다`,
+        href: p.product_id ? `/products/${p.product_id}` : undefined,
+      };
     case "upvote":
       return {
         icon: "🔼",

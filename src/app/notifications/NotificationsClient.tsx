@@ -54,6 +54,33 @@ function notificationInfo(n: Notification): {
         body: p.resubmit ? "재제출된 제품입니다." : "새 제품 심사 요청입니다.",
         href: "/admin/moderation",
       };
+    case "product_claimed":
+      return {
+        icon: "🙋",
+        title: `'${p.product_name}' 소유권 요청이 접수되었습니다`,
+        body: p.claimant_username
+          ? `@${p.claimant_username} 님이 소유권을 요청했습니다.`
+          : "소유권 요청을 확인하세요.",
+        href: "/admin/claims",
+      };
+    case "product_claim_approved":
+      return {
+        icon: "🎉",
+        title: `'${p.product_name}' 소유권이 승인되었습니다!`,
+        body: "이제 이 제품을 직접 관리할 수 있습니다.",
+        href: p.product_slug
+          ? `/products/${p.product_slug}`
+          : p.product_id
+          ? `/products/${p.product_id}`
+          : undefined,
+      };
+    case "product_claim_rejected":
+      return {
+        icon: "🚫",
+        title: `'${p.product_name}' 소유권 요청이 반려되었습니다`,
+        body: p.reason ? `사유: ${p.reason}` : "관리자에게 문의해주세요.",
+        href: p.product_id ? `/products/${p.product_id}` : undefined,
+      };
     case "upvote":
       return {
         icon: "🔼",
