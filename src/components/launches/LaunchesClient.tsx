@@ -8,10 +8,10 @@ import ProductCard from "@/components/product/ProductCard";
 type Period = "today" | "week" | "month" | "all";
 
 const PERIOD_TABS: { value: Period; label: string; icon: string; desc: string }[] = [
+  { value: "all",   label: "역대 인기", icon: "🔥", desc: "Boost · 댓글 기준 역대 인기 런치" },
   { value: "today", label: "오늘",    icon: "✨", desc: "오늘 새롭게 등록된 제품들" },
   { value: "week",  label: "이번 주", icon: "📈", desc: "이번 주 가장 많은 주목을 받은 제품들" },
   { value: "month", label: "이번 달", icon: "🏆", desc: "이번 달 가장 인기 있었던 제품들" },
-  { value: "all",   label: "역대 인기", icon: "🔥", desc: "Boost · 댓글 기준 역대 인기 런치" },
 ];
 
 interface LaunchesClientProps {
