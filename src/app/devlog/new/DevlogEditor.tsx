@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkCjkFriendly from "remark-cjk-friendly";
 import { createDevlogPost, updateDevlogPost } from "@/lib/actions/devlog";
 
 export interface DevlogInitialData {
@@ -657,7 +658,7 @@ function withSoftBreaks(content: string): string {
 function MarkdownPreview({ content }: { content: string }) {
   return (
     <ReactMarkdown
-      remarkPlugins={[remarkGfm]}
+      remarkPlugins={[remarkGfm, remarkCjkFriendly]}
 
       components={{
         h1: ({ children }) => (

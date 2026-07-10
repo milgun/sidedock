@@ -4,6 +4,7 @@ import { useState, useTransition, useRef } from "react";
 import { useRouter } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkCjkFriendly from "remark-cjk-friendly";
 import { toggleDevlogLike, createDevlogComment, deleteDevlogPost } from "@/lib/actions/devlog";
 import type { DevlogComment, Profile } from "@/types";
 import Image from "next/image";
@@ -129,7 +130,7 @@ export default function DevlogDetailClient({
       {/* Markdown body */}
       <div className="mt-8 max-w-none">
         <ReactMarkdown
-          remarkPlugins={[remarkGfm]}
+          remarkPlugins={[remarkGfm, remarkCjkFriendly]}
           components={{
             h1: ({ children }) => (
               <h1 className="mb-3 mt-8 text-2xl font-black text-slate-900 first:mt-0">{children}</h1>
