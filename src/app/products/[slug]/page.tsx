@@ -218,8 +218,49 @@ export default async function ProductDetailPage(props: {
   const userId = user?.id ?? null;
   const isCurated = productSource === "curated";
 
+  const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://sidedock.io";
+  const ratedReviews = reviews.filter((r) => typeof r.rating === "number" && r.rating > 0);
+  const avgRating =
+    ratedReviews.length > 0
+      ? ratedReviews.reduce((sum, r) => sum + r.rating, 0) / ratedReviews.length
+      : null;
+  const makerName =
+    (product.maker?.display_name as string | null) ??
+    (product.maker?.username as string | null) ??
+    "Sidedock Maker";
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: product.name,
+    description:
+      (product.tagline as string | null) ??
+      (product.description as string | null)?.slice(0, 200) ??
+      "",
+    applicationCategory: "BusinessApplication",
+    url: `${APP_URL}/products/${encodeURIComponent(product.slug as string)}`,
+    ...(product.thumbnail_url ? { image: product.thumbnail_url as string } : {}),
+    inLanguage: "ko-KR",
+    author: { "@type": "Person", name: makerName },
+    isPartOf: { "@type": "WebSite", name: "Sidedock", url: APP_URL },
+    ...(avgRating
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: avgRating.toFixed(1),
+            reviewCount: ratedReviews.length,
+            bestRating: 5,
+            worstRating: 1,
+          },
+        }
+      : {}),
+  };
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
       {/* Breadcrumb */}
       <div className="mb-6 flex items-center justify-between gap-1.5 text-sm text-slate-400">
         <div className="flex items-center gap-1.5">

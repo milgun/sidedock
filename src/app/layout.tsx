@@ -9,7 +9,7 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://sidedock.com";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://sidedock.io";
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
@@ -38,6 +38,40 @@ export const metadata: Metadata = {
   },
 };
 
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${APP_URL}/#organization`,
+      name: "Sidedock",
+      alternateName: "사이드독",
+      url: APP_URL,
+      logo: `${APP_URL}/apple-touch-icon.png`,
+      description:
+        "한국의 1인 개발자와 스타트업이 AI 툴·SaaS·사이드 프로젝트를 런칭하고 평가받고 홍보하는 프로덕트 발견 플랫폼.",
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${APP_URL}/#website`,
+      url: APP_URL,
+      name: "Sidedock",
+      description:
+        "AI 툴, SaaS, 사이드 프로젝트를 가장 먼저 발견하세요. 메이커들의 첫 런칭 무대.",
+      inLanguage: "ko-KR",
+      publisher: { "@id": `${APP_URL}/#organization` },
+      potentialAction: {
+        "@type": "SearchAction",
+        target: {
+          "@type": "EntryPoint",
+          urlTemplate: `${APP_URL}/products?q={search_term_string}`,
+        },
+        "query-input": "required name=search_term_string",
+      },
+    },
+  ],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -49,6 +83,10 @@ export default function RootLayout({
       className={`${geistSans.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-surface" suppressHydrationWarning>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         <Navbar />
         <main className="flex-1">{children}</main>
         <footer className="border-t border-slate-200 bg-white py-8 text-center">

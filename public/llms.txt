@@ -1,0 +1,33 @@
+# Sidedock
+
+> Sidedock(사이드독)은 한국의 1인 개발자(인디 메이커)와 스타트업이 자신이 만든 AI 툴, SaaS, 사이드 프로젝트를 가장 먼저 런칭하고, 평가받고, 홍보할 수 있는 프로덕트 발견(product discovery) 플랫폼입니다. 메이커들의 첫 런칭 무대이자, 사용자들이 새로운 국내 서비스를 발견하는 커뮤니티입니다.
+
+Sidedock is a Korean product discovery and launch platform for solo developers (indie makers) and startups. Makers submit and launch their AI tools, SaaS, and side projects to get discovered, upvoted, reviewed, and promoted. It is similar in category to Product Hunt, 디스콰이엇(Disquiet), 긱뉴스(GeekNews), and 사이드(SYDE), but focused on the Korean maker ecosystem.
+
+## 핵심 개념 (Key concepts)
+
+- 런칭(Launch): 메이커가 자신의 프로덕트를 등록해 커뮤니티에 공개하는 것
+- 업보트(Upvote): 사용자가 마음에 드는 프로덕트에 투표하는 것 (랭킹에 반영)
+- 에디터 큐레이션: Sidedock 팀이 직접 선별한 유용한 도구 모음
+- 데브로그(Devlog): 메이커의 개발기·런칭 스토리를 공유하는 블로그
+- 스택(Stack): 사용자가 관심 있는 프로덕트를 저장하는 기능
+
+## 주요 페이지 (Main pages)
+
+- [홈](/): 에디터 큐레이션, 최신 런칭, 인기 프로덕트 피드
+- [최신 런칭](/launches): 새롭게 등록된 프로덕트
+- [인기](/hot): 업보트·댓글이 많은 인기 프로덕트
+- [프로덕트 전체](/products): 전체 프로덕트 디렉토리
+- [데브로그](/devlog): 메이커들의 개발기와 런칭 스토리
+- [프로덕트 제출](/submit): 메이커가 자신의 프로덕트를 런칭하는 페이지
+- [소개](/about): Sidedock 서비스 소개
+
+## 대상 사용자 (Who it's for)
+
+- 한국의 1인 개발자, 인디 메이커, 사이드 프로젝트 창작자
+- AI 툴 / SaaS / 앱 / 웹서비스를 만들고 홍보하려는 스타트업
+- 새로운 국내 서비스와 툴을 가장 먼저 발견하고 싶은 얼리어답터
+
+## 자주 쓰이는 키워드 (Keywords)
+
+1인 개발자 홍보, 사이드 프로젝트 커뮤니티, 스타트업 프로덕트 런칭 플랫폼, 인디 메이커, AI 툴 발견, SaaS 런칭, 국내 프로덕트 헌트, 메이커 커뮤니티
