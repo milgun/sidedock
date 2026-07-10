@@ -79,6 +79,9 @@ const EXTRA_LINK_TYPES = [
   { value: "bitbucket",   label: "Bitbucket" },
   { value: "gitlab",      label: "GitLab" },
   { value: "discord",     label: "Discord" },
+  { value: "x",           label: "X (Twitter)" },
+  { value: "youtube",     label: "YouTube" },
+  { value: "instagram",   label: "Instagram" },
   { value: "other",       label: "기타" },
 ];
 

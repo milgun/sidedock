@@ -26,6 +26,9 @@ export type LinkType =
   | "bitbucket"
   | "gitlab"
   | "discord"
+  | "x"
+  | "youtube"
+  | "instagram"
   | "other";
 
 export type MakerType = "maker" | "hunter";

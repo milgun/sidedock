@@ -153,7 +153,7 @@ CREATE TABLE IF NOT EXISTS public.saved_products (
 CREATE TABLE IF NOT EXISTS public.product_links (
   id         uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   product_id uuid REFERENCES public.products(id) ON DELETE CASCADE NOT NULL,
-  link_type  text NOT NULL CHECK (link_type IN ('app-store','google-play','steam','github','bitbucket','gitlab','discord','other')),
+  link_type  text NOT NULL CHECK (link_type IN ('app-store','google-play','steam','github','bitbucket','gitlab','discord','x','youtube','instagram','other')),
   url        text NOT NULL,
   label      text,
   sort_order integer DEFAULT 0,
