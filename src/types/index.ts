@@ -25,6 +25,7 @@ export type LinkType =
   | "github"
   | "bitbucket"
   | "gitlab"
+  | "discord"
   | "other";
 
 export type MakerType = "maker" | "hunter";

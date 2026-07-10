@@ -9,17 +9,8 @@ import StackButton from "@/components/product/StackButton";
 import ShareButton from "@/components/product/ShareButton";
 import ProductTabs from "@/components/product/ProductTabs";
 import ClaimButton from "@/components/product/ClaimButton";
+import BrandIcon, { BRAND_LABELS } from "@/components/product/BrandIcon";
 import { CATEGORY_LABELS, CATEGORY_COLORS } from "@/components/product/ProductCard";
-
-const PLATFORM_ICONS: Record<string, { icon: string; label: string }> = {
-  "app-store":    { icon: "🍎", label: "App Store" },
-  "google-play":  { icon: "▶",  label: "Google Play" },
-  "steam":        { icon: "🎮", label: "Steam" },
-  "github":       { icon: "⚙",  label: "GitHub" },
-  "bitbucket":    { icon: "🔵", label: "Bitbucket" },
-  "gitlab":       { icon: "🦊", label: "GitLab" },
-  "other":        { icon: "🔗", label: "링크" },
-};
 
 export async function generateMetadata(
   props: { params: Promise<{ slug: string }> }
@@ -365,7 +356,7 @@ export default async function ProductDetailPage(props: {
               </a>
             )}
             {productLinks.map((link) => {
-              const info = PLATFORM_ICONS[link.link_type] ?? PLATFORM_ICONS.other;
+              const label = link.label ?? BRAND_LABELS[link.link_type] ?? BRAND_LABELS.other;
               return (
                 <a
                   key={link.id}
@@ -374,8 +365,8 @@ export default async function ProductDetailPage(props: {
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:shadow-sm"
                 >
-                  <span className="text-base leading-none">{info.icon}</span>
-                  {link.label ?? info.label}
+                  <BrandIcon type={link.link_type} className="h-4 w-4" />
+                  {label}
                 </a>
               );
             })}

@@ -78,6 +78,7 @@ const EXTRA_LINK_TYPES = [
   { value: "github",      label: "GitHub" },
   { value: "bitbucket",   label: "Bitbucket" },
   { value: "gitlab",      label: "GitLab" },
+  { value: "discord",     label: "Discord" },
   { value: "other",       label: "기타" },
 ];
 

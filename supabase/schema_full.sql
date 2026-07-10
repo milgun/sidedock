@@ -1,7 +1,6 @@
 -- ============================================================
 -- SIDEDOCK Complete Schema (schema.sql + v2 ~ v12 전체 통합)
 -- 신규 환경 세팅 시 이 파일 하나만 실행하면 됩니다.
--- 실행 순서: schema_full.sql → migrations_realtime.sql
 -- ============================================================
 
 -- ── 1. profiles ───────────────────────────────────────────────
@@ -154,7 +153,7 @@ CREATE TABLE IF NOT EXISTS public.saved_products (
 CREATE TABLE IF NOT EXISTS public.product_links (
   id         uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   product_id uuid REFERENCES public.products(id) ON DELETE CASCADE NOT NULL,
-  link_type  text NOT NULL CHECK (link_type IN ('app-store','google-play','steam','github','bitbucket','gitlab','other')),
+  link_type  text NOT NULL CHECK (link_type IN ('app-store','google-play','steam','github','bitbucket','gitlab','discord','other')),
   url        text NOT NULL,
   label      text,
   sort_order integer DEFAULT 0,
@@ -435,3 +434,9 @@ CREATE POLICY "product_claims_insert" ON public.product_claims FOR INSERT WITH C
 CREATE POLICY "product_claims_update_admin" ON public.product_claims FOR UPDATE USING (
   EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true)
 );
+
+-- ── Realtime publication (v9 ~ v10) ──────────────────────
+-- 이미 추가된 테이블이면 오류가 날 수 있으나 무시해도 됩니다.
+ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.upvotes;
+ALTER PUBLICATION supabase_realtime ADD TABLE public.products;
