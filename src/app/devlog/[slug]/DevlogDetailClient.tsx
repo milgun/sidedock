@@ -9,10 +9,12 @@ import { toggleDevlogLike, createDevlogComment, deleteDevlogPost } from "@/lib/a
 import type { DevlogComment, Profile } from "@/types";
 import Image from "next/image";
 import Link from "next/link";
+import ShareButton from "@/components/product/ShareButton";
 
 interface Props {
   postId: string;
   postSlug: string;
+  postTitle: string;
   content: string;
   likeCount: number;
   initialHasLiked: boolean;
@@ -58,6 +60,7 @@ function withSoftBreaks(content: string): string {
 export default function DevlogDetailClient({
   postId,
   postSlug,
+  postTitle,
   content,
   likeCount,
   initialHasLiked,
@@ -108,24 +111,31 @@ export default function DevlogDetailClient({
 
   return (
     <>
-      {/* 글쓴이 전용 수정/삭제 버튼 */}
-      {isOwner && (
-        <div className="mt-5 flex gap-2">
-          <Link
-            href={`/devlog/${postSlug}/edit`}
-            className="rounded-lg border border-slate-200 px-4 py-1.5 text-xs font-medium text-slate-600 transition hover:border-blue-400 hover:text-blue-600"
-          >
-            수정
-          </Link>
-          <button
-            onClick={handleDelete}
-            disabled={isDeleting}
-            className="rounded-lg border border-slate-200 px-4 py-1.5 text-xs font-medium text-slate-600 transition hover:border-red-400 hover:text-red-600 disabled:opacity-40"
-          >
-            {isDeleting ? "삭제 중…" : "삭제"}
-          </button>
-        </div>
-      )}
+      {/* 공유 + 글쓴이 전용 수정/삭제 버튼 */}
+      <div className="mt-5 flex items-center gap-2">
+        <ShareButton
+          title={postTitle}
+          path={`/devlog/${postSlug}`}
+          variant="detail"
+        />
+        {isOwner && (
+          <>
+            <Link
+              href={`/devlog/${postSlug}/edit`}
+              className="rounded-lg border border-slate-200 px-4 py-1.5 text-xs font-medium text-slate-600 transition hover:border-blue-400 hover:text-blue-600"
+            >
+              수정
+            </Link>
+            <button
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="rounded-lg border border-slate-200 px-4 py-1.5 text-xs font-medium text-slate-600 transition hover:border-red-400 hover:text-red-600 disabled:opacity-40"
+            >
+              {isDeleting ? "삭제 중…" : "삭제"}
+            </button>
+          </>
+        )}
+      </div>
 
       {/* Markdown body */}
       <div className="mt-8 max-w-none">

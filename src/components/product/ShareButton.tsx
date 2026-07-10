@@ -43,9 +43,18 @@ export default function ShareButton({ title, path, variant = "detail" }: ShareBu
         ? `${window.location.origin}${path}`
         : path;
 
+    // 한글 슬러그를 사람이 읽기 좋은 형태로 디코딩 (Velog 방식)
+    // 디코딩된 URL도 붙여넣으면 브라우저가 자동 인코딩하여 정상 동작합니다.
+    let prettyUrl = fullUrl;
+    try {
+      prettyUrl = decodeURI(fullUrl);
+    } catch {
+      // malformed URI — 원본 유지
+    }
+
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
-        await navigator.share({ title, url: fullUrl });
+        await navigator.share({ title, url: prettyUrl });
       } catch {
         // user cancelled — do nothing
       }
@@ -54,7 +63,7 @@ export default function ShareButton({ title, path, variant = "detail" }: ShareBu
 
     // Fallback: clipboard copy
     try {
-      await navigator.clipboard.writeText(fullUrl);
+      await navigator.clipboard.writeText(prettyUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {

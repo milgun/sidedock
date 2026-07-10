@@ -101,6 +101,7 @@ export default async function DevlogDetailPage(props: {
         <DevlogDetailClient
           postId={post.id}
           postSlug={post.slug}
+          postTitle={post.title}
           content={post.content}
           likeCount={post.like_count}
           initialHasLiked={hasLiked}
