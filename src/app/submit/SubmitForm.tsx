@@ -104,7 +104,7 @@ type FormData = {
 };
 
 const inputCls =
-  "w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100";
+  "w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder-slate-400 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:bg-navy-800 dark:border-navy-700 dark:text-slate-100 dark:placeholder-slate-500";
 
 // ── Main Component ────────────────────────────────────────────────────────────
 
@@ -403,11 +403,11 @@ export default function SubmitForm({ username, editProduct }: SubmitFormProps) {
     <div className="flex flex-col gap-4">
       {/* 가이드라인 팁 배너 */}
       {!isEditMode && (
-        <div className="flex items-center gap-3 rounded-xl border border-violet-100 bg-violet-50 px-4 py-3">
+        <div className="flex items-center gap-3 rounded-xl border border-violet-100 bg-violet-50 px-4 py-3 dark:border-violet-500/20 dark:bg-violet-500/10">
           <span className="text-base">📖</span>
-          <p className="text-xs text-slate-600">
+          <p className="text-xs text-slate-600 dark:text-slate-300">
             처음 등록하시나요?{" "}
-            <a href="/guidelines" className="font-semibold text-violet-600 hover:underline">
+            <a href="/guidelines" className="font-semibold text-violet-600 hover:underline dark:text-violet-300">
               제품 등록 가이드라인
             </a>
             을 먼저 확인해 보세요. 등록 기준, 이미지 규격, 반려 사유를 미리 알 수 있습니다.
@@ -417,13 +417,13 @@ export default function SubmitForm({ username, editProduct }: SubmitFormProps) {
 
       <div className="flex flex-col gap-4 md:flex-row md:gap-8">
       {submitted && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/90 backdrop-blur-sm">
-          <div className="max-w-md rounded-3xl border border-green-100 bg-white p-10 text-center shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/90 backdrop-blur-sm dark:bg-navy-950/90">
+          <div className="max-w-md rounded-3xl border border-green-100 bg-white p-10 text-center shadow-xl dark:border-green-500/20 dark:bg-navy-900">
             <div className="mb-4 text-5xl">{isEditMode ? "✏️" : "🚀"}</div>
-            <h2 className="mb-2 text-2xl font-black text-slate-900">
+            <h2 className="mb-2 text-2xl font-black text-slate-900 dark:text-slate-100">
               {isEditMode ? "수정 완료!" : "검토 요청 완료!"}
             </h2>
-            <p className="mb-1 text-slate-600">
+            <p className="mb-1 text-slate-600 dark:text-slate-300">
               {isEditMode
                 ? "수정 내용이 저장되었습니다."
                 : "제품이 운영팀에 제출되었습니다."}
@@ -443,7 +443,7 @@ export default function SubmitForm({ username, editProduct }: SubmitFormProps) {
       {/* ── Mobile Step Bar (md 미만에서만 표시) ── */}
       <div className="md:hidden">
         {/* 제품 헤더 */}
-        <div className="mb-3 flex items-center gap-3 rounded-2xl border border-slate-100 bg-white p-3 shadow-sm">
+        <div className="mb-3 flex items-center gap-3 rounded-2xl border border-slate-100 bg-white p-3 shadow-sm dark:border-navy-800 dark:bg-navy-900">
           {form.thumbnail_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={form.thumbnail_url} alt="" className="h-9 w-9 rounded-xl object-cover" />
@@ -453,18 +453,18 @@ export default function SubmitForm({ username, editProduct }: SubmitFormProps) {
             </div>
           )}
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-bold text-slate-900">{form.name || "새 제품"}</p>
+            <p className="truncate text-sm font-bold text-slate-900 dark:text-slate-100">{form.name || "새 제품"}</p>
             <p className="text-xs text-amber-500">
               {isSavingDraft ? "저장 중..." : lastSaved ? `${lastSaved.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })} 저장됨` : isEditMode ? "수정 중" : "작성 중"}
             </p>
           </div>
-          <span className="flex-shrink-0 rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-600">
+          <span className="flex-shrink-0 rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-600 dark:bg-blue-500/15 dark:text-blue-300">
             {step + 1}/{NAV_STEPS.length}
           </span>
         </div>
 
         {/* 스텝 아이콘 가로 스크롤 */}
-        <div className="flex gap-1 overflow-x-auto rounded-2xl border border-slate-100 bg-white p-2 shadow-sm scrollbar-none">
+        <div className="flex gap-1 overflow-x-auto rounded-2xl border border-slate-100 bg-white p-2 shadow-sm scrollbar-none dark:border-navy-800 dark:bg-navy-900">
           {NAV_STEPS.map((s) => {
             const done = isStepComplete(s.id);
             const active = step === s.id;
@@ -474,12 +474,12 @@ export default function SubmitForm({ username, editProduct }: SubmitFormProps) {
                 onClick={() => setStep(s.id)}
                 className={`relative flex min-w-0 flex-1 flex-col items-center rounded-xl px-1.5 py-2 transition ${
                   active
-                    ? "bg-blue-50"
-                    : "hover:bg-slate-50"
+                    ? "bg-blue-50 dark:bg-blue-500/15"
+                    : "hover:bg-slate-50 dark:hover:bg-navy-800"
                 }`}
               >
                 <span className="text-lg leading-none">{s.icon}</span>
-                <span className={`mt-1 text-center text-[10px] leading-tight ${active ? "font-semibold text-blue-700" : "text-slate-500"}`}>
+                <span className={`mt-1 text-center text-[10px] leading-tight ${active ? "font-semibold text-blue-700 dark:text-blue-300" : "text-slate-500 dark:text-slate-400"}`}>
                   {s.label}
                 </span>
                 {done && !active && (
@@ -497,7 +497,7 @@ export default function SubmitForm({ username, editProduct }: SubmitFormProps) {
       {/* ── Sidebar (md 이상에서만 표시) ── */}
       <aside className="hidden w-52 flex-shrink-0 md:block">
         {/* Sidebar header with draft status */}
-        <div className="mb-5 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+        <div className="mb-5 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm dark:border-navy-800 dark:bg-navy-900">
           <div className="flex items-center gap-3">
             {form.thumbnail_url ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -508,7 +508,7 @@ export default function SubmitForm({ username, editProduct }: SubmitFormProps) {
               </div>
             )}
             <div className="min-w-0">
-              <p className="truncate text-sm font-bold text-slate-900">{form.name || "새 제품"}</p>
+              <p className="truncate text-sm font-bold text-slate-900 dark:text-slate-100">{form.name || "새 제품"}</p>
               <p className="text-xs text-amber-500">
                 {isSavingDraft ? "저장 중..." : lastSaved ? `${lastSaved.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" })} 저장됨` : isEditMode ? "수정 중" : "작성 중"}
               </p>
@@ -524,7 +524,7 @@ export default function SubmitForm({ username, editProduct }: SubmitFormProps) {
                 key={s.id}
                 onClick={() => setStep(s.id)}
                 className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm transition ${
-                  active ? "bg-blue-50 font-semibold text-blue-700" : "text-slate-600 hover:bg-slate-50"
+                  active ? "bg-blue-50 font-semibold text-blue-700 dark:bg-blue-500/15 dark:text-blue-300" : "text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-navy-800"
                 }`}
               >
                 <span className="w-5 text-center text-base leading-none">{s.icon}</span>
@@ -538,7 +538,7 @@ export default function SubmitForm({ username, editProduct }: SubmitFormProps) {
 
       {/* ── Content ── */}
       <div className="min-w-0 flex-1">
-        <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm md:p-8">
+        <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm md:p-8 dark:border-navy-800 dark:bg-navy-900">
 
           {step === 0 && (
             <div className="space-y-6">
@@ -573,7 +573,7 @@ export default function SubmitForm({ username, editProduct }: SubmitFormProps) {
               </Field>
               <div>
                 <div className="mb-2 flex items-center justify-between">
-                  <label className="text-sm font-semibold text-slate-700">추가 링크</label>
+                  <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">추가 링크</label>
                   <button type="button" onClick={addLink}
                     className="flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600 transition hover:bg-blue-100">
                     + 링크 추가
@@ -584,13 +584,13 @@ export default function SubmitForm({ username, editProduct }: SubmitFormProps) {
                 )}
                 <div className="space-y-2">
                   {form.extra_links.map((link) => (
-                    <div key={link.id} className="flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50 p-3">
+                    <div key={link.id} className="flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50 p-3 dark:border-navy-800 dark:bg-navy-800">
                       <select value={link.type} onChange={(e) => updateLink(link.id, "type", e.target.value)}
-                        className="w-36 flex-shrink-0 rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs text-slate-700 outline-none focus:border-blue-400">
+                        className="w-36 flex-shrink-0 rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs text-slate-700 outline-none focus:border-blue-400 dark:bg-navy-800 dark:border-navy-700 dark:text-slate-100">
                         {EXTRA_LINK_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
                       </select>
                       <input type="url" value={link.url} onChange={(e) => updateLink(link.id, "url", e.target.value)}
-                        placeholder="https://..." className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:border-blue-400" />
+                        placeholder="https://..." className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:border-blue-400 dark:bg-navy-800 dark:border-navy-700 dark:text-slate-100 dark:placeholder-slate-500" />
                       <button type="button" onClick={() => removeLink(link.id)} className="flex-shrink-0 text-slate-300 transition hover:text-red-400">✕</button>
                     </div>
                   ))}
@@ -600,7 +600,7 @@ export default function SubmitForm({ username, editProduct }: SubmitFormProps) {
                 <button type="button"
                   onClick={() => setForm((f) => ({ ...f, is_open_source: !f.is_open_source }))}
                   className={`flex items-center gap-3 rounded-xl border px-4 py-3 transition ${
-                    form.is_open_source ? "border-green-200 bg-green-50 text-green-700" : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                    form.is_open_source ? "border-green-200 bg-green-50 text-green-700" : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 dark:border-navy-700 dark:bg-navy-800 dark:text-slate-300"
                   }`}>
                   <div className={`flex h-5 w-5 items-center justify-center rounded border-2 transition ${
                     form.is_open_source ? "border-green-500 bg-green-500" : "border-slate-300"
@@ -612,7 +612,7 @@ export default function SubmitForm({ username, editProduct }: SubmitFormProps) {
                 {form.is_open_source && (
                   <div className="mt-3 flex gap-2">
                     <select value={form.repo_type} onChange={set("repo_type")}
-                      className="w-32 flex-shrink-0 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-400">
+                      className="w-32 flex-shrink-0 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-400 dark:bg-navy-800 dark:border-navy-700 dark:text-slate-100">
                       <option value="github">GitHub</option>
                       <option value="bitbucket">Bitbucket</option>
                       <option value="gitlab">GitLab</option>
@@ -629,7 +629,7 @@ export default function SubmitForm({ username, editProduct }: SubmitFormProps) {
             <div className="space-y-6">
               <StepHeader title="카테고리를 선택하세요" desc={`최대 3개까지 선택할 수 있습니다. (현재 ${form.categories.length}/3)`} />
               {form.categories.length === 3 && (
-                <p className="rounded-xl bg-amber-50 px-4 py-2 text-xs text-amber-600">최대 3개 선택됐습니다. 변경하려면 선택된 항목을 먼저 해제하세요.</p>
+                <p className="rounded-xl bg-amber-50 px-4 py-2 text-xs text-amber-600 dark:bg-amber-500/10 dark:text-amber-300">최대 3개 선택됐습니다. 변경하려면 선택된 항목을 먼저 해제하세요.</p>
               )}
               <div className="grid grid-cols-3 gap-2">
                 {ALL_CATEGORIES.map((cat) => {
@@ -638,9 +638,9 @@ export default function SubmitForm({ username, editProduct }: SubmitFormProps) {
                   return (
                     <button key={cat.value} type="button" onClick={() => toggleCategory(cat.value)} disabled={disabled}
                       className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-left transition ${
-                        selected ? "border-blue-400 bg-blue-50 font-semibold text-blue-700"
-                          : disabled ? "cursor-not-allowed border-slate-100 bg-slate-50 text-slate-300"
-                          : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+                        selected ? "border-blue-400 bg-blue-50 font-semibold text-blue-700 dark:border-blue-500/40 dark:bg-blue-500/15 dark:text-blue-300"
+                          : disabled ? "cursor-not-allowed border-slate-100 bg-slate-50 text-slate-300 dark:border-navy-800 dark:bg-navy-800"
+                          : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50 dark:border-navy-700 dark:bg-navy-800 dark:text-slate-300 dark:hover:bg-navy-800"
                       }`}>
                       <span className="text-base leading-none">{cat.icon}</span>
                       <span className="flex-1 text-xs leading-tight">{cat.label}</span>
@@ -722,7 +722,7 @@ export default function SubmitForm({ username, editProduct }: SubmitFormProps) {
               {form.maker_type === "maker" && (
                 <div>
                   <div className="mb-3">
-                    <p className="text-sm font-semibold text-slate-700">팀원 추가</p>
+                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">팀원 추가</p>
                     <p className="text-xs text-slate-400">사이트에서 검색하거나 직접 입력하세요. (선택)</p>
                   </div>
 
@@ -738,7 +738,7 @@ export default function SubmitForm({ username, editProduct }: SubmitFormProps) {
                       className={inputCls}
                     />
                     {showSearchDropdown && (
-                      <div className="absolute left-0 right-0 top-full z-20 mt-1 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg">
+                      <div className="absolute left-0 right-0 top-full z-20 mt-1 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg dark:border-navy-700 dark:bg-navy-900">
                         {isSearching ? (
                           <div className="px-4 py-3 text-sm text-slate-400">검색 중...</div>
                         ) : searchResults.length === 0 ? (
@@ -763,7 +763,7 @@ export default function SubmitForm({ username, editProduct }: SubmitFormProps) {
                                     )}
                                   </div>
                                   <div>
-                                    <p className="text-sm font-semibold text-slate-900">
+                                    <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                                       {profile.display_name ?? profile.username}
                                     </p>
                                     {profile.username && (
@@ -775,7 +775,7 @@ export default function SubmitForm({ username, editProduct }: SubmitFormProps) {
                             ))}
                           </ul>
                         )}
-                        <div className="border-t border-slate-100">
+                        <div className="border-t border-slate-100 dark:border-navy-800">
                           <button
                             type="button"
                             onMouseDown={() => { addTeamMember(); setShowSearchDropdown(false); setMemberSearch(""); }}
@@ -791,18 +791,18 @@ export default function SubmitForm({ username, editProduct }: SubmitFormProps) {
                   {/* Team members list */}
                   <div className="space-y-2">
                     {form.team_members.map((m) => (
-                      <div key={m.id} className="flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50 p-3">
+                      <div key={m.id} className="flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50 p-3 dark:border-navy-800 dark:bg-navy-800">
                         {m.profile_id ? (
                           <div className="flex min-w-0 flex-1 items-center gap-2">
                             <span className="flex-shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">사이트 유저</span>
-                            <span className="truncate text-sm font-medium text-slate-900">{m.name}</span>
+                            <span className="truncate text-sm font-medium text-slate-900 dark:text-slate-100">{m.name}</span>
                           </div>
                         ) : (
                           <input type="text" value={m.name} onChange={(e) => updateTeamMember(m.id, "name", e.target.value)}
-                            placeholder="이름" className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-400" />
+                            placeholder="이름" className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-400 dark:bg-navy-800 dark:border-navy-700 dark:text-slate-100 dark:placeholder-slate-500" />
                         )}
                         <input type="text" value={m.role} onChange={(e) => updateTeamMember(m.id, "role", e.target.value)}
-                          placeholder="역할 (예: 공동 창업자)" className="w-36 flex-shrink-0 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-400" />
+                          placeholder="역할 (예: 공동 창업자)" className="w-36 flex-shrink-0 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-400 dark:bg-navy-800 dark:border-navy-700 dark:text-slate-100 dark:placeholder-slate-500" />
                         <button type="button" onClick={() => removeTeamMember(m.id)} className="flex-shrink-0 text-slate-300 transition hover:text-red-400">✕</button>
                       </div>
                     ))}
@@ -824,15 +824,15 @@ export default function SubmitForm({ username, editProduct }: SubmitFormProps) {
                 </button>
               </div>
               {form.shoutouts.length === 0 && (
-                <div className="rounded-xl border border-dashed border-slate-200 py-10 text-center text-sm text-slate-400">
+                <div className="rounded-xl border border-dashed border-slate-200 py-10 text-center text-sm text-slate-400 dark:border-navy-700">
                   아직 추가된 추천 도구가 없습니다.
                 </div>
               )}
               <div className="space-y-4">
                 {form.shoutouts.map((s) => (
-                  <div key={s.id} className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                  <div key={s.id} className="rounded-xl border border-slate-100 bg-slate-50 p-4 dark:border-navy-800 dark:bg-navy-800">
                     <div className="mb-3 flex items-center justify-between">
-                      <p className="text-xs font-semibold text-slate-500">추천 도구</p>
+                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">추천 도구</p>
                       <button type="button" onClick={() => removeShoutout(s.id)} className="text-xs text-slate-300 transition hover:text-red-400">삭제</button>
                     </div>
                     <div className="space-y-2">
@@ -886,7 +886,7 @@ export default function SubmitForm({ username, editProduct }: SubmitFormProps) {
         {/* Navigation */}
         <div className="mt-5 flex items-center justify-between">
           <button onClick={() => setStep((s) => Math.max(0, s - 1))} disabled={step === 0}
-            className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-medium text-slate-600 transition hover:border-slate-400 disabled:opacity-30">
+            className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-medium text-slate-600 transition hover:border-slate-400 disabled:opacity-30 dark:border-navy-700 dark:text-slate-300">
             ← 이전
           </button>
           <div className="flex items-center gap-3">
@@ -897,7 +897,7 @@ export default function SubmitForm({ username, editProduct }: SubmitFormProps) {
               </button>
             )}
             <button onClick={handleSubmit} disabled={!canSubmit}
-              className="rounded-xl bg-slate-900 px-8 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-40">
+              className="rounded-xl bg-slate-900 px-8 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-40 dark:bg-blue-600">
               {isSubmitting ? "제출 중…" : "검토 요청하기 🚀"}
             </button>
           </div>
@@ -920,10 +920,10 @@ function StepHeader({ title, desc, badge }: { title: string; desc: string; badge
   return (
     <div className="mb-2">
       <div className="flex items-center gap-2">
-        <h2 className="text-lg font-bold text-slate-900">{title}</h2>
-        {badge && <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-500">{badge}</span>}
+        <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">{title}</h2>
+        {badge && <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-500 dark:bg-navy-800 dark:text-slate-400">{badge}</span>}
       </div>
-      <p className="mt-1 text-sm text-slate-500">{desc}</p>
+      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{desc}</p>
     </div>
   );
 }
@@ -931,7 +931,7 @@ function StepHeader({ title, desc, badge }: { title: string; desc: string; badge
 function Field({ label, required, hint, children }: { label: string; required?: boolean; hint?: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="mb-1.5 flex items-center gap-1 text-sm font-semibold text-slate-700">
+      <label className="mb-1.5 flex items-center gap-1 text-sm font-semibold text-slate-700 dark:text-slate-300">
         {label}{required && <span className="text-red-400">*</span>}
       </label>
       {hint && <p className="mb-1.5 text-xs text-slate-400">{hint}</p>}
@@ -943,7 +943,7 @@ function Field({ label, required, hint, children }: { label: string; required?: 
 function InvestorField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="mb-1.5 block text-sm font-semibold text-slate-700">{label}</label>
+      <label className="mb-1.5 block text-sm font-semibold text-slate-700 dark:text-slate-300">{label}</label>
       {children}
     </div>
   );
@@ -957,7 +957,7 @@ function RoleOption({ selected, onClick, title, desc }: { selected: boolean; onC
   return (
     <button type="button" onClick={onClick}
       className={`flex w-full items-start gap-3 rounded-xl border px-4 py-3.5 text-left transition ${
-        selected ? "border-blue-400 bg-blue-50" : "border-slate-200 bg-white hover:border-slate-300"
+        selected ? "border-blue-400 bg-blue-50 dark:border-blue-500/40 dark:bg-blue-500/15" : "border-slate-200 bg-white hover:border-slate-300 dark:border-navy-700 dark:bg-navy-800"
       }`}>
       <div className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border-2 transition ${
         selected ? "border-blue-500 bg-blue-500" : "border-slate-300"
@@ -965,7 +965,7 @@ function RoleOption({ selected, onClick, title, desc }: { selected: boolean; onC
         {selected && <span className="block h-2 w-2 rounded-full bg-white" />}
       </div>
       <div>
-        <p className={`text-sm font-semibold ${selected ? "text-blue-700" : "text-slate-700"}`}>{title}</p>
+        <p className={`text-sm font-semibold ${selected ? "text-blue-700 dark:text-blue-300" : "text-slate-700 dark:text-slate-300"}`}>{title}</p>
         <p className="mt-0.5 text-xs text-slate-400">{desc}</p>
       </div>
     </button>

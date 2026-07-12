@@ -28,22 +28,22 @@ export default function TermsPage() {
           </span>
           <span className="font-mono text-xs text-slate-400">v1.0.0</span>
         </div>
-        <h1 className="text-3xl font-black text-slate-900">이용약관</h1>
-        <p className="mt-2 text-sm text-slate-500">
+        <h1 className="text-3xl font-black text-slate-900 dark:text-slate-100">이용약관</h1>
+        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
           최종 수정일: {LAST_UPDATED} &nbsp;·&nbsp; 시행일: {EFFECTIVE_DATE}
         </p>
       </div>
 
       {/* 요약 카드 */}
-      <div className="mb-12 rounded-2xl border border-blue-100 bg-blue-50 p-6">
+      <div className="mb-12 rounded-2xl border border-blue-100 bg-blue-50 p-6 dark:border-blue-500/20 dark:bg-blue-500/10">
         <p className="mb-1 font-mono text-xs font-semibold uppercase tracking-widest text-blue-500">TL;DR</p>
-        <p className="text-sm leading-relaxed text-slate-700">
+        <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
           Sidedock은 한국 메이커들을 위한 제품 공유 커뮤니티입니다. 만든 것을 등록하고, 피드백을 주고받고, 서로 응원하는 공간입니다.
           불법 콘텐츠 업로드, 타인 사칭, 스팸 행위는 금지됩니다. 서비스는 현재 상태("as-is")로 제공됩니다.
         </p>
       </div>
 
-      <div className="space-y-12 text-slate-700">
+      <div className="space-y-12 text-slate-700 dark:text-slate-300">
 
         {/* 제1조 */}
         <Section num="01" title="목적">
@@ -64,7 +64,7 @@ export default function TermsPage() {
               { term: "업보트(Upvote)", def: "다른 회원의 제품에 지지를 표현하는 기능" },
             ].map(({ term, def }) => (
               <div key={term} className="flex gap-4">
-                <dt className="w-36 flex-shrink-0 font-mono text-sm font-semibold text-slate-900">{term}</dt>
+                <dt className="w-36 flex-shrink-0 font-mono text-sm font-semibold text-slate-900 dark:text-slate-100">{term}</dt>
                 <dd className="text-sm leading-relaxed">{def}</dd>
               </div>
             ))}
@@ -140,7 +140,7 @@ export default function TermsPage() {
           <ol className="list-decimal space-y-2 pl-5 text-sm leading-relaxed">
             <li>등록된 제품은 운영팀의 검토를 거친 후 공개됩니다. 검토 기간은 통상 2~3일입니다.</li>
             <li>운영팀은 다음 기준에 따라 제품을 반려할 수 있습니다.
-              <ul className="mt-2 ml-4 space-y-1 list-disc text-slate-500">
+              <ul className="mt-2 ml-4 space-y-1 list-disc text-slate-500 dark:text-slate-400">
                 <li>실제 서비스하지 않는 제품 또는 테스트 목적의 등록</li>
                 <li>제6조에 해당하는 콘텐츠 포함</li>
                 <li>중복 등록 (동일 제품의 재등록 시 운영팀 협의 필요)</li>
@@ -172,7 +172,7 @@ export default function TermsPage() {
 
         {/* 제10조 */}
         <Section num="10" title="면책 조항">
-          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-relaxed text-amber-800">
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-relaxed text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300">
             <p className="mb-2 font-semibold">⚠️ 주의 사항</p>
             <p>
               서비스는 현재 상태("as-is")로 제공되며, 서비스의 가용성·정확성·완전성에 대해 보증하지 않습니다.
@@ -192,9 +192,9 @@ export default function TermsPage() {
         </Section>
 
         {/* 문의 */}
-        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-6">
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-6 dark:border-navy-800 dark:bg-navy-800">
           <p className="mb-1 font-mono text-xs font-semibold uppercase tracking-widest text-slate-400">Contact</p>
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-slate-600 dark:text-slate-300">
             이용약관 관련 문의:{" "}
             <a href="mailto:contact@sidedock.io" className="font-medium text-blue-600 hover:underline">
               contact@sidedock.io
@@ -217,7 +217,7 @@ function Section({ num, title, children }: { num: string; title: string; childre
     <section>
       <div className="mb-4 flex items-center gap-3">
         <span className="font-mono text-xs font-bold text-slate-300">§{num}</span>
-        <h2 className="text-lg font-bold text-slate-900">{title}</h2>
+        <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">{title}</h2>
       </div>
       {children}
     </section>
@@ -226,7 +226,7 @@ function Section({ num, title, children }: { num: string; title: string; childre
 
 function CodeBlock({ lines }: { lines: string[] }) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-slate-200 bg-navy-950 p-4">
+    <div className="overflow-x-auto rounded-xl border border-slate-200 bg-navy-950 p-4 dark:border-navy-800">
       <pre className="font-mono text-xs leading-relaxed text-slate-300">
         {lines.map((line, i) => (
           <div key={i} className={line.startsWith("//") ? "text-slate-500" : line === "" ? "h-3" : ""}>

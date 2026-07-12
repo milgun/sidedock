@@ -94,8 +94,8 @@ export default function ShareButton({ title, path, variant = "detail" }: ShareBu
         onClick={handleShare}
         className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-medium transition ${
           copied
-            ? "border-green-300 bg-green-50 text-green-600"
-            : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-700"
+            ? "border-green-300 bg-green-50 text-green-600 dark:border-green-500/30 dark:bg-green-500/15 dark:text-green-300"
+            : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-700 dark:border-navy-700 dark:bg-navy-800 dark:text-slate-400 dark:hover:text-slate-200"
         }`}
       >
         <ShareIcon size={15} />

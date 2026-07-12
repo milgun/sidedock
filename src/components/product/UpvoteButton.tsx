@@ -97,7 +97,7 @@ export default function UpvoteButton({
 
   const active = "bg-blue-600 border-blue-600 text-white";
   const inactive =
-    "border-slate-200 text-slate-500 hover:border-blue-400 hover:text-blue-600 bg-white";
+    "border-slate-200 text-slate-500 hover:border-blue-400 hover:text-blue-600 bg-white dark:border-navy-700 dark:bg-navy-800 dark:text-slate-400";
 
   const rocketParticles = rockets.map((key) => (
     <span

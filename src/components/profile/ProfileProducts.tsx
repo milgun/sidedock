@@ -5,10 +5,10 @@ import Link from "next/link";
 import { resubmitProduct, deleteMyProduct, deleteAdminProduct } from "@/lib/actions/product";
 
 const STATUS_META: Record<string, { label: string; color: string }> = {
-  draft:          { label: "작성 중",    color: "bg-slate-100 text-slate-500" },
-  pending_review: { label: "승인 대기",  color: "bg-amber-100 text-amber-700" },
-  published:      { label: "포스트됨",   color: "bg-green-100 text-green-700" },
-  rejected:       { label: "반려됨",     color: "bg-red-100 text-red-600" },
+  draft:          { label: "작성 중",    color: "bg-slate-100 text-slate-500 dark:bg-navy-800 dark:text-slate-300" },
+  pending_review: { label: "승인 대기",  color: "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300" },
+  published:      { label: "포스트됨",   color: "bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-300" },
+  rejected:       { label: "반려됨",     color: "bg-red-100 text-red-600 dark:bg-red-500/15 dark:text-red-300" },
 };
 
 const STATUS_FILTERS = [
@@ -91,16 +91,16 @@ export default function ProfileProducts({
       {/* 삭제 확인 모달 */}
       {confirmDelete && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="mb-1 text-base font-bold text-slate-900">제품 삭제</h3>
-            <p className="mb-1 text-sm text-slate-600">
+          <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-navy-900 p-6 shadow-xl">
+            <h3 className="mb-1 text-base font-bold text-slate-900 dark:text-slate-100">제품 삭제</h3>
+            <p className="mb-1 text-sm text-slate-600 dark:text-slate-300">
               <span className="font-semibold">{confirmDelete.name}</span>을(를) 삭제하시겠습니까?
             </p>
             <p className="mb-5 text-xs text-red-500">이 작업은 되돌릴 수 없습니다.</p>
             <div className="flex gap-2">
               <button
                 onClick={() => setConfirmDelete(null)}
-                className="flex-1 rounded-xl border border-slate-200 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+                className="flex-1 rounded-xl border border-slate-200 dark:border-navy-800 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 transition hover:bg-slate-50 dark:hover:bg-navy-800"
               >
                 취소
               </button>
@@ -124,8 +124,8 @@ export default function ProfileProducts({
                 onClick={() => setFilter(f.value)}
                 className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
                   filter === f.value
-                    ? "bg-slate-900 text-white"
-                    : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                    ? "bg-slate-900 dark:bg-blue-600 text-white"
+                    : "bg-slate-100 dark:bg-navy-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-navy-700"
                 }`}
               >
                 {f.label}
@@ -142,7 +142,7 @@ export default function ProfileProducts({
       )}
 
       {filtered.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-200 py-14 text-center">
+        <div className="rounded-2xl border border-dashed border-slate-200 dark:border-navy-800 py-14 text-center">
           <p className="text-slate-400">제품이 없습니다.</p>
           {isOwn && filter === "all" && (
             <a href="/submit" className="mt-2 inline-block text-xs text-blue-600 hover:underline">
@@ -167,11 +167,11 @@ export default function ProfileProducts({
             return (
               <div
                 key={product.id}
-                className="overflow-hidden rounded-2xl border border-slate-100 bg-white"
+                className="overflow-hidden rounded-2xl border border-slate-100 dark:border-navy-800 bg-white dark:bg-navy-900"
               >
                 <div className="flex items-center gap-4 p-4">
                   {/* Thumbnail */}
-                  <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-100">
+                  <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-100 dark:bg-navy-800">
                     {product.thumbnail_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -191,7 +191,7 @@ export default function ProfileProducts({
                     <div className="flex items-center gap-2">
                       <a
                         href={`/products/${product.slug ?? product.id}`}
-                        className="font-semibold text-slate-900 hover:text-blue-600"
+                        className="font-semibold text-slate-900 dark:text-slate-100 hover:text-blue-600"
                       >
                         {product.name}
                       </a>
@@ -214,7 +214,7 @@ export default function ProfileProducts({
                       {canEdit && (
                         <Link
                           href={product.source === "curated" ? `/admin/upload?edit=${product.id}` : `/submit?edit=${product.id}`}
-                          className="rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-blue-400 hover:text-blue-600"
+                          className="rounded-xl border border-slate-200 dark:border-navy-800 px-3 py-1.5 text-xs font-medium text-slate-600 dark:text-slate-300 transition hover:border-blue-400 hover:text-blue-600"
                         >
                           수정
                         </Link>
@@ -232,7 +232,7 @@ export default function ProfileProducts({
                         <button
                           onClick={() => setConfirmDelete(product)}
                           disabled={deleting === product.id}
-                          className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 text-slate-400 transition hover:border-red-300 hover:bg-red-50 hover:text-red-500 disabled:opacity-40"
+                          className="flex h-7 w-7 items-center justify-center rounded-lg border border-slate-200 dark:border-navy-800 text-slate-400 transition hover:border-red-300 hover:bg-red-50 hover:text-red-500 disabled:opacity-40"
                           title="삭제"
                         >
                           {deleting === product.id ? (
@@ -261,15 +261,15 @@ export default function ProfileProducts({
 
                 {/* Rejection reason */}
                 {isOwn && product.status === "rejected" && product.rejection_reason && (
-                  <div className="border-t border-red-50 bg-red-50 px-4 py-3">
-                    <p className="text-xs font-semibold text-red-600">반려 사유</p>
-                    <p className="mt-0.5 text-sm text-red-500">{product.rejection_reason}</p>
+                  <div className="border-t border-red-50 bg-red-50 px-4 py-3 dark:border-red-500/20 dark:bg-red-500/10">
+                    <p className="text-xs font-semibold text-red-600 dark:text-red-400">반려 사유</p>
+                    <p className="mt-0.5 text-sm text-red-500 dark:text-red-400">{product.rejection_reason}</p>
                   </div>
                 )}
 
                 {errors[product.id] && (
-                  <div className="border-t border-red-50 bg-red-50 px-4 py-2">
-                    <p className="text-xs text-red-500">{errors[product.id]}</p>
+                  <div className="border-t border-red-50 bg-red-50 px-4 py-2 dark:border-red-500/20 dark:bg-red-500/10">
+                    <p className="text-xs text-red-500 dark:text-red-400">{errors[product.id]}</p>
                   </div>
                 )}
               </div>

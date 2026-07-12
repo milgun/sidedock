@@ -109,7 +109,7 @@ function CommentTopForm({ productId }: { productId: string }) {
         placeholder="이 제품에 대한 생각을 공유해 주세요…"
         rows={3}
         required
-        className="w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder-slate-400 transition focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+        className="w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder-slate-400 transition focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-navy-700 dark:bg-navy-800 dark:text-slate-100 dark:placeholder-slate-500"
       />
       <div className="mt-2 flex justify-end">
         <button
@@ -205,15 +205,15 @@ export default function ProductTabs({
   return (
     <div>
       {/* Tab Navigation */}
-      <nav className="mb-8 flex gap-1 border-b border-slate-100">
+      <nav className="mb-8 flex gap-1 border-b border-slate-100 dark:border-navy-800">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`-mb-px flex items-center gap-1.5 border-b-2 px-4 py-3 text-sm font-medium transition ${
               activeTab === tab.id
-                ? "border-blue-600 text-blue-700"
-                : "border-transparent text-slate-500 hover:border-slate-200 hover:text-slate-900"
+                ? "border-blue-600 text-blue-700 dark:text-blue-400"
+                : "border-transparent text-slate-500 hover:border-slate-200 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
             }`}
           >
             {tab.label}
@@ -221,8 +221,8 @@ export default function ProductTabs({
               <span
                 className={`min-w-[20px] rounded-full px-1.5 py-0.5 text-center text-xs font-semibold leading-none ${
                   activeTab === tab.id
-                    ? "bg-blue-100 text-blue-700"
-                    : "bg-slate-100 text-slate-500"
+                    ? "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300"
+                    : "bg-slate-100 text-slate-500 dark:bg-navy-800 dark:text-slate-400"
                 }`}
               >
                 {tab.count}
@@ -238,14 +238,14 @@ export default function ProductTabs({
           <MediaGallery videoUrl={videoUrl} galleryImages={galleryImages} />
 
           <section className="mb-10">
-            <h2 className="mb-3 text-lg font-bold text-slate-900">소개</h2>
-            <div className="whitespace-pre-wrap leading-relaxed text-slate-600">
+            <h2 className="mb-3 text-lg font-bold text-slate-900 dark:text-slate-100">소개</h2>
+            <div className="whitespace-pre-wrap leading-relaxed text-slate-600 dark:text-slate-300">
               {description}
             </div>
           </section>
 
           {maker && (
-            <section className="mb-10 rounded-2xl border border-slate-100 bg-slate-50 p-5">
+            <section className="mb-10 rounded-2xl border border-slate-100 bg-slate-50 p-5 dark:border-navy-800 dark:bg-navy-800/50">
               <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
                 {isCurated ? "큐레이터" : makerType === "maker" ? "메이커" : "큐레이터"}
               </p>
@@ -258,7 +258,7 @@ export default function ProductTabs({
                 <div className="min-w-0 flex-1">
                   <Link
                     href={`/profile/${maker.username}`}
-                    className="font-semibold text-slate-900 hover:text-blue-700"
+                    className="font-semibold text-slate-900 hover:text-blue-700 dark:text-slate-100 dark:hover:text-blue-400"
                   >
                     {maker.display_name ?? maker.username}
                   </Link>
@@ -268,12 +268,12 @@ export default function ProductTabs({
                 </div>
               </div>
               {makerProducts && makerProducts.length > 0 && (
-                <div className="mt-3 border-t border-slate-200 pt-3">
+                <div className="mt-3 border-t border-slate-200 pt-3 dark:border-navy-700">
                   <p className="mb-2 text-xs text-slate-400">출시한 제품</p>
                   <div className="flex flex-wrap gap-2">
                     {makerProducts.map((p) => (
                       <Link key={p.id} href={`/products/${p.slug ?? p.id}`}
-                        className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 transition hover:border-blue-300 hover:text-blue-700">
+                        className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 transition hover:border-blue-300 hover:text-blue-700 dark:border-navy-700 dark:bg-navy-900 dark:text-slate-200 dark:hover:border-blue-500/50 dark:hover:text-blue-400">
                         {p.thumbnail_url ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={p.thumbnail_url} alt={p.name} className="h-4 w-4 rounded object-cover" />
@@ -292,7 +292,7 @@ export default function ProductTabs({
           )}
 
           <section>
-            <h2 className="mb-5 text-lg font-bold text-slate-900">
+            <h2 className="mb-5 text-lg font-bold text-slate-900 dark:text-slate-100">
               댓글{" "}
               <span className="ml-1 text-base font-normal text-slate-400">
                 {comments.length}
@@ -301,8 +301,8 @@ export default function ProductTabs({
             {userId ? (
               <CommentTopForm productId={productId} />
             ) : (
-              <div className="mb-6 rounded-xl border border-dashed border-slate-200 py-5 text-center">
-                <p className="text-sm text-slate-500">
+              <div className="mb-6 rounded-xl border border-dashed border-slate-200 py-5 text-center dark:border-navy-700">
+                <p className="text-sm text-slate-500 dark:text-slate-400">
                   댓글을 남기려면{" "}
                   <Link
                     href="/login"
@@ -367,7 +367,7 @@ export default function ProductTabs({
               {teamMembers.map((member) => (
                 <div
                   key={member.id}
-                  className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-white p-4 transition hover:border-slate-200 hover:shadow-sm"
+                  className="flex items-center gap-4 rounded-2xl border border-slate-100 bg-white p-4 transition hover:border-slate-200 hover:shadow-sm dark:border-navy-800 dark:bg-navy-900"
                 >
                   <Avatar
                     url={member.profile?.avatar_url}
@@ -378,16 +378,16 @@ export default function ProductTabs({
                     {member.profile?.username ? (
                       <Link
                         href={`/profile/${member.profile.username}`}
-                        className="font-semibold text-slate-900 hover:text-blue-700"
+                        className="font-semibold text-slate-900 hover:text-blue-700 dark:text-slate-100 dark:hover:text-blue-400"
                       >
                         {member.name}
                       </Link>
                     ) : (
-                      <p className="font-semibold text-slate-900">
+                      <p className="font-semibold text-slate-900 dark:text-slate-100">
                         {member.name}
                       </p>
                     )}
-                    <p className="text-sm text-slate-500">{member.role}</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">{member.role}</p>
                   </div>
                   {member.profile?.username && (
                     <Link
@@ -417,7 +417,7 @@ export default function ProductTabs({
               {shoutouts.map((shoutout) => (
                 <div
                   key={shoutout.id}
-                  className="flex items-start gap-4 rounded-2xl border border-slate-100 bg-white p-5 transition hover:border-slate-200 hover:shadow-sm"
+                  className="flex items-start gap-4 rounded-2xl border border-slate-100 bg-white p-5 transition hover:border-slate-200 hover:shadow-sm dark:border-navy-800 dark:bg-navy-900"
                 >
                   <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200">
                     <span className="text-lg font-black text-slate-400">
@@ -426,7 +426,7 @@ export default function ProductTabs({
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="mb-1.5 flex items-center gap-2">
-                      <p className="font-semibold text-slate-900">
+                      <p className="font-semibold text-slate-900 dark:text-slate-100">
                         {shoutout.shoutout_name}
                       </p>
                       {shoutout.shoutout_url && (
@@ -440,7 +440,7 @@ export default function ProductTabs({
                         </a>
                       )}
                     </div>
-                    <p className="text-sm leading-relaxed text-slate-500">
+                    <p className="text-sm leading-relaxed text-slate-500 dark:text-slate-400">
                       {shoutout.reason_text}
                     </p>
                   </div>
@@ -523,9 +523,9 @@ function ReviewsPanel({
     <div className="space-y-8">
       {/* Stats */}
       {reviews.length > 0 && (
-        <div className="flex gap-8 rounded-2xl border border-slate-100 bg-slate-50 p-6">
+        <div className="flex gap-8 rounded-2xl border border-slate-100 bg-slate-50 p-6 dark:border-navy-800 dark:bg-navy-800/50">
           <div className="flex min-w-[90px] flex-col items-center justify-center gap-2">
-            <p className="text-5xl font-black leading-none text-slate-900">
+            <p className="text-5xl font-black leading-none text-slate-900 dark:text-slate-100">
               {avg.toFixed(1)}
             </p>
             <StarRating value={Math.round(avg)} size="sm" />
@@ -534,11 +534,11 @@ function ReviewsPanel({
           <div className="flex-1 space-y-1.5">
             {dist.map(({ star, count }) => (
               <div key={star} className="flex items-center gap-2.5">
-                <span className="w-4 text-right text-xs font-medium text-slate-500">
+                <span className="w-4 text-right text-xs font-medium text-slate-500 dark:text-slate-400">
                   {star}
                 </span>
                 <span className="text-xs text-amber-400">★</span>
-                <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-200">
+                <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-200 dark:bg-navy-700">
                   <div
                     className="h-full rounded-full bg-amber-400 transition-all duration-500"
                     style={{
@@ -560,8 +560,8 @@ function ReviewsPanel({
 
       {/* Write review */}
       {!userId ? (
-        <div className="rounded-2xl border border-dashed border-slate-200 py-8 text-center">
-          <p className="text-sm text-slate-500">
+        <div className="rounded-2xl border border-dashed border-slate-200 py-8 text-center dark:border-navy-700">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             리뷰를 작성하려면{" "}
             <Link
               href="/login"
@@ -578,14 +578,14 @@ function ReviewsPanel({
           <span>이 제품에 리뷰를 작성하셨습니다.</span>
         </div>
       ) : (
-        <div className="rounded-2xl border border-slate-200 bg-white p-6">
-          <h3 className="mb-5 text-base font-bold text-slate-900">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-navy-800 dark:bg-navy-900">
+          <h3 className="mb-5 text-base font-bold text-slate-900 dark:text-slate-100">
             리뷰 작성
           </h3>
 
           {/* Star selector */}
           <div className="mb-5">
-            <p className="mb-2.5 text-sm font-medium text-slate-700">별점</p>
+            <p className="mb-2.5 text-sm font-medium text-slate-700 dark:text-slate-300">별점</p>
             <StarRating value={rating} onChange={setRating} size="lg" />
             {rating > 0 && (
               <p className="mt-2 text-sm font-medium text-amber-600">
@@ -596,7 +596,7 @@ function ReviewsPanel({
 
           {/* Content */}
           <div className="mb-5">
-            <p className="mb-2 text-sm font-medium text-slate-700">
+            <p className="mb-2 text-sm font-medium text-slate-700 dark:text-slate-300">
               리뷰 내용
             </p>
             <textarea
@@ -604,7 +604,7 @@ function ReviewsPanel({
               onChange={(e) => setContent(e.target.value)}
               rows={4}
               placeholder="이 제품을 사용해 본 경험을 자유롭게 작성해주세요. (최소 10자)"
-              className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100"
+              className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100 dark:border-navy-700 dark:bg-navy-800 dark:text-slate-100 dark:placeholder-slate-500"
             />
             <p
               className={`mt-1 text-right text-xs ${
@@ -648,7 +648,7 @@ function ReviewsPanel({
           {reviews.map((review) => (
             <div
               key={review.id}
-              className="rounded-2xl border border-slate-100 bg-white p-5 transition hover:border-slate-200 hover:shadow-sm"
+              className="rounded-2xl border border-slate-100 bg-white p-5 transition hover:border-slate-200 hover:shadow-sm dark:border-navy-800 dark:bg-navy-900"
             >
               <div className="mb-3 flex items-start gap-3">
                 <Avatar
@@ -661,7 +661,7 @@ function ReviewsPanel({
                   size={40}
                 />
                 <div>
-                  <p className="text-sm font-semibold text-slate-900">
+                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                     {review.profile?.display_name ??
                       review.profile?.username ??
                       "익명"}
@@ -674,7 +674,7 @@ function ReviewsPanel({
                   </div>
                 </div>
               </div>
-              <p className="text-sm leading-relaxed text-slate-600">
+              <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">
                 {review.content}
               </p>
             </div>

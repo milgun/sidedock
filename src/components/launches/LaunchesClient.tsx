@@ -60,7 +60,7 @@ export default function LaunchesClient({
   return (
     <>
       {/* Period Tabs */}
-      <div className="mb-6 flex gap-1 rounded-2xl border border-slate-100 bg-slate-50 p-1">
+      <div className="mb-6 flex gap-1 rounded-2xl border border-slate-100 bg-slate-50 p-1 dark:border-navy-800 dark:bg-navy-800">
         {PERIOD_TABS.map(({ value, label, icon }) => {
           const isActive = period === value;
           return (
@@ -69,8 +69,8 @@ export default function LaunchesClient({
               onClick={() => handlePeriodChange(value)}
               className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
                 isActive
-                  ? "bg-white text-slate-900 shadow-sm"
-                  : "text-slate-400 hover:text-slate-700"
+                  ? "bg-white text-slate-900 shadow-sm dark:bg-navy-700 dark:text-slate-100"
+                  : "text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
               }`}
             >
               <span>{icon}</span>
@@ -80,7 +80,7 @@ export default function LaunchesClient({
         })}
       </div>
 
-      <p className="mb-6 text-slate-500">{currentTab.desc}</p>
+      <p className="mb-6 text-slate-500 dark:text-slate-400">{currentTab.desc}</p>
 
       {loading ? (
         <div className="flex justify-center py-16">
@@ -93,7 +93,7 @@ export default function LaunchesClient({
           )}
 
           {products.length > 0 ? (
-            <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white">
+            <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white dark:border-navy-800 dark:bg-navy-900">
               {products.map((p, i) => (
                 <ProductCard
                   key={p.id}
@@ -125,9 +125,9 @@ function EmptyState({ period }: { period: Period }) {
   const { icon, message } = config[period];
 
   return (
-    <div className="rounded-2xl border border-dashed border-slate-200 py-16 text-center">
+    <div className="rounded-2xl border border-dashed border-slate-200 py-16 text-center dark:border-navy-800">
       <p className="text-3xl">{icon}</p>
-      <p className="mt-3 font-semibold text-slate-700">{message}</p>
+      <p className="mt-3 font-semibold text-slate-700 dark:text-slate-300">{message}</p>
       <p className="mt-1 text-sm text-slate-400">당신의 제품이 첫 번째가 될 수 있습니다.</p>
       <Link
         href="/submit"

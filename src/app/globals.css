@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* 다크 모드: next-themes가 <html>에 .dark 클래스를 토글합니다 */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @keyframes rocket-fly {
   0%   { opacity: 1;   transform: translateX(-50%) translateY(0px)   scale(1);   }
   40%  { opacity: 1;   transform: translateX(-50%) translateY(-22px) scale(1.15); }
@@ -47,6 +50,11 @@
 :root {
   --background: #ffffff;
   --foreground: #0f172a;
+}
+
+.dark {
+  --background: #0b1220;
+  --foreground: #e2e8f0;
 }
 
 body {

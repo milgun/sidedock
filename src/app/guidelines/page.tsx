@@ -18,7 +18,7 @@ function Section({
     <section>
       <div className="mb-4 flex items-center gap-3">
         <span className="font-mono text-xs font-bold text-slate-300">{num}</span>
-        <h2 className="text-lg font-bold text-slate-900">{title}</h2>
+        <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">{title}</h2>
       </div>
       <div className="pl-8">{children}</div>
     </section>
@@ -57,12 +57,12 @@ function TipCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+    <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm dark:border-navy-800 dark:bg-navy-900">
       <div className="mb-2 flex items-center gap-2">
         <span className="text-xl">{emoji}</span>
-        <span className="text-sm font-bold text-slate-900">{title}</span>
+        <span className="text-sm font-bold text-slate-900 dark:text-slate-100">{title}</span>
       </div>
-      <div className="text-sm leading-relaxed text-slate-600">{children}</div>
+      <div className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">{children}</div>
     </div>
   );
 }
@@ -87,26 +87,26 @@ export default function GuidelinesPage() {
           </span>
           <span className="font-mono text-xs text-slate-400">v1.0.0</span>
         </div>
-        <h1 className="text-3xl font-black text-slate-900">제품 등록 가이드라인</h1>
-        <p className="mt-2 text-sm text-slate-500">
+        <h1 className="text-3xl font-black text-slate-900 dark:text-slate-100">제품 등록 가이드라인</h1>
+        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
           Sidedock에 제품을 올리기 전에 꼭 읽어주세요. 좋은 제품이 더 잘 발견되도록 함께 만들어가는 기준입니다.
         </p>
       </div>
 
       {/* TL;DR 카드 */}
-      <div className="mb-12 rounded-2xl border border-violet-100 bg-violet-50 p-6">
+      <div className="mb-12 rounded-2xl border border-violet-100 bg-violet-50 p-6 dark:border-violet-500/20 dark:bg-violet-500/10">
         <p className="mb-1 font-mono text-xs font-semibold uppercase tracking-widest text-violet-500">TL;DR</p>
-        <p className="text-sm leading-relaxed text-slate-700">
+        <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
           실제로 만든 제품을 솔직하게 소개해 주세요. 좋은 썸네일과 명확한 설명이 있으면 더 많은 사람에게 닿습니다.
           심사는 보통 <strong>1~3일</strong> 이내에 완료되며, 반려 시 사유를 알림으로 알려드립니다.
         </p>
       </div>
 
-      <div className="space-y-14 text-slate-700">
+      <div className="space-y-14 text-slate-700 dark:text-slate-300">
 
         {/* 01. 어떤 제품을 올릴 수 있나요? */}
         <Section num="01" title="어떤 제품을 올릴 수 있나요?">
-          <p className="mb-4 text-sm leading-relaxed text-slate-600">
+          <p className="mb-4 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
             Sidedock은 <strong>직접 만든 제품</strong>을 공유하는 공간입니다. 사이드 프로젝트부터 스타트업 제품까지 모두 환영합니다.
           </p>
           <ul className="mb-5 space-y-2">
@@ -127,16 +127,16 @@ export default function GuidelinesPage() {
         {/* 02. 메이커 vs 헌터 */}
         <Section num="02" title="메이커 등록 vs 헌터 등록">
           <div className="mb-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="rounded-2xl border border-blue-100 bg-blue-50 p-5">
-              <p className="mb-2 text-sm font-bold text-blue-700">🔨 메이커 (Maker)</p>
-              <p className="text-sm leading-relaxed text-slate-600">
+            <div className="rounded-2xl border border-blue-100 bg-blue-50 p-5 dark:border-blue-500/20 dark:bg-blue-500/10">
+              <p className="mb-2 text-sm font-bold text-blue-700 dark:text-blue-300">🔨 메이커 (Maker)</p>
+              <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">
                 직접 만든 제품을 올립니다. 제품에 대한 질문에 직접 답변하고 업데이트를 공유할 수 있습니다.
                 메이커로 등록하면 프로필에 "제작자" 배지가 표시됩니다.
               </p>
             </div>
-            <div className="rounded-2xl border border-amber-100 bg-amber-50 p-5">
-              <p className="mb-2 text-sm font-bold text-amber-700">🔍 헌터 (Hunter)</p>
-              <p className="text-sm leading-relaxed text-slate-600">
+            <div className="rounded-2xl border border-amber-100 bg-amber-50 p-5 dark:border-amber-500/20 dark:bg-amber-500/10">
+              <p className="mb-2 text-sm font-bold text-amber-700 dark:text-amber-300">🔍 헌터 (Hunter)</p>
+              <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">
                 이미 공개된 제품을 발견해 커뮤니티에 소개합니다. ChatGPT, Cursor 같은
                 공개 서비스도 등록할 수 있습니다. 단, 아래 조건을 지켜주세요.
               </p>
@@ -144,7 +144,7 @@ export default function GuidelinesPage() {
           </div>
 
           {/* 헌터 등록 조건 */}
-          <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
+          <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5 dark:border-navy-800 dark:bg-navy-800">
             <p className="mb-3 font-mono text-xs font-bold uppercase tracking-widest text-slate-400">헌터 등록 조건</p>
             <ul className="mb-3 space-y-2">
               <CheckItem>제품 설명은 <strong>직접 작성</strong>하세요. 공식 사이트 문구를 그대로 복붙하면 저작권 침해입니다.</CheckItem>
@@ -180,17 +180,17 @@ export default function GuidelinesPage() {
           </div>
 
           {/* 예시 비교 */}
-          <div className="overflow-hidden rounded-2xl border border-slate-100">
-            <div className="grid grid-cols-2 divide-x divide-slate-100">
-              <div className="bg-red-50 p-4">
-                <p className="mb-2 font-mono text-xs font-bold text-red-400">✕ 이런 설명은 피하세요</p>
-                <p className="text-xs leading-relaxed text-slate-500">
+          <div className="overflow-hidden rounded-2xl border border-slate-100 dark:border-navy-800">
+            <div className="grid grid-cols-2 divide-x divide-slate-100 dark:divide-navy-800">
+              <div className="bg-red-50 p-4 dark:bg-red-500/10">
+                <p className="mb-2 font-mono text-xs font-bold text-red-400 dark:text-red-300">✕ 이런 설명은 피하세요</p>
+                <p className="text-xs leading-relaxed text-slate-500 dark:text-slate-400">
                   "혁신적인 AI 기반의 세계 최초 차세대 플랫폼입니다. 모든 문제를 해결해드립니다. 지금 바로 가입하세요!!!"
                 </p>
               </div>
-              <div className="bg-green-50 p-4">
-                <p className="mb-2 font-mono text-xs font-bold text-green-600">✓ 이런 설명을 추천해요</p>
-                <p className="text-xs leading-relaxed text-slate-500">
+              <div className="bg-green-50 p-4 dark:bg-green-500/10">
+                <p className="mb-2 font-mono text-xs font-bold text-green-600 dark:text-green-300">✓ 이런 설명을 추천해요</p>
+                <p className="text-xs leading-relaxed text-slate-500 dark:text-slate-400">
                   "PR을 올리면 AI가 코드 품질, 보안 취약점, 스타일 가이드를 자동으로 리뷰해줍니다. GitHub Actions와 연동되며 무료로 시작할 수 있습니다."
                 </p>
               </div>
@@ -200,8 +200,8 @@ export default function GuidelinesPage() {
 
         {/* 04. 이미지 가이드 */}
         <Section num="04" title="이미지 가이드">
-          <div className="mb-4 overflow-hidden rounded-2xl border border-slate-100 bg-slate-50">
-            <div className="divide-y divide-slate-100">
+          <div className="mb-4 overflow-hidden rounded-2xl border border-slate-100 bg-slate-50 dark:border-navy-800 dark:bg-navy-800">
+            <div className="divide-y divide-slate-100 dark:divide-navy-800">
               {[
                 { label: "썸네일 권장 크기", value: "1200 × 630 px (16:9 비율)" },
                 { label: "파일 형식", value: "JPG, PNG, WebP" },
@@ -209,8 +209,8 @@ export default function GuidelinesPage() {
                 { label: "갤러리 이미지", value: "최대 5장 (스크린샷, 기능 소개 등)" },
               ].map(({ label, value }) => (
                 <div key={label} className="flex items-center gap-4 px-5 py-3">
-                  <span className="w-36 flex-shrink-0 font-mono text-xs font-semibold text-slate-500">{label}</span>
-                  <span className="text-sm text-slate-700">{value}</span>
+                  <span className="w-36 flex-shrink-0 font-mono text-xs font-semibold text-slate-500 dark:text-slate-400">{label}</span>
+                  <span className="text-sm text-slate-700 dark:text-slate-300">{value}</span>
                 </div>
               ))}
             </div>
@@ -225,21 +225,21 @@ export default function GuidelinesPage() {
 
         {/* 05. 심사 기준 */}
         <Section num="05" title="심사 기준 및 프로세스">
-          <div className="mb-6 flex items-center gap-0 overflow-hidden rounded-2xl border border-slate-100">
+          <div className="mb-6 flex items-center gap-0 overflow-hidden rounded-2xl border border-slate-100 dark:border-navy-800">
             {[
-              { step: "01", label: "제출", desc: "심사 대기 상태로 등록", color: "bg-slate-50" },
-              { step: "02", label: "검토", desc: "운영팀 1~3일 내 확인", color: "bg-blue-50" },
-              { step: "03", label: "공개", desc: "승인 시 즉시 노출", color: "bg-green-50" },
+              { step: "01", label: "제출", desc: "심사 대기 상태로 등록", color: "bg-slate-50 dark:bg-navy-800" },
+              { step: "02", label: "검토", desc: "운영팀 1~3일 내 확인", color: "bg-blue-50 dark:bg-blue-500/10" },
+              { step: "03", label: "공개", desc: "승인 시 즉시 노출", color: "bg-green-50 dark:bg-green-500/10" },
             ].map(({ step, label, desc, color }, i) => (
-              <div key={step} className={`flex-1 ${color} px-4 py-4 ${i < 2 ? "border-r border-slate-100" : ""}`}>
+              <div key={step} className={`flex-1 ${color} px-4 py-4 ${i < 2 ? "border-r border-slate-100 dark:border-navy-800" : ""}`}>
                 <p className="font-mono text-xs font-bold text-slate-400">{step}</p>
-                <p className="mt-1 text-sm font-bold text-slate-900">{label}</p>
-                <p className="mt-0.5 text-xs text-slate-500">{desc}</p>
+                <p className="mt-1 text-sm font-bold text-slate-900 dark:text-slate-100">{label}</p>
+                <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{desc}</p>
               </div>
             ))}
           </div>
 
-          <p className="mb-3 text-sm font-semibold text-slate-700">다음에 해당하면 반려될 수 있습니다:</p>
+          <p className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-300">다음에 해당하면 반려될 수 있습니다:</p>
           <ul className="space-y-2">
             <CrossItem>실제 접속·사용이 불가능한 제품 (URL 오류, 준비 중 페이지 등)</CrossItem>
             <CrossItem>동일 제품 중복 등록 (재출시·업데이트는 운영팀에 문의)</CrossItem>
@@ -248,14 +248,14 @@ export default function GuidelinesPage() {
             <CrossItem>메이커 동의 없이 타인의 제품을 헌터로 등록한 경우</CrossItem>
           </ul>
 
-          <div className="mt-5 rounded-xl border border-blue-100 bg-blue-50 p-4 text-sm text-blue-800">
+          <div className="mt-5 rounded-xl border border-blue-100 bg-blue-50 p-4 text-sm text-blue-800 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-300">
             💡 반려된 경우 사유를 확인 후 내용을 수정하여 재제출할 수 있습니다. 문의는 아래 이메일로 보내주세요.
           </div>
         </Section>
 
         {/* 06. Dev Log */}
         <Section num="06" title="Dev Log 작성 가이드">
-          <p className="mb-4 text-sm leading-relaxed text-slate-600">
+          <p className="mb-4 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
             Dev Log는 제품 개발 과정, 기술 인사이트, 런칭 후기 등을 자유롭게 공유하는 공간입니다.
             심사 없이 즉시 공개되며, 마크다운 문법을 지원합니다.
           </p>
@@ -287,9 +287,9 @@ export default function GuidelinesPage() {
       </div>
 
       {/* 문의 */}
-      <div className="mt-16 rounded-2xl border border-slate-200 bg-slate-50 p-6">
+      <div className="mt-16 rounded-2xl border border-slate-200 bg-slate-50 p-6 dark:border-navy-800 dark:bg-navy-800">
         <p className="mb-1 font-mono text-xs font-semibold uppercase tracking-widest text-slate-400">Contact</p>
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-slate-600 dark:text-slate-300">
           가이드라인 관련 문의 또는 헌터 등록 협의:{" "}
           <a href="mailto:contact@sidedock.io" className="font-medium text-blue-600 hover:underline">
             contact@sidedock.io
@@ -298,13 +298,13 @@ export default function GuidelinesPage() {
         <div className="mt-4 flex flex-wrap gap-3">
           <Link
             href="/terms"
-            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-slate-400"
+            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-slate-400 dark:border-navy-800 dark:bg-navy-900 dark:text-slate-300"
           >
             이용약관 →
           </Link>
           <Link
             href="/privacy"
-            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-slate-400"
+            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-slate-400 dark:border-navy-800 dark:bg-navy-900 dark:text-slate-300"
           >
             개인정보처리방침 →
           </Link>

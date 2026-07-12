@@ -41,10 +41,10 @@ export default async function ModerationPage() {
               ← 관리자 홈
             </Link>
           </div>
-          <h1 className="mt-1 text-2xl font-black text-slate-900">
+          <h1 className="mt-1 text-2xl font-black text-slate-900 dark:text-slate-100">
             제품 심사 대기열
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             제출된 제품을 검토하고 승인 또는 반려하세요.
           </p>
         </div>
@@ -58,8 +58,8 @@ export default async function ModerationPage() {
       </div>
 
       {/* Checklist */}
-      <div className="mb-8 rounded-2xl border border-slate-100 bg-slate-50 p-5">
-        <h2 className="mb-3 text-sm font-semibold text-slate-700">심사 기준</h2>
+      <div className="mb-8 rounded-2xl border border-slate-100 bg-slate-50 p-5 dark:border-navy-800 dark:bg-navy-800/50">
+        <h2 className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-300">심사 기준</h2>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {[
             "진짜 제품인가?",
@@ -69,7 +69,7 @@ export default async function ModerationPage() {
             "기존 제품 복붙 아닌가?",
             "커뮤니티 가치가 있는가?",
           ].map((item) => (
-            <div key={item} className="flex items-center gap-2 text-xs text-slate-500">
+            <div key={item} className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
               <span className="text-slate-300">□</span>
               {item}
             </div>

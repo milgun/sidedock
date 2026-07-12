@@ -81,8 +81,8 @@ export default function HotProductsClient({
               onClick={() => handleCategoryChange(value)}
               className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition ${
                 isActive
-                  ? "bg-orange-500 text-white shadow-sm"
-                  : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                  ? "bg-orange-500 text-white shadow-sm dark:bg-orange-500/20 dark:text-orange-300 dark:shadow-none"
+                  : "bg-slate-100 text-slate-500 hover:bg-slate-200 dark:bg-navy-800 dark:text-slate-300 dark:hover:bg-navy-700"
               }`}
             >
               <span className="text-xs leading-none">{icon}</span>
@@ -93,8 +93,8 @@ export default function HotProductsClient({
       </DragScroll>
 
       {catLabel && (
-        <p className="mb-4 text-sm text-slate-500">
-          <span className="font-semibold text-slate-800">{catLabel}</span>
+        <p className="mb-4 text-sm text-slate-500 dark:text-slate-400">
+          <span className="font-semibold text-slate-800 dark:text-slate-200">{catLabel}</span>
           {" "}카테고리 &middot; {products.length}개
         </p>
       )}
@@ -104,7 +104,7 @@ export default function HotProductsClient({
           <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-orange-500" />
         </div>
       ) : products.length > 0 ? (
-        <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white">
+        <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white dark:border-navy-800 dark:bg-navy-900">
           {products.map((p, i) => (
             <ProductCard
               key={p.id}
@@ -117,9 +117,9 @@ export default function HotProductsClient({
           ))}
         </div>
       ) : (
-        <div className="rounded-2xl border border-dashed border-slate-200 py-16 text-center">
+        <div className="rounded-2xl border border-dashed border-slate-200 py-16 text-center dark:border-navy-800">
           <p className="text-3xl">🔥</p>
-          <p className="mt-3 font-semibold text-slate-700">
+          <p className="mt-3 font-semibold text-slate-700 dark:text-slate-300">
             {catLabel
               ? `${catLabel} 카테고리에 등록된 제품이 없습니다`
               : "아직 등록된 제품이 없습니다"}

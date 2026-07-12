@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ProfileTabsClient from "@/components/profile/ProfileTabsClient";
+import BrandIcon from "@/components/product/BrandIcon";
 
 export default async function ProfilePage(props: {
   params: Promise<{ username: string }>;
@@ -52,12 +53,12 @@ export default async function ProfilePage(props: {
         </div>
 
         <div className="flex-1">
-          <h1 className="text-2xl font-black text-slate-900">
+          <h1 className="text-2xl font-black text-slate-900 dark:text-slate-100">
             {profile.display_name ?? username}
           </h1>
           <p className="text-sm text-slate-400">@{username}</p>
           {profile.bio && (
-            <p className="mt-2 text-slate-600">{profile.bio as string}</p>
+            <p className="mt-2 text-slate-600 dark:text-slate-300">{profile.bio as string}</p>
           )}
           <div className="mt-3 flex flex-wrap justify-center gap-4 sm:justify-start">
             {profile.website_url && (
@@ -75,9 +76,10 @@ export default async function ProfilePage(props: {
                 href={profile.twitter_url as string}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-blue-600 hover:underline"
+                className="inline-flex items-center gap-1.5 text-xs text-blue-600 hover:underline"
               >
-                𝕏 Twitter
+                <BrandIcon type="x" className="h-3.5 w-3.5" />
+                X(Twitter)
               </a>
             )}
           </div>
@@ -86,7 +88,7 @@ export default async function ProfilePage(props: {
         {isOwn && (
           <Link
             href="/settings"
-            className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-blue-400 hover:text-blue-600"
+            className="rounded-xl border border-slate-200 dark:border-navy-800 px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 transition hover:border-blue-400 hover:text-blue-600"
           >
             프로필 수정
           </Link>

@@ -24,7 +24,7 @@ export default function CommentForm({ productId }: { productId: string }) {
         placeholder="이 제품에 대한 생각을 공유해 주세요…"
         rows={3}
         required
-        className="w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder-slate-400 transition focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+        className="w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder-slate-400 transition focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-navy-700 dark:bg-navy-800 dark:text-slate-100 dark:placeholder-slate-500"
       />
       <div className="mt-2 flex justify-end">
         <button

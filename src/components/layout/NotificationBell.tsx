@@ -171,7 +171,7 @@ export default function NotificationBell({ user }: NotificationBellProps) {
       <button
         onClick={handleToggle}
         aria-label="알림"
-        className="relative flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+        className="relative flex h-8 w-8 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-navy-800 dark:hover:text-slate-100"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -195,10 +195,10 @@ export default function NotificationBell({ user }: NotificationBellProps) {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-10 z-50 w-80 overflow-hidden rounded-xl border border-slate-100 bg-white shadow-xl">
+        <div className="absolute right-0 top-10 z-50 w-80 overflow-hidden rounded-xl border border-slate-100 bg-white shadow-xl dark:border-navy-800 dark:bg-navy-900">
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-2.5">
-            <h3 className="text-sm font-semibold text-slate-900">알림</h3>
+          <div className="flex items-center justify-between border-b border-slate-100 px-4 py-2.5 dark:border-navy-800">
+            <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">알림</h3>
             {unreadCount > 0 && (
               <button
                 onClick={() => void markAllRead()}
@@ -222,7 +222,7 @@ export default function NotificationBell({ user }: NotificationBellProps) {
                 const isUnread = !n.read_at;
                 const inner = (
                   <div
-                    className={`flex items-start gap-3 px-4 py-3 transition hover:bg-slate-50 ${
+                    className={`flex items-start gap-3 px-4 py-3 transition hover:bg-slate-50 dark:hover:bg-navy-800 ${
                       isUnread ? "bg-blue-50/60" : ""
                     }`}
                   >
@@ -233,8 +233,8 @@ export default function NotificationBell({ user }: NotificationBellProps) {
                       <p
                         className={`text-xs leading-relaxed ${
                           isUnread
-                            ? "font-semibold text-slate-900"
-                            : "text-slate-600"
+                            ? "font-semibold text-slate-900 dark:text-slate-100"
+                            : "text-slate-600 dark:text-slate-300"
                         }`}
                       >
                         {text}
@@ -266,11 +266,11 @@ export default function NotificationBell({ user }: NotificationBellProps) {
           </div>
 
           {/* Footer */}
-          <div className="border-t border-slate-100 px-4 py-2.5 text-center">
+          <div className="border-t border-slate-100 px-4 py-2.5 text-center dark:border-navy-800">
             <Link
               href="/notifications"
               onClick={() => setOpen(false)}
-              className="text-xs text-slate-500 hover:text-blue-600"
+              className="text-xs text-slate-500 hover:text-blue-600 dark:text-slate-400"
             >
               모든 알림 보기 →
             </Link>

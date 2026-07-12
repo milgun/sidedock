@@ -42,22 +42,22 @@ export default async function DevlogPage() {
     <div className="mx-auto max-w-5xl px-4 py-10">
       <div className="mb-8 flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-black text-slate-900">📝 Dev Log</h1>
-          <p className="mt-1 text-slate-500">
+          <h1 className="text-2xl font-black text-slate-900 dark:text-slate-100">📝 Dev Log</h1>
+          <p className="mt-1 text-slate-500 dark:text-slate-400">
             메이커와 개발자들의 이야기. 경험을 나누고 함께 성장하세요.
           </p>
         </div>
         {user ? (
           <Link
             href="/devlog/new"
-            className="flex-shrink-0 rounded-xl bg-navy-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-navy-800"
+            className="flex-shrink-0 rounded-xl bg-navy-900 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-navy-800 dark:bg-blue-600 dark:hover:bg-blue-700"
           >
             + 글쓰기
           </Link>
         ) : (
           <Link
             href="/login?next=/devlog/new"
-            className="flex-shrink-0 rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-medium text-slate-600 transition hover:border-blue-400"
+            className="flex-shrink-0 rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-medium text-slate-600 transition hover:border-blue-400 dark:border-navy-800 dark:text-slate-300"
           >
             로그인 후 글쓰기
           </Link>
@@ -70,10 +70,10 @@ export default async function DevlogPage() {
             <Link
               key={post.id}
               href={`/devlog/${post.slug ?? post.id}`}
-              className="group flex flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white transition hover:border-blue-200 hover:shadow-md"
+              className="group flex flex-col overflow-hidden rounded-2xl border border-slate-100 bg-white transition hover:border-blue-200 hover:shadow-md dark:border-navy-800 dark:bg-navy-900"
             >
               {/* 썸네일 */}
-              <div className="relative h-44 w-full flex-shrink-0 bg-gradient-to-br from-slate-100 to-slate-50">
+              <div className="relative h-44 w-full flex-shrink-0 bg-gradient-to-br from-slate-100 to-slate-50 dark:from-navy-800 dark:to-navy-900">
                 {post.thumbnail_url ? (
                   <Image
                     src={post.thumbnail_url}
@@ -91,10 +91,10 @@ export default async function DevlogPage() {
 
               {/* 카드 본문 */}
               <div className="flex flex-1 flex-col p-4">
-                <h2 className="line-clamp-2 font-bold text-slate-900 group-hover:text-blue-600 leading-snug">
+                <h2 className="line-clamp-2 font-bold text-slate-900 group-hover:text-blue-600 leading-snug dark:text-slate-100">
                   {post.title}
                 </h2>
-                <p className="mt-1.5 line-clamp-2 text-sm text-slate-500 leading-relaxed">
+                <p className="mt-1.5 line-clamp-2 text-sm text-slate-500 leading-relaxed dark:text-slate-400">
                   {post.content.replace(/[#*`>\[\]!]/g, "").slice(0, 100)}
                 </p>
 
@@ -102,7 +102,7 @@ export default async function DevlogPage() {
                 {post.tags.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-1">
                     {post.tags.slice(0, 3).map((tag) => (
-                      <span key={tag} className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
+                      <span key={tag} className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500 dark:bg-navy-800 dark:text-slate-300">
                         #{tag}
                       </span>
                     ))}
@@ -120,11 +120,11 @@ export default async function DevlogPage() {
                       className="rounded-full object-cover"
                     />
                   ) : (
-                    <div className="h-6 w-6 rounded-full bg-slate-200 flex items-center justify-center text-xs text-slate-500">
+                    <div className="h-6 w-6 rounded-full bg-slate-200 flex items-center justify-center text-xs text-slate-500 dark:bg-navy-800 dark:text-slate-400">
                       {(post.author?.display_name ?? post.author?.username ?? "?")[0].toUpperCase()}
                     </div>
                   )}
-                  <span className="text-xs text-slate-500 truncate">
+                  <span className="text-xs text-slate-500 truncate dark:text-slate-400">
                     {post.author?.display_name ?? post.author?.username}
                   </span>
                   <div className="ml-auto flex items-center gap-2.5 text-xs text-slate-400 flex-shrink-0">
@@ -138,16 +138,16 @@ export default async function DevlogPage() {
           ))}
         </div>
       ) : (
-        <div className="rounded-2xl border border-dashed border-slate-200 py-20 text-center">
+        <div className="rounded-2xl border border-dashed border-slate-200 py-20 text-center dark:border-navy-800">
           <p className="text-2xl">✍️</p>
-          <p className="mt-3 font-semibold text-slate-700">아직 글이 없습니다</p>
+          <p className="mt-3 font-semibold text-slate-700 dark:text-slate-300">아직 글이 없습니다</p>
           <p className="mt-1 text-sm text-slate-400">
             첫 번째 Dev Log를 작성해 커뮤니티를 시작해보세요.
           </p>
           {user && (
             <Link
               href="/devlog/new"
-              className="mt-4 inline-block rounded-xl bg-navy-900 px-6 py-2.5 text-sm font-semibold text-white hover:bg-navy-800"
+              className="mt-4 inline-block rounded-xl bg-navy-900 px-6 py-2.5 text-sm font-semibold text-white hover:bg-navy-800 dark:bg-blue-600 dark:hover:bg-blue-700"
             >
               첫 글 작성하기
             </Link>

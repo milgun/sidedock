@@ -60,18 +60,18 @@ export default async function DevlogDetailPage(props: {
       <div className="mb-6 flex items-center gap-2 text-sm text-slate-400">
         <Link href="/devlog" className="hover:text-blue-600">Dev Log</Link>
         <span>/</span>
-        <span className="truncate text-slate-600">{post.title}</span>
+        <span className="truncate text-slate-600 dark:text-slate-300">{post.title}</span>
       </div>
 
       {/* Article */}
       <article>
-        <h1 className="text-3xl font-black leading-snug text-slate-900">{post.title}</h1>
+        <h1 className="text-3xl font-black leading-snug text-slate-900 dark:text-slate-100">{post.title}</h1>
 
         {/* Tags */}
         {post.tags.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-1.5">
             {post.tags.map((tag) => (
-              <span key={tag} className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-500">
+              <span key={tag} className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs text-slate-500 dark:bg-navy-800 dark:text-slate-300">
                 #{tag}
               </span>
             ))}
@@ -90,7 +90,7 @@ export default async function DevlogDetailPage(props: {
             )}
           </div>
           <div>
-            <Link href={`/profile/${post.author?.username}`} className="text-sm font-semibold text-slate-700 hover:text-blue-600">
+            <Link href={`/profile/${post.author?.username}`} className="text-sm font-semibold text-slate-700 hover:text-blue-600 dark:text-slate-300">
               @{post.author?.username}
             </Link>
             <p className="text-xs text-slate-400">{timeAgo(post.created_at)}</p>

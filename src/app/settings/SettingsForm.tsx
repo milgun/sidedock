@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useTheme } from "next-themes";
 import { updateProfile, type UpdateProfileInput } from "@/lib/actions/profile";
 import Image from "next/image";
 
@@ -12,6 +13,7 @@ type Profile = {
   twitter_url: string | null;
   avatar_url: string | null;
   username: string;
+  theme_preference: string;
 };
 
 export default function SettingsForm({ profile }: { profile: Profile }) {
@@ -22,6 +24,7 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
     website_url: profile.website_url ?? "",
     twitter_url: profile.twitter_url ?? "",
     avatar_url: profile.avatar_url ?? "",
+    theme_preference: profile.theme_preference ?? "system",
   });
 
   const [saving, setSaving] = useState(false);
@@ -29,6 +32,17 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  // 테마 선택: 즉시 미리보기 적용 + 저장 대상 form에 반영
+  const selectTheme = (value: "light" | "dark" | "system") => {
+    setTheme(value);
+    setForm((f) => ({ ...f, theme_preference: value }));
+    setSaved(false);
+  };
 
   const set = (key: keyof UpdateProfileInput, value: string) => {
     setForm((f) => ({ ...f, [key]: value }));
@@ -77,11 +91,11 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
     <form onSubmit={handleSubmit} className="space-y-8">
       {/* Avatar */}
       <div>
-        <label className="mb-3 block text-sm font-semibold text-slate-700">
+        <label className="mb-3 block text-sm font-semibold text-slate-700 dark:text-slate-300">
           프로필 사진
         </label>
         <div className="flex items-center gap-5">
-          <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100 ring-2 ring-slate-200">
+          <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-100 ring-2 ring-slate-200 dark:bg-navy-800">
             {avatarSrc ? (
               <Image
                 src={avatarSrc}
@@ -101,7 +115,7 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
               type="button"
               onClick={() => fileRef.current?.click()}
               disabled={uploading}
-              className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-blue-400 hover:text-blue-600 disabled:opacity-50"
+              className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-blue-400 hover:text-blue-600 disabled:opacity-50 dark:border-navy-700 dark:text-slate-300"
             >
               {uploading ? "업로드 중..." : "사진 변경"}
             </button>
@@ -130,7 +144,7 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
             value={form.avatar_url}
             onChange={(e) => set("avatar_url", e.target.value)}
             placeholder="또는 이미지 URL 직접 입력 (https://...)"
-            className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+            className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:bg-navy-800 dark:border-navy-700 dark:text-slate-100 dark:placeholder-slate-500"
           />
         </div>
       </div>
@@ -146,7 +160,7 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
           onChange={(e) => set("display_name", e.target.value)}
           maxLength={40}
           placeholder="이름을 입력하세요"
-          className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+          className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:bg-navy-800 dark:border-navy-700 dark:text-slate-100 dark:placeholder-slate-500"
         />
       </Field>
 
@@ -155,10 +169,10 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
         label="사용자명"
         hint="고유 식별자입니다. 변경하려면 문의하세요."
       >
-        <div className="flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50 px-3.5 py-2.5">
+        <div className="flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50 px-3.5 py-2.5 dark:border-navy-700 dark:bg-navy-800">
           <span className="text-sm text-slate-400">@</span>
-          <span className="text-sm text-slate-500">{profile.username}</span>
-          <span className="ml-auto rounded-full bg-slate-200 px-2 py-0.5 text-[10px] text-slate-400">변경 불가</span>
+          <span className="text-sm text-slate-500 dark:text-slate-400">{profile.username}</span>
+          <span className="ml-auto rounded-full bg-slate-200 px-2 py-0.5 text-[10px] text-slate-400 dark:bg-navy-700">변경 불가</span>
         </div>
       </Field>
 
@@ -173,7 +187,7 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
           onChange={(e) => set("headline", e.target.value)}
           maxLength={100}
           placeholder="예: froppy 창업자 · iOS 개발자"
-          className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+          className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:bg-navy-800 dark:border-navy-700 dark:text-slate-100 dark:placeholder-slate-500"
         />
       </Field>
 
@@ -188,7 +202,7 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
           rows={4}
           maxLength={200}
           placeholder="어떤 일을 하시나요? 어떤 것에 관심이 있으신가요?"
-          className="w-full resize-none rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+          className="w-full resize-none rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:bg-navy-800 dark:border-navy-700 dark:text-slate-100 dark:placeholder-slate-500"
         />
         <p className="mt-1 text-right text-xs text-slate-300">
           {form.bio.length} / 200
@@ -205,7 +219,7 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
           value={form.website_url}
           onChange={(e) => set("website_url", e.target.value)}
           placeholder="https://yoursite.com"
-          className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+          className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:bg-navy-800 dark:border-navy-700 dark:text-slate-100 dark:placeholder-slate-500"
         />
       </Field>
 
@@ -219,8 +233,45 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
           value={form.twitter_url}
           onChange={(e) => set("twitter_url", e.target.value)}
           placeholder="https://x.com/yourhandle"
-          className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+          className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:bg-navy-800 dark:border-navy-700 dark:text-slate-100 dark:placeholder-slate-500"
         />
+      </Field>
+
+      {/* Theme */}
+      <Field
+        label="화면 테마"
+        hint="라이트 / 다크 / 시스템 설정을 선택하세요. 계정에 저장되어 기기 간 유지됩니다."
+      >
+        <div className="grid grid-cols-3 gap-2">
+          {([
+            { value: "light", label: "라이트", icon: "☀️" },
+            { value: "dark", label: "다크", icon: "🌙" },
+            { value: "system", label: "시스템", icon: "💻" },
+          ] as const).map((opt) => {
+            const active = (form.theme_preference ?? "system") === opt.value;
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => selectTheme(opt.value)}
+                aria-pressed={active}
+                className={`flex flex-col items-center gap-1 rounded-xl border px-3 py-3 text-sm font-medium transition ${
+                  active
+                    ? "border-blue-400 bg-blue-50 text-blue-600 dark:bg-navy-800 dark:text-blue-300"
+                    : "border-slate-200 text-slate-600 hover:border-slate-300 dark:border-navy-700 dark:text-slate-300"
+                }`}
+              >
+                <span className="text-lg leading-none">{opt.icon}</span>
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
+        {mounted && (
+          <p className="mt-1.5 text-xs text-slate-400">
+            현재 적용: {theme === "dark" ? "다크" : theme === "light" ? "라이트" : "시스템"}
+          </p>
+        )}
       </Field>
 
       {/* Error */}
@@ -235,7 +286,7 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
         <button
           type="submit"
           disabled={saving || uploading}
-          className="rounded-xl bg-navy-900 px-6 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
+          className="rounded-xl bg-navy-900 px-6 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50 dark:bg-blue-600"
         >
           {saving ? "저장 중..." : "저장하기"}
         </button>
@@ -258,7 +309,7 @@ function Field({
 }) {
   return (
     <div>
-      <label className="mb-1 block text-sm font-semibold text-slate-700">
+      <label className="mb-1 block text-sm font-semibold text-slate-700 dark:text-slate-300">
         {label}
       </label>
       {hint && <p className="mb-2 text-xs text-slate-400">{hint}</p>}

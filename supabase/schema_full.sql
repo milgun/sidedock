@@ -14,6 +14,8 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   twitter_url  text,
   headline     text,           -- v5
   is_admin     boolean DEFAULT false NOT NULL,
+  theme_preference text NOT NULL DEFAULT 'light'
+                 CHECK (theme_preference IN ('light','dark','system')),  -- v13
   created_at   timestamptz DEFAULT now() NOT NULL
 );
 

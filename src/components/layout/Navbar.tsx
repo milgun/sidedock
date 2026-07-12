@@ -25,7 +25,7 @@ export default async function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/95 backdrop-blur-sm">
+    <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/95 backdrop-blur-sm dark:border-navy-800 dark:bg-navy-900/95">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4">
         {/* Logo */}
         <Link href="/" className="flex flex-shrink-0 items-center gap-2">
@@ -34,7 +34,15 @@ export default async function Navbar() {
             alt="Sidedock"
             width={120}
             height={72}
-            className="h-7 w-auto"
+            className="h-7 w-auto dark:hidden"
+            unoptimized
+          />
+          <Image
+            src="/logo_white.png"
+            alt="Sidedock"
+            width={120}
+            height={72}
+            className="hidden h-7 w-auto dark:block"
             unoptimized
           />
           <Image
@@ -42,7 +50,15 @@ export default async function Navbar() {
             alt="Sidedock"
             width={200}
             height={40}
-            className="h-5 w-auto"
+            className="h-5 w-auto dark:hidden"
+            unoptimized
+          />
+          <Image
+            src="/logo-text_white.png"
+            alt="Sidedock"
+            width={200}
+            height={40}
+            className="hidden h-5 w-auto dark:block"
             unoptimized
           />
         </Link>

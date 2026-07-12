@@ -93,7 +93,7 @@ function ToolBtn({
       title={title}
       disabled={disabled}
       onClick={onClick}
-      className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-200 hover:text-slate-900 disabled:opacity-40"
+      className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-200 hover:text-slate-900 disabled:opacity-40 dark:text-slate-400 dark:hover:bg-navy-700 dark:hover:text-slate-100"
     >
       {children}
     </button>
@@ -103,7 +103,7 @@ function ToolBtn({
 // ── 구분선 ────────────────────────────────────────────────────────────────────
 
 function Sep() {
-  return <div className="h-4 w-px bg-slate-200" />;
+  return <div className="h-4 w-px bg-slate-200 dark:bg-navy-700" />;
 }
 
 export default function DevlogEditor({
@@ -295,11 +295,11 @@ export default function DevlogEditor({
       {/* 링크 삽입 모달 */}
       {linkModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="mb-4 text-sm font-bold text-slate-900">링크 삽입</h3>
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl dark:bg-navy-900">
+            <h3 className="mb-4 text-sm font-bold text-slate-900 dark:text-slate-100">링크 삽입</h3>
             <div className="space-y-3">
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-500">
+                <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
                   표시 텍스트
                 </label>
                 <input
@@ -307,12 +307,12 @@ export default function DevlogEditor({
                   value={linkText}
                   onChange={(e) => setLinkText(e.target.value)}
                   placeholder="예: GitHub 저장소"
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-blue-400 focus:outline-none"
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-blue-400 focus:outline-none dark:bg-navy-800 dark:border-navy-700 dark:text-slate-100 dark:placeholder-slate-500"
                   autoFocus
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-500">
+                <label className="mb-1 block text-xs font-medium text-slate-500 dark:text-slate-400">
                   URL
                 </label>
                 <input
@@ -320,7 +320,7 @@ export default function DevlogEditor({
                   value={linkUrl}
                   onChange={(e) => setLinkUrl(e.target.value)}
                   placeholder="https://"
-                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-blue-400 focus:outline-none"
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:border-blue-400 focus:outline-none dark:bg-navy-800 dark:border-navy-700 dark:text-slate-100 dark:placeholder-slate-500"
                   onKeyDown={(e) => e.key === "Enter" && handleLinkInsert()}
                 />
               </div>
@@ -328,7 +328,7 @@ export default function DevlogEditor({
             <div className="mt-4 flex gap-2">
               <button
                 onClick={() => setLinkModal(false)}
-                className="flex-1 rounded-xl border border-slate-200 py-2 text-sm text-slate-600 hover:bg-slate-50"
+                className="flex-1 rounded-xl border border-slate-200 py-2 text-sm text-slate-600 hover:bg-slate-50 dark:border-navy-700 dark:text-slate-300 dark:hover:bg-navy-800"
               >
                 취소
               </button>
@@ -345,10 +345,10 @@ export default function DevlogEditor({
 
       {/* 썸네일 업로드 */}
       <div>
-        <p className="mb-2 text-xs font-medium text-slate-500">썸네일 이미지 (선택)</p>
+        <p className="mb-2 text-xs font-medium text-slate-500 dark:text-slate-400">썸네일 이미지 (선택)</p>
         <div
           onClick={() => thumbnailInputRef.current?.click()}
-          className="relative flex cursor-pointer items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 transition hover:border-blue-300 hover:bg-blue-50"
+          className="relative flex cursor-pointer items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 transition hover:border-blue-300 hover:bg-blue-50 dark:border-navy-700 dark:bg-navy-800 dark:hover:border-blue-500/40 dark:hover:bg-navy-700"
           style={{ height: 180 }}
         >
           {thumbnail ? (
@@ -387,7 +387,7 @@ export default function DevlogEditor({
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder="제목을 입력하세요"
-        className="w-full border-b border-slate-200 px-1 py-3 text-2xl font-black placeholder-slate-300 focus:border-blue-400 focus:outline-none"
+        className="w-full border-b border-slate-200 px-1 py-3 text-2xl font-black placeholder-slate-300 focus:border-blue-400 focus:outline-none dark:border-navy-700 dark:text-slate-100 dark:placeholder-slate-600"
       />
 
       {/* 태그 */}
@@ -396,15 +396,15 @@ export default function DevlogEditor({
         value={tags}
         onChange={(e) => setTags(e.target.value)}
         placeholder="태그 (쉼표 구분, 예: nextjs, supabase, 사이드프로젝트)"
-        className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm placeholder-slate-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+        className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm placeholder-slate-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:bg-navy-800 dark:border-navy-700 dark:text-slate-100 dark:placeholder-slate-500"
       />
 
       {/* 에디터 */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200">
+      <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-navy-800">
         {/* 상단 툴바 */}
-        <div className="flex flex-wrap items-center gap-1.5 border-b border-slate-100 bg-slate-50 px-3 py-2">
+        <div className="flex flex-wrap items-center gap-1.5 border-b border-slate-100 bg-slate-50 px-3 py-2 dark:border-navy-800 dark:bg-navy-800">
           {/* 뷰 전환 */}
-          <div className="flex gap-0.5 rounded-lg bg-slate-100 p-0.5">
+          <div className="flex gap-0.5 rounded-lg bg-slate-100 p-0.5 dark:bg-navy-900">
             {(["edit", "split", "preview"] as const).map((v) => (
               <button
                 key={v}
@@ -412,8 +412,8 @@ export default function DevlogEditor({
                 onClick={() => setView(v)}
                 className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
                   view === v
-                    ? "bg-white text-slate-900 shadow-sm"
-                    : "text-slate-500 hover:text-slate-700"
+                    ? "bg-white text-slate-900 shadow-sm dark:bg-navy-700 dark:text-slate-100"
+                    : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
                 }`}
               >
                 {v === "edit" ? "편집" : v === "split" ? "분할" : "미리보기"}
@@ -571,7 +571,7 @@ export default function DevlogEditor({
         </div>
 
         {/* 편집 / 미리보기 영역 */}
-        <div className={`flex ${view === "split" ? "divide-x divide-slate-100" : ""}`}>
+        <div className={`flex ${view === "split" ? "divide-x divide-slate-100 dark:divide-navy-800" : ""}`}>
           {(view === "split" || view === "edit") && (
             <textarea
               ref={textareaRef}
@@ -582,7 +582,7 @@ export default function DevlogEditor({
                 "마크다운으로 작성하세요.\n\n## 오늘 배운 것\n\n- 항목 1\n- 항목 2\n\n```ts\nconst hello = \"world\";\n```"
               }
               rows={22}
-              className={`resize-none bg-white px-5 py-4 font-mono text-sm text-slate-800 placeholder-slate-300 focus:outline-none ${
+              className={`resize-none bg-white px-5 py-4 font-mono text-sm text-slate-800 placeholder-slate-300 focus:outline-none dark:bg-navy-900 dark:text-slate-300 dark:placeholder-slate-600 ${
                 view === "split" ? "w-1/2" : "w-full"
               }`}
             />
@@ -590,7 +590,7 @@ export default function DevlogEditor({
 
           {(view === "split" || view === "preview") && (
             <div
-              className={`overflow-y-auto bg-white px-6 py-5 ${
+              className={`overflow-y-auto bg-white px-6 py-5 dark:bg-navy-900 ${
                 view === "split" ? "w-1/2" : "w-full"
               }`}
               style={{ minHeight: 440, maxHeight: 600 }}
@@ -614,7 +614,7 @@ export default function DevlogEditor({
         <button
           onClick={handleSubmit}
           disabled={isPending || !title.trim() || !content.trim()}
-          className="rounded-xl bg-slate-900 px-8 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:opacity-40"
+          className="rounded-xl bg-slate-900 px-8 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:opacity-40 dark:bg-blue-600 dark:hover:bg-blue-700"
         >
           {isPending
             ? mode === "edit" ? "저장 중…" : "발행 중…"
@@ -662,25 +662,25 @@ function MarkdownPreview({ content }: { content: string }) {
 
       components={{
         h1: ({ children }) => (
-          <h1 className="mb-3 mt-7 text-2xl font-black text-slate-900 first:mt-0">{children}</h1>
+          <h1 className="mb-3 mt-7 text-2xl font-black text-slate-900 first:mt-0 dark:text-slate-100">{children}</h1>
         ),
         h2: ({ children }) => (
-          <h2 className="mb-2 mt-6 text-xl font-bold text-slate-900">{children}</h2>
+          <h2 className="mb-2 mt-6 text-xl font-bold text-slate-900 dark:text-slate-100">{children}</h2>
         ),
         h3: ({ children }) => (
-          <h3 className="mb-2 mt-5 text-base font-bold text-slate-800">{children}</h3>
+          <h3 className="mb-2 mt-5 text-base font-bold text-slate-800 dark:text-slate-200">{children}</h3>
         ),
         p: ({ children }) => (
-          <p className="mb-3 leading-7 text-slate-700">{children}</p>
+          <p className="mb-3 leading-7 text-slate-700 dark:text-slate-300">{children}</p>
         ),
         strong: ({ children }) => (
-          <strong className="font-bold text-slate-900">{children}</strong>
+          <strong className="font-bold text-slate-900 dark:text-slate-100">{children}</strong>
         ),
         em: ({ children }) => (
-          <em className="italic text-slate-700">{children}</em>
+          <em className="italic text-slate-700 dark:text-slate-300">{children}</em>
         ),
         blockquote: ({ children }) => (
-          <blockquote className="my-3 border-l-4 border-blue-300 pl-4 italic text-slate-500">
+          <blockquote className="my-3 border-l-4 border-blue-300 pl-4 italic text-slate-500 dark:border-blue-500/40 dark:text-slate-400">
             {children}
           </blockquote>
         ),
@@ -695,7 +695,7 @@ function MarkdownPreview({ content }: { content: string }) {
         }) =>
           inline ? (
             <code
-              className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-pink-600"
+              className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-pink-600 dark:bg-navy-800 dark:text-pink-400"
               {...props}
             >
               {children}
@@ -708,13 +708,13 @@ function MarkdownPreview({ content }: { content: string }) {
             </pre>
           ),
         ul: ({ children }) => (
-          <ul className="mb-3 ml-5 list-disc space-y-1 text-slate-700">{children}</ul>
+          <ul className="mb-3 ml-5 list-disc space-y-1 text-slate-700 dark:text-slate-300">{children}</ul>
         ),
         ol: ({ children }) => (
-          <ol className="mb-3 ml-5 list-decimal space-y-1 text-slate-700">{children}</ol>
+          <ol className="mb-3 ml-5 list-decimal space-y-1 text-slate-700 dark:text-slate-300">{children}</ol>
         ),
         li: ({ children }) => <li className="leading-6">{children}</li>,
-        hr: () => <hr className="my-5 border-slate-200" />,
+        hr: () => <hr className="my-5 border-slate-200 dark:border-navy-700" />,
         a: ({ href, children }) => (
           <a
             href={href}
@@ -735,12 +735,12 @@ function MarkdownPreview({ content }: { content: string }) {
           </div>
         ),
         th: ({ children }) => (
-          <th className="border border-slate-200 bg-slate-50 px-3 py-2 text-left font-semibold text-slate-700">
+          <th className="border border-slate-200 bg-slate-50 px-3 py-2 text-left font-semibold text-slate-700 dark:border-navy-700 dark:bg-navy-800 dark:text-slate-200">
             {children}
           </th>
         ),
         td: ({ children }) => (
-          <td className="border border-slate-200 px-3 py-2 text-slate-600">{children}</td>
+          <td className="border border-slate-200 px-3 py-2 text-slate-600 dark:border-navy-700 dark:text-slate-300">{children}</td>
         ),
       }}
     >

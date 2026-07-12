@@ -18,7 +18,7 @@ export default function OnboardingForm({ defaultDisplayName, defaultUsername }: 
     <form action={formAction} className="space-y-5">
       {/* 이름 */}
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-slate-700">
+        <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
           이름 <span className="text-red-500">*</span>
         </label>
         <input
@@ -28,16 +28,16 @@ export default function OnboardingForm({ defaultDisplayName, defaultUsername }: 
           placeholder="홍길동"
           required
           maxLength={50}
-          className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:bg-navy-800 dark:border-navy-700 dark:text-slate-100 dark:placeholder-slate-500"
         />
       </div>
 
       {/* 유저네임 */}
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-slate-700">
+        <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
           유저네임 <span className="text-red-500">*</span>
         </label>
-        <div className="flex items-center rounded-xl border border-slate-200 px-4 py-2.5 transition focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
+        <div className="flex items-center rounded-xl border border-slate-200 px-4 py-2.5 transition focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 dark:border-navy-700 dark:bg-navy-800">
           <span className="mr-1 text-sm text-slate-400">@</span>
           <input
             type="text"
@@ -48,7 +48,7 @@ export default function OnboardingForm({ defaultDisplayName, defaultUsername }: 
             required
             minLength={3}
             maxLength={20}
-            className="flex-1 text-sm outline-none"
+            className="flex-1 text-sm outline-none dark:bg-transparent dark:text-slate-100 dark:placeholder-slate-500"
           />
         </div>
         <p className="mt-1 text-xs text-slate-400">영문 소문자, 숫자, 밑줄(_) 3~20자</p>
@@ -56,44 +56,44 @@ export default function OnboardingForm({ defaultDisplayName, defaultUsername }: 
 
       {/* 소개 */}
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-slate-700">
+        <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
           한 줄 소개
         </label>
         <textarea
           name="bio"
-          placeholder="어떤 것을 만들고 계신가요?"
+          placeholder="어떤 것을 만들고 계시나요?"
           rows={3}
           maxLength={200}
-          className="w-full resize-none rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          className="w-full resize-none rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:bg-navy-800 dark:border-navy-700 dark:text-slate-100 dark:placeholder-slate-500"
         />
       </div>
 
       {/* 웹사이트 */}
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-slate-700">
+        <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
           웹사이트
         </label>
         <input
           type="url"
           name="website_url"
           placeholder="https://yoursite.com"
-          className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+          className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:bg-navy-800 dark:border-navy-700 dark:text-slate-100 dark:placeholder-slate-500"
         />
       </div>
 
       {/* X (Twitter) */}
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-slate-700">
+        <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300">
           X (Twitter)
         </label>
-        <div className="flex items-center rounded-xl border border-slate-200 px-4 py-2.5 transition focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
+        <div className="flex items-center rounded-xl border border-slate-200 px-4 py-2.5 transition focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100 dark:border-navy-700 dark:bg-navy-800">
           <span className="mr-1 text-sm text-slate-400">x.com/</span>
           <input
             type="text"
             name="twitter_url"
             placeholder="handle"
             maxLength={50}
-            className="flex-1 text-sm outline-none"
+            className="flex-1 text-sm outline-none dark:bg-transparent dark:text-slate-100 dark:placeholder-slate-500"
           />
         </div>
       </div>

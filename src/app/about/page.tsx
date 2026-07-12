@@ -43,8 +43,8 @@ function FeatureRow({
         {icon}
       </span>
       <div>
-        <p className="text-sm font-semibold text-slate-900">{title}</p>
-        <p className="mt-0.5 text-sm leading-relaxed text-slate-500">{desc}</p>
+        <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{title}</p>
+        <p className="mt-0.5 text-sm leading-relaxed text-slate-500 dark:text-slate-400">{desc}</p>
       </div>
     </li>
   );
@@ -109,7 +109,7 @@ export default async function AboutPage() {
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
               href="/submit"
-              className="rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-navy-900 shadow transition hover:bg-blue-50"
+              className="rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-navy-900 shadow transition hover:bg-blue-50 dark:bg-slate-200 dark:hover:bg-slate-100"
             >
               🚀 프로젝트 등록하기
             </Link>
@@ -128,22 +128,22 @@ export default async function AboutPage() {
         {/* ── What is Sidedock ── */}
         <section>
           <SectionLabel>01 — Sidedock이란?</SectionLabel>
-          <h2 className="mb-4 text-xl font-black text-slate-900">
+          <h2 className="mb-4 text-xl font-black text-slate-900 dark:text-slate-100">
             한국 메이커를 위한 론칭 플랫폼
           </h2>
-          <p className="text-sm leading-relaxed text-slate-600">
+          <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">
             Sidedock은 혼자 혹은 소규모 팀이 만든 제품을 세상에 알리는 공간입니다.
             Product Hunt가 글로벌 영어권을 위한 플랫폼이라면, Sidedock은{" "}
             <strong>한국어를 쓰는 메이커</strong>들을 위한 동일한 경험을 제공합니다.
           </p>
-          <div className="mt-6 rounded-2xl border border-slate-100 bg-slate-50 p-5 font-mono text-xs text-slate-500">
-            <span className="text-blue-600">const</span>{" "}
-            <span className="text-slate-900">sidedock</span>{" "}
-            <span className="text-blue-600">=</span> &#123;<br />
-            &nbsp;&nbsp;target&nbsp;&nbsp;: <span className="text-green-600">&quot;한국 메이커&quot;</span>,<br />
-            &nbsp;&nbsp;language: <span className="text-green-600">&quot;한국어&quot;</span>,<br />
-            &nbsp;&nbsp;focus&nbsp;&nbsp;: <span className="text-green-600">&quot;AI 툴 · SaaS · 사이드프로젝트&quot;</span>,<br />
-            &nbsp;&nbsp;cost&nbsp;&nbsp;&nbsp;: <span className="text-green-600">&quot;무료&quot;</span>,<br />
+          <div className="mt-6 rounded-2xl border border-slate-100 bg-slate-50 p-5 font-mono text-xs text-slate-500 dark:border-navy-800 dark:bg-navy-950 dark:text-slate-400">
+            <span className="text-blue-600 dark:text-blue-400">const</span>{" "}
+            <span className="text-slate-900 dark:text-slate-100">sidedock</span>{" "}
+            <span className="text-blue-600 dark:text-blue-400">=</span> &#123;<br />
+            &nbsp;&nbsp;target&nbsp;&nbsp;: <span className="text-green-600 dark:text-emerald-400">&quot;한국 메이커&quot;</span>,<br />
+            &nbsp;&nbsp;language: <span className="text-green-600 dark:text-emerald-400">&quot;한국어&quot;</span>,<br />
+            &nbsp;&nbsp;focus&nbsp;&nbsp;: <span className="text-green-600 dark:text-emerald-400">&quot;AI 툴 · SaaS · 사이드프로젝트&quot;</span>,<br />
+            &nbsp;&nbsp;cost&nbsp;&nbsp;&nbsp;: <span className="text-green-600 dark:text-emerald-400">&quot;무료&quot;</span>,<br />
             &#125;;
           </div>
         </section>
@@ -151,7 +151,7 @@ export default async function AboutPage() {
         {/* ── For whom ── */}
         <section>
           <SectionLabel>02 — 누구를 위한 서비스인가요?</SectionLabel>
-          <h2 className="mb-6 text-xl font-black text-slate-900">
+          <h2 className="mb-6 text-xl font-black text-slate-900 dark:text-slate-100">
             만드는 사람이라면 누구든
           </h2>
           <ul className="space-y-5">
@@ -165,7 +165,7 @@ export default async function AboutPage() {
         {/* ── Benefits ── */}
         <section>
           <SectionLabel>03 — 등록하면 무엇이 좋나요?</SectionLabel>
-          <h2 className="mb-6 text-xl font-black text-slate-900">
+          <h2 className="mb-6 text-xl font-black text-slate-900 dark:text-slate-100">
             등록 한 번으로 얻는 것들
           </h2>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -179,11 +179,11 @@ export default async function AboutPage() {
             ].map(({ icon, title, desc }) => (
               <div
                 key={title}
-                className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition hover:border-blue-100 hover:shadow-md"
+                className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition hover:border-blue-100 hover:shadow-md dark:border-navy-800 dark:bg-navy-900"
               >
                 <div className="mb-2 text-2xl">{icon}</div>
-                <p className="text-sm font-bold text-slate-900">{title}</p>
-                <p className="mt-1 text-xs leading-relaxed text-slate-500">{desc}</p>
+                <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{title}</p>
+                <p className="mt-1 text-xs leading-relaxed text-slate-500 dark:text-slate-400">{desc}</p>
               </div>
             ))}
           </div>
@@ -192,34 +192,34 @@ export default async function AboutPage() {
         {/* ── First 100 Makers ── */}
         <section>
           <SectionLabel>04 — Early Access</SectionLabel>
-          <h2 className="mb-2 text-xl font-black text-slate-900">
+          <h2 className="mb-2 text-xl font-black text-slate-900 dark:text-slate-100">
             🎁 First 100 Makers
           </h2>
-          <p className="mb-6 text-sm leading-relaxed text-slate-500">
+          <p className="mb-6 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
             초기 등록 메이커에게만 제공되는 혜택입니다. 지금 바로 합류하세요.
           </p>
-          <div className="overflow-hidden rounded-2xl border border-amber-100 bg-gradient-to-br from-amber-50 to-orange-50 p-6">
+          <div className="overflow-hidden rounded-2xl border border-amber-100 bg-gradient-to-br from-amber-50 to-orange-50 p-6 dark:border-amber-500/20 dark:from-amber-500/10 dark:to-orange-500/10">
             {/* Live counter */}
             <div className="mb-6">
               <div className="mb-2 flex items-end justify-between">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 font-mono text-xs font-bold text-amber-700">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 font-mono text-xs font-bold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
                   <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500" />
                   모집 중
                 </span>
-                <span className="font-mono text-sm font-bold text-slate-700">
-                  <span className="text-2xl text-amber-600">{joined}</span>
+                <span className="font-mono text-sm font-bold text-slate-700 dark:text-slate-200">
+                  <span className="text-2xl text-amber-600 dark:text-amber-400">{joined}</span>
                   <span className="text-slate-400"> / {MAKER_GOAL}</span>
                 </span>
               </div>
               {/* Progress bar */}
-              <div className="h-2 overflow-hidden rounded-full bg-amber-100">
+              <div className="h-2 overflow-hidden rounded-full bg-amber-100 dark:bg-amber-500/20">
                 <div
                   className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-400 transition-all"
                   style={{ width: `${pct}%` }}
                 />
               </div>
-              <p className="mt-2 text-xs text-slate-500">
-                당신이 <strong className="text-amber-700">{joined + 1}번째 메이커</strong>가 될 수 있습니다.
+              <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                당신이 <strong className="text-amber-700 dark:text-amber-300">{joined + 1}번째 메이커</strong>가 될 수 있습니다.
               </p>
             </div>
             {/* Benefits */}
@@ -231,8 +231,8 @@ export default async function AboutPage() {
                 "영구 무료 이용",
                 "운영자 직접 피드백 제공",
               ].map((item) => (
-                <li key={item} className="flex items-center gap-3 text-sm font-medium text-slate-700">
-                  <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-amber-200 font-mono text-xs font-bold text-amber-700">
+                <li key={item} className="flex items-center gap-3 text-sm font-medium text-slate-700 dark:text-slate-200">
+                  <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-amber-200 font-mono text-xs font-bold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
                     ✓
                   </span>
                   {item}
@@ -245,18 +245,18 @@ export default async function AboutPage() {
         {/* ── vs Product Hunt ── */}
         <section>
           <SectionLabel>05 — Product Hunt vs Sidedock</SectionLabel>
-          <h2 className="mb-2 text-xl font-black text-slate-900">
+          <h2 className="mb-2 text-xl font-black text-slate-900 dark:text-slate-100">
             &quot;왜 Product Hunt가 아닌가요?&quot;
           </h2>
-          <p className="mb-6 text-sm leading-relaxed text-slate-500">
+          <p className="mb-6 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
             Product Hunt는 훌륭한 플랫폼입니다. 두 플랫폼은 경쟁 관계가 아니라 <strong>대상이 다릅니다.</strong>
           </p>
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
+            <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5 dark:border-navy-800 dark:bg-navy-800">
               <p className="mb-3 font-mono text-xs font-bold uppercase tracking-widest text-slate-400">
                 Product Hunt
               </p>
-              <ul className="space-y-2 text-sm text-slate-600">
+              <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-300">
                 {["글로벌 커뮤니티", "영어 중심", "대규모 경쟁", "해외 사용자 타깃"].map((t) => (
                   <li key={t} className="flex items-center gap-2">
                     <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />
@@ -265,11 +265,11 @@ export default async function AboutPage() {
                 ))}
               </ul>
             </div>
-            <div className="rounded-2xl border border-blue-100 bg-blue-50 p-5">
+            <div className="rounded-2xl border border-blue-100 bg-blue-50 p-5 dark:border-blue-500/20 dark:bg-blue-500/10">
               <p className="mb-3 font-mono text-xs font-bold uppercase tracking-widest text-blue-500">
                 Sidedock
               </p>
-              <ul className="space-y-2 text-sm text-slate-700">
+              <ul className="space-y-2 text-sm text-slate-700 dark:text-slate-300">
                 {["한국 메이커 커뮤니티", "한국어 중심", "초기 프로젝트 친화적", "Dev Log 지원", "한국어 SEO"].map((t) => (
                   <li key={t} className="flex items-center gap-2 font-medium">
                     <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
@@ -286,21 +286,21 @@ export default async function AboutPage() {
 
         {/* ── Cost / Policy ── */}
         <section className="grid gap-4 sm:grid-cols-2">
-          <div className="rounded-2xl border border-green-100 bg-green-50 p-6">
+          <div className="rounded-2xl border border-green-100 bg-green-50 p-6 dark:border-green-500/20 dark:bg-green-500/10">
             <p className="mb-1 font-mono text-xs font-bold uppercase tracking-widest text-green-600">
               비용
             </p>
-            <p className="text-2xl font-black text-slate-900">무료</p>
-            <p className="mt-2 text-sm leading-relaxed text-slate-600">
+            <p className="text-2xl font-black text-slate-900 dark:text-slate-100">무료</p>
+            <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
               등록부터 Dev Log 작성, 댓글까지 모든 기능이 완전 무료입니다.
             </p>
           </div>
-          <div className="rounded-2xl border border-blue-100 bg-blue-50 p-6">
+          <div className="rounded-2xl border border-blue-100 bg-blue-50 p-6 dark:border-blue-500/20 dark:bg-blue-500/10">
             <p className="mb-1 font-mono text-xs font-bold uppercase tracking-widest text-blue-600">
               운영 정책
             </p>
-            <p className="text-2xl font-black text-slate-900">메이커 중심</p>
-            <p className="mt-2 text-sm leading-relaxed text-slate-600">
+            <p className="text-2xl font-black text-slate-900 dark:text-slate-100">메이커 중심</p>
+            <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
               초기 단계에는 실제 메이커가 만든 제품을 큐레이션하여 소개합니다.
             </p>
           </div>
@@ -309,14 +309,14 @@ export default async function AboutPage() {
         {/* ── About operator ── */}
         <section>
           <SectionLabel>06 — 운영자 소개</SectionLabel>
-          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm dark:border-navy-800 dark:bg-navy-900">
             <div className="flex items-start gap-4">
               <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-navy-800 to-blue-600 text-lg font-black text-white shadow">
                 S
               </div>
               <div>
-                <p className="font-bold text-slate-900">혼자 만들고, 혼자 운영합니다.</p>
-                <p className="mt-1 text-sm leading-relaxed text-slate-500">
+                <p className="font-bold text-slate-900 dark:text-slate-100">혼자 만들고, 혼자 운영합니다.</p>
+                <p className="mt-1 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
                   Sidedock은 개인 개발자가 직접 만들고 운영하는 플랫폼입니다.
                   한국 메이커 생태계를 응원하는 마음으로 시작했습니다.
                   피드백은 언제든 환영합니다.
@@ -331,7 +331,7 @@ export default async function AboutPage() {
         </section>
 
         {/* ── CTA ── */}
-        <section className="rounded-3xl border border-slate-100 bg-gradient-to-br from-slate-900 to-navy-900 p-10 text-center shadow-xl">
+        <section className="rounded-3xl border border-slate-100 bg-gradient-to-br from-slate-900 to-navy-900 p-10 text-center shadow-xl dark:border-white/10">
           <p className="mb-2 font-mono text-xs font-bold uppercase tracking-widest text-cyan-400">
             지금 바로 시작하세요
           </p>
@@ -347,7 +347,7 @@ export default async function AboutPage() {
           <div className="flex flex-wrap justify-center gap-3">
             <Link
               href="/submit"
-              className="rounded-xl bg-white px-6 py-3 text-sm font-bold text-navy-900 shadow transition hover:bg-blue-50"
+              className="rounded-xl bg-white px-6 py-3 text-sm font-bold text-navy-900 shadow transition hover:bg-blue-50 dark:bg-slate-200 dark:hover:bg-slate-100"
             >
               🚀 프로젝트 등록하기
             </Link>

@@ -34,24 +34,24 @@ export const CATEGORY_LABELS: Record<string, string> = {
 };
 
 export const CATEGORY_COLORS: Record<string, string> = {
-  "ai-tool":           "bg-purple-50 text-purple-600",
-  "saas":              "bg-blue-50 text-blue-600",
-  "dev-tool":          "bg-emerald-50 text-emerald-700",
-  "productivity":      "bg-orange-50 text-orange-600",
-  "design":            "bg-pink-50 text-pink-600",
-  "marketing":         "bg-yellow-50 text-yellow-700",
-  "mobile-app":        "bg-sky-50 text-sky-600",
-  "browser-extension": "bg-violet-50 text-violet-600",
-  "desktop-app":       "bg-indigo-50 text-indigo-600",
-  "game":              "bg-red-50 text-red-600",
-  "api":               "bg-teal-50 text-teal-700",
-  "education":         "bg-amber-50 text-amber-700",
-  "finance":           "bg-lime-50 text-lime-700",
-  "health":            "bg-rose-50 text-rose-600",
-  "social":            "bg-cyan-50 text-cyan-600",
-  "ecommerce":         "bg-emerald-50 text-emerald-600",
-  "media":             "bg-fuchsia-50 text-fuchsia-600",
-  "other":             "bg-slate-100 text-slate-500",
+  "ai-tool":           "bg-purple-50 text-purple-600 dark:bg-purple-500/15 dark:text-purple-300",
+  "saas":              "bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300",
+  "dev-tool":          "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300",
+  "productivity":      "bg-orange-50 text-orange-600 dark:bg-orange-500/15 dark:text-orange-300",
+  "design":            "bg-pink-50 text-pink-600 dark:bg-pink-500/15 dark:text-pink-300",
+  "marketing":         "bg-yellow-50 text-yellow-700 dark:bg-yellow-500/15 dark:text-yellow-300",
+  "mobile-app":        "bg-sky-50 text-sky-600 dark:bg-sky-500/15 dark:text-sky-300",
+  "browser-extension": "bg-violet-50 text-violet-600 dark:bg-violet-500/15 dark:text-violet-300",
+  "desktop-app":       "bg-indigo-50 text-indigo-600 dark:bg-indigo-500/15 dark:text-indigo-300",
+  "game":              "bg-red-50 text-red-600 dark:bg-red-500/15 dark:text-red-300",
+  "api":               "bg-teal-50 text-teal-700 dark:bg-teal-500/15 dark:text-teal-300",
+  "education":         "bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300",
+  "finance":           "bg-lime-50 text-lime-700 dark:bg-lime-500/15 dark:text-lime-300",
+  "health":            "bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-300",
+  "social":            "bg-cyan-50 text-cyan-600 dark:bg-cyan-500/15 dark:text-cyan-300",
+  "ecommerce":         "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300",
+  "media":             "bg-fuchsia-50 text-fuchsia-600 dark:bg-fuchsia-500/15 dark:text-fuchsia-300",
+  "other":             "bg-slate-100 text-slate-500 dark:bg-navy-800 dark:text-slate-300",
 };
 
 function ProductIcon({
@@ -68,7 +68,7 @@ function ProductIcon({
 
   return (
     <div
-      className={`${sizeCls} ${roundedCls} flex flex-shrink-0 items-center justify-center overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200`}
+      className={`${sizeCls} ${roundedCls} flex flex-shrink-0 items-center justify-center overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200 ring-1 ring-black/5 dark:from-slate-300 dark:to-slate-400 dark:ring-0`}
     >
       {url ? (
         <Image
@@ -101,7 +101,7 @@ function GridCard({
   const cats = product.categories?.length ? product.categories : [product.category];
 
   return (
-    <div className="group relative flex flex-col gap-3 rounded-2xl border border-slate-100 bg-white p-4 transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-lg cursor-pointer">
+    <div className="group relative flex flex-col gap-3 rounded-2xl border border-slate-100 bg-white p-4 transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-lg cursor-pointer dark:border-navy-800 dark:bg-navy-900 dark:hover:border-blue-500/40">
       {/* Full-cover link */}
       <Link
         href={`/products/${product.slug}`}
@@ -111,7 +111,7 @@ function GridCard({
       />
       <ProductIcon url={product.thumbnail_url} name={product.name} size={64} />
       <div className="min-w-0 flex-1">
-        <p className="font-semibold leading-tight text-slate-900 group-hover:text-blue-700">
+        <p className="font-semibold leading-tight text-slate-900 group-hover:text-blue-700 dark:text-slate-100 dark:group-hover:text-blue-400">
           {product.name}
         </p>
         <p className="mt-0.5 line-clamp-1 text-xs text-slate-400">
@@ -129,7 +129,7 @@ function GridCard({
         <div className="flex items-center justify-end gap-1.5">
           <Link
             href={`/products/${product.slug}#comments`}
-            className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-0.5 text-xs text-slate-400 transition hover:border-slate-300 hover:text-slate-600"
+            className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-0.5 text-xs text-slate-400 transition hover:border-slate-300 hover:text-slate-600 dark:border-navy-700 dark:bg-navy-800 dark:hover:border-navy-600 dark:hover:text-slate-300"
           >
             <CommentIcon />
             {product.comment_count}
@@ -181,7 +181,7 @@ function ListCard({
     nowMs - new Date(product.created_at).getTime() < 72 * 3_600_000;
 
   return (
-    <div className="relative flex cursor-pointer items-center gap-3 border-b border-slate-100 bg-white px-3 py-3.5 transition last:border-0 hover:bg-slate-50/70 first:rounded-t-2xl last:rounded-b-2xl">
+    <div className="relative flex cursor-pointer items-center gap-3 border-b border-slate-100 bg-white px-3 py-3.5 transition last:border-0 hover:bg-slate-50/70 first:rounded-t-2xl last:rounded-b-2xl dark:border-navy-800 dark:bg-navy-900 dark:hover:bg-navy-800/50">
       {/* Full-cover link */}
       <Link
         href={`/products/${product.slug}`}
@@ -225,9 +225,9 @@ function ListCard({
 
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-baseline gap-x-2">
-          <span className="font-semibold text-slate-900">{product.name}</span>
-          <span className="hidden text-slate-300 sm:inline">—</span>
-          <span className="hidden truncate text-sm text-slate-500 sm:block">
+          <span className="font-semibold text-slate-900 dark:text-slate-100">{product.name}</span>
+          <span className="hidden text-slate-300 sm:inline dark:text-slate-600">—</span>
+          <span className="hidden truncate text-sm text-slate-500 sm:block dark:text-slate-400">
             {product.tagline}
           </span>
         </div>
@@ -274,7 +274,7 @@ function ListCard({
         {context !== "launch-feed" && (
           <Link
             href={`/products/${product.slug}#comments`}
-            className="hidden items-center gap-1 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-400 transition hover:border-slate-300 hover:text-slate-600 sm:flex"
+            className="hidden items-center gap-1 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs text-slate-400 transition hover:border-slate-300 hover:text-slate-600 sm:flex dark:border-navy-700 dark:bg-navy-800 dark:hover:border-navy-600 dark:hover:text-slate-300"
           >
             <CommentIcon />
             <span className="font-medium">{product.comment_count}</span>

@@ -158,7 +158,7 @@ function SectionHeader({
   return (
     <div className="mb-5 flex items-start justify-between gap-4">
       <div>
-        <h2 className="flex items-center gap-2 text-lg font-black text-slate-900">
+        <h2 className="flex items-center gap-2 text-lg font-black text-slate-900 dark:text-slate-100">
           <span>{icon}</span>
           <span>{title}</span>
         </h2>
@@ -186,9 +186,9 @@ function EmptyState({
   linkText: string;
 }) {
   return (
-    <div className="rounded-2xl border border-dashed border-slate-200 py-12 text-center">
+    <div className="rounded-2xl border border-dashed border-slate-200 py-12 text-center dark:border-navy-700">
       <p className="text-2xl">{icon}</p>
-      <p className="mt-3 text-sm font-medium text-slate-600">{message}</p>
+      <p className="mt-3 text-sm font-medium text-slate-600 dark:text-slate-300">{message}</p>
       <Link
         href={href}
         className="mt-2 inline-block font-mono text-xs text-slate-400 underline hover:text-blue-600"

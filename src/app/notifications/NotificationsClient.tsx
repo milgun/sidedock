@@ -109,9 +109,9 @@ export default function NotificationsClient({
 }) {
   if (initialNotifications.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-slate-200 py-20 text-center">
+      <div className="rounded-2xl border border-dashed border-slate-200 py-20 text-center dark:border-navy-800">
         <p className="text-4xl">🔔</p>
-        <p className="mt-3 text-slate-500">아직 알림이 없습니다</p>
+        <p className="mt-3 text-slate-500 dark:text-slate-400">아직 알림이 없습니다</p>
         <p className="mt-1 text-sm text-slate-400">
           제품이 승인되거나 댓글, 업보트가 달리면 알림이 옵니다.
         </p>
@@ -128,20 +128,20 @@ export default function NotificationsClient({
             className={`flex items-start gap-4 rounded-2xl border p-4 transition ${
               !n.read_at
                 ? "border-blue-100 bg-blue-50/40"
-                : "border-slate-100 bg-white hover:bg-slate-50"
+                : "border-slate-100 bg-white hover:bg-slate-50 dark:border-navy-800 dark:bg-navy-900 dark:hover:bg-navy-800"
             }`}
           >
             <span className="flex-shrink-0 text-2xl leading-none">{icon}</span>
             <div className="min-w-0 flex-1">
               <p
                 className={`text-sm leading-relaxed ${
-                  !n.read_at ? "font-semibold text-slate-900" : "text-slate-700"
+                  !n.read_at ? "font-semibold text-slate-900 dark:text-slate-100" : "text-slate-700 dark:text-slate-300"
                 }`}
               >
                 {title}
               </p>
               {body && (
-                <p className="mt-0.5 text-xs text-slate-500 line-clamp-2">
+                <p className="mt-0.5 text-xs text-slate-500 line-clamp-2 dark:text-slate-400">
                   {body}
                 </p>
               )}

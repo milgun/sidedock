@@ -78,7 +78,7 @@ const EXTRA_LINK_TYPES = [
 ];
 
 const inputCls =
-  "w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 transition focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100";
+  "w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 transition focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:bg-navy-800 dark:border-navy-700 dark:text-slate-100 dark:placeholder-slate-500";
 
 export default function AdminUploadForm({ productId, initialData }: Props = {}) {
   const isEditMode = !!productId;
@@ -210,7 +210,7 @@ export default function AdminUploadForm({ productId, initialData }: Props = {}) 
   };
 
   return (
-    <div className="space-y-5 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+    <div className="space-y-5 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm dark:border-navy-800 dark:bg-navy-900">
       {/* 기본 정보 */}
       <Field label="제품 이름" required>
         <input
@@ -245,7 +245,7 @@ export default function AdminUploadForm({ productId, initialData }: Props = {}) 
       {/* 추가 링크 */}
       <div>
         <div className="mb-2 flex items-center justify-between">
-          <label className="text-sm font-semibold text-slate-700">추가 링크</label>
+          <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">추가 링크</label>
           <button type="button" onClick={addLink}
             className="flex items-center gap-1 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600 transition hover:bg-blue-100">
             + 링크 추가
@@ -256,13 +256,13 @@ export default function AdminUploadForm({ productId, initialData }: Props = {}) 
         )}
         <div className="space-y-2">
           {form.extra_links.map((link) => (
-            <div key={link.id} className="flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50 p-3">
+            <div key={link.id} className="flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50 p-3 dark:border-navy-800 dark:bg-navy-800">
               <select value={link.type} onChange={(e) => updateLink(link.id, "type", e.target.value)}
-                className="w-36 flex-shrink-0 rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs text-slate-700 outline-none focus:border-blue-400">
+                className="w-36 flex-shrink-0 rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs text-slate-700 outline-none focus:border-blue-400 dark:bg-navy-800 dark:border-navy-700 dark:text-slate-100">
                 {EXTRA_LINK_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
               </select>
               <input type="url" value={link.url} onChange={(e) => updateLink(link.id, "url", e.target.value)}
-                placeholder="https://..." className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:border-blue-400" />
+                placeholder="https://..." className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs outline-none focus:border-blue-400 dark:bg-navy-800 dark:border-navy-700 dark:text-slate-100 dark:placeholder-slate-500" />
               <button type="button" onClick={() => removeLink(link.id)} className="flex-shrink-0 text-slate-300 transition hover:text-red-400">✕</button>
             </div>
           ))}
@@ -271,12 +271,12 @@ export default function AdminUploadForm({ productId, initialData }: Props = {}) 
 
       {/* 등록자 유형 */}
       <div>
-        <label className="mb-2 block text-sm font-semibold text-slate-700">등록자 유형</label>
+        <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-300">등록자 유형</label>
         <div className="flex gap-2">
           {(["hunter", "maker"] as const).map((type) => (
             <button key={type} type="button" onClick={() => setForm((f) => ({ ...f, maker_type: type }))}
               className={`flex-1 rounded-xl border px-4 py-2.5 text-sm font-medium transition ${
-                form.maker_type === type ? "border-blue-400 bg-blue-50 text-blue-700" : "border-slate-200 text-slate-600 hover:border-slate-300"
+                form.maker_type === type ? "border-blue-400 bg-blue-50 text-blue-700" : "border-slate-200 text-slate-600 hover:border-slate-300 dark:border-navy-700 dark:text-slate-300"
               }`}>
               {type === "hunter" ? "🔍 큐레이터 (Hunter)" : "🛠️ 메이커 (Maker)"}
             </button>
@@ -298,8 +298,8 @@ export default function AdminUploadForm({ productId, initialData }: Props = {}) 
               <button key={cat.value} type="button" onClick={() => toggleCategory(cat.value)} disabled={disabled}
                 className={`flex items-center gap-1.5 rounded-xl border px-2.5 py-2 text-left transition ${
                   selected ? "border-blue-400 bg-blue-50 font-semibold text-blue-700"
-                    : disabled ? "cursor-not-allowed border-slate-100 bg-slate-50 text-slate-300"
-                    : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+                    : disabled ? "cursor-not-allowed border-slate-100 bg-slate-50 text-slate-300 dark:border-navy-800 dark:bg-navy-800"
+                    : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50 dark:border-navy-700 dark:bg-navy-800 dark:text-slate-300 dark:hover:bg-navy-800"
                 }`}>
                 <span className="text-sm leading-none">{cat.icon}</span>
                 <span className="flex-1 text-xs leading-tight">{cat.label}</span>
@@ -447,7 +447,7 @@ export default function AdminUploadForm({ productId, initialData }: Props = {}) 
       <button
         onClick={handleSubmit}
         disabled={isSubmitting || !form.name || !form.tagline || !form.url || !form.description || form.categories.length === 0}
-        className="w-full rounded-xl bg-navy-900 py-3 text-sm font-semibold text-white transition hover:bg-navy-800 disabled:opacity-40"
+        className="w-full rounded-xl bg-navy-900 py-3 text-sm font-semibold text-white transition hover:bg-navy-800 disabled:opacity-40 dark:bg-blue-600"
       >
         {isSubmitting ? "저장 중…" : isEditMode ? "수정 저장하기 ✏️" : "Hot Products에 등록하기 🔥"}
       </button>
@@ -468,7 +468,7 @@ function Field({
 }) {
   return (
     <div>
-      <label className="mb-1.5 flex items-center gap-1 text-sm font-semibold text-slate-700">
+      <label className="mb-1.5 flex items-center gap-1 text-sm font-semibold text-slate-700 dark:text-slate-300">
         {label}
         {required && <span className="text-blue-500">*</span>}
       </label>

@@ -25,7 +25,7 @@ export default function ProfileTabNav({
   const base = pathname.split("?")[0];
 
   return (
-    <nav className="mb-8 flex gap-1 border-b border-slate-100">
+    <nav className="mb-8 flex gap-1 border-b border-slate-100 dark:border-navy-800">
       {TABS.map((tab) => {
         const active = activeTab === tab.id;
         const count = productCounts?.[tab.id];
@@ -35,14 +35,14 @@ export default function ProfileTabNav({
             href={`${base}?tab=${tab.id}`}
             className={`flex items-center gap-1.5 px-4 py-3 text-sm font-medium transition border-b-2 -mb-px ${
               active
-                ? "border-slate-900 text-slate-900"
-                : "border-transparent text-slate-400 hover:text-slate-600"
+                ? "border-slate-900 dark:border-slate-100 text-slate-900 dark:text-slate-100"
+                : "border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
             }`}
           >
             {tab.label}
             {count !== undefined && count > 0 && (
               <span className={`rounded-full px-1.5 py-0.5 text-xs leading-none ${
-                active ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-400"
+                active ? "bg-slate-900 dark:bg-blue-600 text-white" : "bg-slate-100 dark:bg-navy-800 text-slate-400"
               }`}>
                 {count}
               </span>

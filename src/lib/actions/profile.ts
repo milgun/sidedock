@@ -10,6 +10,7 @@ export interface UpdateProfileInput {
   website_url: string;
   twitter_url: string;
   avatar_url: string;
+  theme_preference: string;
 }
 
 export async function updateProfile(
@@ -33,6 +34,10 @@ export async function updateProfile(
   if (twitter && !urlRe.test(twitter))
     return { error: "Twitter URL은 https:// 로 시작해야 합니다." };
 
+  const theme = ["light", "dark", "system"].includes(input.theme_preference)
+    ? input.theme_preference
+    : "system";
+
   const { data, error } = await supabase
     .from("profiles")
     .update({
@@ -42,6 +47,7 @@ export async function updateProfile(
       website_url: website || null,
       twitter_url: twitter || null,
       avatar_url: input.avatar_url.trim() || null,
+      theme_preference: theme,
     })
     .eq("id", user.id)
     .select("username")

@@ -122,14 +122,14 @@ export default function DevlogDetailClient({
           <>
             <Link
               href={`/devlog/${postSlug}/edit`}
-              className="rounded-lg border border-slate-200 px-4 py-1.5 text-xs font-medium text-slate-600 transition hover:border-blue-400 hover:text-blue-600"
+              className="rounded-lg border border-slate-200 px-4 py-1.5 text-xs font-medium text-slate-600 transition hover:border-blue-400 hover:text-blue-600 dark:border-navy-800 dark:text-slate-300"
             >
               수정
             </Link>
             <button
               onClick={handleDelete}
               disabled={isDeleting}
-              className="rounded-lg border border-slate-200 px-4 py-1.5 text-xs font-medium text-slate-600 transition hover:border-red-400 hover:text-red-600 disabled:opacity-40"
+              className="rounded-lg border border-slate-200 px-4 py-1.5 text-xs font-medium text-slate-600 transition hover:border-red-400 hover:text-red-600 disabled:opacity-40 dark:border-navy-800 dark:text-slate-300"
             >
               {isDeleting ? "삭제 중…" : "삭제"}
             </button>
@@ -143,25 +143,25 @@ export default function DevlogDetailClient({
           remarkPlugins={[remarkGfm, remarkCjkFriendly]}
           components={{
             h1: ({ children }) => (
-              <h1 className="mb-3 mt-8 text-2xl font-black text-slate-900 first:mt-0">{children}</h1>
+              <h1 className="mb-3 mt-8 text-2xl font-black text-slate-900 first:mt-0 dark:text-slate-100">{children}</h1>
             ),
             h2: ({ children }) => (
-              <h2 className="mb-2 mt-7 text-xl font-bold text-slate-900">{children}</h2>
+              <h2 className="mb-2 mt-7 text-xl font-bold text-slate-900 dark:text-slate-100">{children}</h2>
             ),
             h3: ({ children }) => (
-              <h3 className="mb-2 mt-5 text-base font-bold text-slate-800">{children}</h3>
+              <h3 className="mb-2 mt-5 text-base font-bold text-slate-800 dark:text-slate-200">{children}</h3>
             ),
             p: ({ children }) => (
-              <p className="mb-4 leading-7 text-slate-700">{children}</p>
+              <p className="mb-4 leading-7 text-slate-700 dark:text-slate-300">{children}</p>
             ),
             strong: ({ children }) => (
-              <strong className="font-bold text-slate-900">{children}</strong>
+              <strong className="font-bold text-slate-900 dark:text-slate-100">{children}</strong>
             ),
             em: ({ children }) => (
-              <em className="italic text-slate-700">{children}</em>
+              <em className="italic text-slate-700 dark:text-slate-300">{children}</em>
             ),
             blockquote: ({ children }) => (
-              <blockquote className="my-4 border-l-4 border-blue-300 pl-4 italic text-slate-500">
+              <blockquote className="my-4 border-l-4 border-blue-300 pl-4 italic text-slate-500 dark:border-blue-500/40 dark:text-slate-400">
                 {children}
               </blockquote>
             ),
@@ -176,7 +176,7 @@ export default function DevlogDetailClient({
             }) =>
               inline ? (
                 <code
-                  className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-sm text-pink-600"
+                  className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-sm text-pink-600 dark:bg-navy-800 dark:text-pink-400"
                   {...props}
                 >
                   {children}
@@ -189,13 +189,13 @@ export default function DevlogDetailClient({
                 </pre>
               ),
             ul: ({ children }) => (
-              <ul className="mb-4 ml-6 list-disc space-y-1.5 text-slate-700">{children}</ul>
+              <ul className="mb-4 ml-6 list-disc space-y-1.5 text-slate-700 dark:text-slate-300">{children}</ul>
             ),
             ol: ({ children }) => (
-              <ol className="mb-4 ml-6 list-decimal space-y-1.5 text-slate-700">{children}</ol>
+              <ol className="mb-4 ml-6 list-decimal space-y-1.5 text-slate-700 dark:text-slate-300">{children}</ol>
             ),
             li: ({ children }) => <li className="leading-7">{children}</li>,
-            hr: () => <hr className="my-6 border-slate-200" />,
+            hr: () => <hr className="my-6 border-slate-200 dark:border-navy-700" />,
             a: ({ href, children }) => (
               <a
                 href={href}
@@ -216,12 +216,12 @@ export default function DevlogDetailClient({
               </div>
             ),
             th: ({ children }) => (
-              <th className="border border-slate-200 bg-slate-50 px-3 py-2 text-left font-semibold text-slate-700">
+              <th className="border border-slate-200 bg-slate-50 px-3 py-2 text-left font-semibold text-slate-700 dark:border-navy-700 dark:bg-navy-800 dark:text-slate-200">
                 {children}
               </th>
             ),
             td: ({ children }) => (
-              <td className="border border-slate-200 px-3 py-2 text-slate-600">{children}</td>
+              <td className="border border-slate-200 px-3 py-2 text-slate-600 dark:border-navy-700 dark:text-slate-300">{children}</td>
             ),
           }}
         >
@@ -230,13 +230,13 @@ export default function DevlogDetailClient({
       </div>
 
       {/* Like button */}
-      <div className="mt-10 flex items-center gap-3 border-t border-slate-100 pt-6">
+      <div className="mt-10 flex items-center gap-3 border-t border-slate-100 pt-6 dark:border-navy-800">
         <button
           onClick={handleLike}
           className={`flex items-center gap-2 rounded-xl border px-5 py-2.5 text-sm font-semibold transition ${
             hasLiked
               ? "border-red-400 bg-red-50 text-red-500"
-              : "border-slate-200 text-slate-600 hover:border-red-300 hover:text-red-500"
+              : "border-slate-200 text-slate-600 hover:border-red-300 hover:text-red-500 dark:border-navy-800 dark:text-slate-300"
           }`}
         >
           ❤️ {count}
@@ -246,7 +246,7 @@ export default function DevlogDetailClient({
 
       {/* Comments */}
       <div className="mt-10">
-        <h2 className="mb-5 text-base font-bold text-slate-900">
+        <h2 className="mb-5 text-base font-bold text-slate-900 dark:text-slate-100">
           댓글 {comments.length > 0 && <span className="text-slate-400">{comments.length}</span>}
         </h2>
 
@@ -258,7 +258,7 @@ export default function DevlogDetailClient({
               onChange={(e) => setCommentText(e.target.value)}
               rows={3}
               placeholder="댓글을 작성하세요..."
-              className="w-full resize-none rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+              className="w-full resize-none rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:bg-navy-800 dark:border-navy-700 dark:text-slate-100 dark:placeholder-slate-500"
             />
             {commentError && (
               <p className="mt-1 text-xs text-red-500">{commentError}</p>
@@ -267,14 +267,14 @@ export default function DevlogDetailClient({
               <button
                 type="submit"
                 disabled={!commentText.trim()}
-                className="rounded-xl bg-navy-900 px-5 py-2 text-sm font-semibold text-white transition hover:bg-navy-800 disabled:opacity-40"
+                className="rounded-xl bg-navy-900 px-5 py-2 text-sm font-semibold text-white transition hover:bg-navy-800 disabled:opacity-40 dark:bg-blue-600 dark:hover:bg-blue-700"
               >
                 댓글 등록
               </button>
             </div>
           </form>
         ) : (
-          <div className="mb-6 rounded-xl border border-dashed border-slate-200 py-5 text-center text-sm text-slate-400">
+          <div className="mb-6 rounded-xl border border-dashed border-slate-200 py-5 text-center text-sm text-slate-400 dark:border-navy-800">
             <Link href="/login" className="text-blue-600 hover:underline">로그인</Link>하면 댓글을 작성할 수 있습니다.
           </div>
         )}
@@ -293,12 +293,12 @@ export default function DevlogDetailClient({
                     </span>
                   )}
                 </div>
-                <div className="flex-1 rounded-xl bg-slate-50 px-4 py-3">
+                <div className="flex-1 rounded-xl bg-slate-50 px-4 py-3 dark:bg-navy-800">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-xs font-semibold text-slate-700">@{c.author?.username}</span>
+                    <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">@{c.author?.username}</span>
                     <span className="text-xs text-slate-400">{timeAgo(c.created_at)}</span>
                   </div>
-                  <p className="mt-1 text-sm text-slate-700 whitespace-pre-wrap">{c.content}</p>
+                  <p className="mt-1 text-sm text-slate-700 whitespace-pre-wrap dark:text-slate-300">{c.content}</p>
                 </div>
               </div>
             ))}

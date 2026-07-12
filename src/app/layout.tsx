@@ -3,6 +3,7 @@ import { Geist } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
 import Link from "next/link";
+import ThemeProvider from "@/components/ThemeProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -81,38 +82,44 @@ export default function RootLayout({
     <html
       lang="ko"
       className={`${geistSans.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="flex min-h-full flex-col bg-surface" suppressHydrationWarning>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
-        <Navbar />
-        <main className="flex-1">{children}</main>
-        <footer className="border-t border-slate-200 bg-white py-8 text-center">
-          <p className="font-mono text-xs text-slate-400">
-            © 2026 Sidedock &mdash; Build Something. Launch Here.
-          </p>
-          <div className="mt-2 flex justify-center gap-6">
-            <Link href="/terms" className="text-xs text-slate-400 hover:text-blue-600">이용약관</Link>
-            <Link href="/privacy" className="text-xs text-slate-400 hover:text-blue-600">개인정보처리방침</Link>
-          </div>
-          <details className="mt-4 mx-auto max-w-sm">
-            <summary className="cursor-pointer text-xs text-slate-400 hover:text-slate-600 select-none">
-              사업자 정보
-            </summary>
-            <div className="mt-2 text-left text-xs text-slate-400 leading-relaxed px-4 space-y-0.5">
-              <p>대표자: 이현석</p>
-              <p>사업자등록번호: 784-10-03216</p>
-              <p>통신판매업 신고번호: 2026-세종아름-0102</p>
-              <p>주소: 세종특별자치시 보람로 96</p>
-              <p>대표번호: 043-907-5072</p>
-              <p>고객센터 운영시간: 평일 10:00~17:00</p>
-              <p>개인정보보호책임자: 이현석</p>
-              <p>이메일: <a href="mailto:contact@sidedock.io" className="hover:text-blue-500">contact@sidedock.io</a></p>
+      <body
+        className="flex min-h-full flex-col bg-surface text-slate-900 dark:bg-navy-950 dark:text-slate-100"
+        suppressHydrationWarning
+      >
+        <ThemeProvider>
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          />
+          <Navbar />
+          <main className="flex-1">{children}</main>
+          <footer className="border-t border-slate-200 bg-white py-8 text-center dark:border-navy-800 dark:bg-navy-900">
+            <p className="font-mono text-xs text-slate-400">
+              © 2026 Sidedock &mdash; Build Something. Launch Here.
+            </p>
+            <div className="mt-2 flex justify-center gap-6">
+              <Link href="/terms" className="text-xs text-slate-400 hover:text-blue-600">이용약관</Link>
+              <Link href="/privacy" className="text-xs text-slate-400 hover:text-blue-600">개인정보처리방침</Link>
             </div>
-          </details>
-        </footer>
+            <details className="mt-4 mx-auto max-w-sm">
+              <summary className="cursor-pointer text-xs text-slate-400 hover:text-slate-600 select-none">
+                사업자 정보
+              </summary>
+              <div className="mt-2 text-left text-xs text-slate-400 leading-relaxed px-4 space-y-0.5">
+                <p>대표자: 이현석</p>
+                <p>사업자등록번호: 784-10-03216</p>
+                <p>통신판매업 신고번호: 2026-세종아름-0102</p>
+                <p>주소: 세종특별자치시 보람로 96</p>
+                <p>대표번호: 043-907-5072</p>
+                <p>고객센터 운영시간: 평일 10:00~17:00</p>
+                <p>개인정보보호책임자: 이현석</p>
+                <p>이메일: <a href="mailto:contact@sidedock.io" className="hover:text-blue-500">contact@sidedock.io</a></p>
+              </div>
+            </details>
+          </footer>
+        </ThemeProvider>
       </body>
     </html>
   );

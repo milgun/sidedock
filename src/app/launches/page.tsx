@@ -65,7 +65,7 @@ export default async function LaunchesPage(props: {
       {/* Header */}
       <div className="mb-8 flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-black text-slate-900">🚀 Launches</h1>
+          <h1 className="text-2xl font-black text-slate-900 dark:text-slate-100">🚀 Launches</h1>
         </div>
         <Link
           href="/submit"

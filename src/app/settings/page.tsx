@@ -14,7 +14,7 @@ export default async function SettingsPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("username, display_name, headline, bio, website_url, twitter_url, avatar_url")
+    .select("username, display_name, headline, bio, website_url, twitter_url, avatar_url, theme_preference")
     .eq("id", user.id)
     .single();
 
@@ -30,13 +30,13 @@ export default async function SettingsPage() {
         >
           ← 내 프로필로 돌아가기
         </Link>
-        <h1 className="text-2xl font-black text-slate-900">프로필 설정</h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <h1 className="text-2xl font-black text-slate-900 dark:text-slate-100">프로필 설정</h1>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           커뮤니티에 표시되는 정보를 수정합니다.
         </p>
       </div>
 
-      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
+      <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm dark:border-navy-800 dark:bg-navy-900">
         <SettingsForm
           profile={{
             username: profile.username as string,
@@ -46,6 +46,7 @@ export default async function SettingsPage() {
             website_url: profile.website_url as string | null,
             twitter_url: profile.twitter_url as string | null,
             avatar_url: profile.avatar_url as string | null,
+            theme_preference: (profile.theme_preference as string | null) ?? "system",
           }}
         />
       </div>

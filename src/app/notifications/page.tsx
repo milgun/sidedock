@@ -28,7 +28,7 @@ export default async function NotificationsPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10">
-      <h1 className="mb-6 text-2xl font-black text-slate-900">알림</h1>
+      <h1 className="mb-6 text-2xl font-black text-slate-900 dark:text-slate-100">알림</h1>
       <NotificationsClient initialNotifications={data ?? []} />
     </div>
   );

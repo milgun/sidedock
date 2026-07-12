@@ -45,7 +45,7 @@ export default function ExpandableProductList({
         {hasMore && (
           <button
             onClick={loadMore}
-            className="mt-4 w-full rounded-xl border border-slate-200 py-3 text-sm font-medium text-slate-500 transition hover:border-blue-300 hover:text-blue-600"
+            className="mt-4 w-full rounded-xl border border-slate-200 py-3 text-sm font-medium text-slate-500 transition hover:border-blue-300 hover:text-blue-600 dark:border-navy-700 dark:text-slate-400 dark:hover:border-blue-500/50"
           >
             {Math.min(pageSize, remaining)}개 더 보기
           </button>
@@ -56,7 +56,7 @@ export default function ExpandableProductList({
 
   return (
     <div>
-      <div className="rounded-2xl border border-slate-100 bg-white">
+      <div className="rounded-2xl border border-slate-100 bg-white dark:border-navy-800 dark:bg-navy-900">
         {visible.map((p, i) => (
           <ProductCard
             key={p.id}
@@ -71,7 +71,7 @@ export default function ExpandableProductList({
       {hasMore && (
         <button
           onClick={loadMore}
-          className="mt-3 w-full rounded-xl border border-slate-200 py-3 text-sm font-medium text-slate-500 transition hover:border-blue-300 hover:text-blue-600"
+          className="mt-3 w-full rounded-xl border border-slate-200 py-3 text-sm font-medium text-slate-500 transition hover:border-blue-300 hover:text-blue-600 dark:border-navy-700 dark:text-slate-400 dark:hover:border-blue-500/50"
         >
           {Math.min(pageSize, remaining)}개 더 보기
         </button>

@@ -25,8 +25,8 @@ export default function NavbarTabs() {
           href={href}
           className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
             isActive(href)
-              ? "bg-navy-900 text-white"
-              : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+              ? "bg-navy-900 text-white dark:bg-navy-700"
+              : "text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-navy-800 dark:hover:text-slate-100"
           }`}
         >
           {label}

@@ -43,10 +43,10 @@ export default async function ClaimsPage() {
               ← 관리자 홈
             </Link>
           </div>
-          <h1 className="mt-1 text-2xl font-black text-slate-900">
+          <h1 className="mt-1 text-2xl font-black text-slate-900 dark:text-slate-100">
             소유권 요청 심사
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             선등록 제품의 실제 메이커가 소유권을 요청했습니다. 확인 후 승인하면
             제품 소유권이 이전됩니다.
           </p>

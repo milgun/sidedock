@@ -28,38 +28,38 @@ export default function PrivacyPage() {
           </span>
           <span className="font-mono text-xs text-slate-400">v1.0.0</span>
         </div>
-        <h1 className="text-3xl font-black text-slate-900">개인정보처리방침</h1>
-        <p className="mt-2 text-sm text-slate-500">
+        <h1 className="text-3xl font-black text-slate-900 dark:text-slate-100">개인정보처리방침</h1>
+        <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
           최종 수정일: {LAST_UPDATED} &nbsp;·&nbsp; 시행일: {EFFECTIVE_DATE}
         </p>
       </div>
 
       {/* 요약 카드 */}
-      <div className="mb-12 rounded-2xl border border-green-100 bg-green-50 p-6">
+      <div className="mb-12 rounded-2xl border border-green-100 bg-green-50 p-6 dark:border-green-500/20 dark:bg-green-500/10">
         <p className="mb-1 font-mono text-xs font-semibold uppercase tracking-widest text-green-600">TL;DR</p>
-        <p className="text-sm leading-relaxed text-slate-700">
+        <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
           Sidedock은 서비스 운영에 필요한 최소한의 정보만 수집합니다. 광고 목적으로 개인정보를 판매하거나 제3자에게 무단 제공하지 않습니다.
           회원은 언제든지 자신의 데이터를 수정하거나 삭제(계정 탈퇴)를 요청할 수 있습니다.
         </p>
       </div>
 
-      <div className="space-y-12 text-slate-700">
+      <div className="space-y-12 text-slate-700 dark:text-slate-300">
 
         {/* 수집 항목 */}
         <Section num="01" title="수집하는 개인정보 항목">
           <p className="mb-4 text-sm leading-relaxed">
             Sidedock은 소셜 OAuth(Google, Kakao)를 통해서만 가입을 지원합니다. 직접 비밀번호를 수집하거나 저장하지 않습니다.
           </p>
-          <div className="overflow-hidden rounded-xl border border-slate-200">
+          <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-navy-800">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50">
-                  <th className="px-4 py-3 text-left font-semibold text-slate-700">항목</th>
-                  <th className="px-4 py-3 text-left font-semibold text-slate-700">수집 경로</th>
-                  <th className="px-4 py-3 text-left font-semibold text-slate-700">필수 여부</th>
+                <tr className="border-b border-slate-200 bg-slate-50 dark:border-navy-800 dark:bg-navy-800">
+                  <th className="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-300">항목</th>
+                  <th className="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-300">수집 경로</th>
+                  <th className="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-300">필수 여부</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 dark:divide-navy-800">
                 {[
                   { item: "이메일 주소", source: "Google / Kakao OAuth", required: true },
                   { item: "소셜 프로필 이름", source: "Google / Kakao OAuth", required: true },
@@ -71,9 +71,9 @@ export default function PrivacyPage() {
                   { item: "Twitter URL", source: "프로필 설정", required: false },
                   { item: "IP 주소 / 접속 로그", source: "서버 자동 수집", required: false },
                 ].map(({ item, source, required }) => (
-                  <tr key={item} className="hover:bg-slate-50">
-                    <td className="px-4 py-3 font-medium text-slate-900">{item}</td>
-                    <td className="px-4 py-3 text-slate-500">{source}</td>
+                  <tr key={item} className="hover:bg-slate-50 dark:hover:bg-navy-800">
+                    <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-100">{item}</td>
+                    <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{source}</td>
                     <td className="px-4 py-3">
                       {required ? (
                         <span className="rounded-full bg-blue-50 px-2 py-0.5 font-mono text-xs text-blue-600">필수</span>
@@ -99,12 +99,12 @@ export default function PrivacyPage() {
               { icon: "📢", title: "서비스 공지", desc: "중요한 정책 변경 및 공지 사항 전달 (이메일)" },
             ].map(({ icon, title, desc }) => (
               <li key={title} className="flex items-start gap-3">
-                <span className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-slate-100 text-sm">
+                <span className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-lg bg-slate-100 text-sm dark:bg-navy-800">
                   {icon}
                 </span>
                 <div>
-                  <p className="font-semibold text-slate-900">{title}</p>
-                  <p className="text-slate-500">{desc}</p>
+                  <p className="font-semibold text-slate-900 dark:text-slate-100">{title}</p>
+                  <p className="text-slate-500 dark:text-slate-400">{desc}</p>
                 </div>
               </li>
             ))}
@@ -113,25 +113,25 @@ export default function PrivacyPage() {
 
         {/* 보유 기간 */}
         <Section num="03" title="개인정보 보유 및 이용 기간">
-          <div className="overflow-hidden rounded-xl border border-slate-200">
+          <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-navy-800">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50">
-                  <th className="px-4 py-3 text-left font-semibold text-slate-700">구분</th>
-                  <th className="px-4 py-3 text-left font-semibold text-slate-700">보유 기간</th>
-                  <th className="px-4 py-3 text-left font-semibold text-slate-700">근거</th>
+                <tr className="border-b border-slate-200 bg-slate-50 dark:border-navy-800 dark:bg-navy-800">
+                  <th className="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-300">구분</th>
+                  <th className="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-300">보유 기간</th>
+                  <th className="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-300">근거</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-sm">
+              <tbody className="divide-y divide-slate-100 text-sm dark:divide-navy-800">
                 {[
                   { type: "회원 계정 정보", period: "회원 탈퇴 즉시 삭제", basis: "서비스 이용 계약 종료" },
                   { type: "게시 콘텐츠 (제품·댓글·Dev Log)", period: "탈퇴 즉시 삭제 (또는 익명화)", basis: "서비스 이용 계약 종료" },
                   { type: "서버 접속 로그", period: "최대 3개월", basis: "통신비밀보호법" },
                   { type: "결제 정보", period: "해당 없음 (유료 기능 없음)", basis: "—" },
                 ].map(({ type, period, basis }) => (
-                  <tr key={type} className="hover:bg-slate-50">
-                    <td className="px-4 py-3 font-medium text-slate-900">{type}</td>
-                    <td className="px-4 py-3 text-slate-600">{period}</td>
+                  <tr key={type} className="hover:bg-slate-50 dark:hover:bg-navy-800">
+                    <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-100">{type}</td>
+                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{period}</td>
                     <td className="px-4 py-3 text-slate-400">{basis}</td>
                   </tr>
                 ))}
@@ -165,25 +165,25 @@ export default function PrivacyPage() {
           <p className="mb-4 text-sm leading-relaxed">
             서비스 운영을 위해 아래 업체에 개인정보 처리를 위탁합니다.
           </p>
-          <div className="overflow-hidden rounded-xl border border-slate-200">
+          <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-navy-800">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50">
-                  <th className="px-4 py-3 text-left font-semibold text-slate-700">수탁 업체</th>
-                  <th className="px-4 py-3 text-left font-semibold text-slate-700">위탁 내용</th>
-                  <th className="px-4 py-3 text-left font-semibold text-slate-700">소재지</th>
+                <tr className="border-b border-slate-200 bg-slate-50 dark:border-navy-800 dark:bg-navy-800">
+                  <th className="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-300">수탁 업체</th>
+                  <th className="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-300">위탁 내용</th>
+                  <th className="px-4 py-3 text-left font-semibold text-slate-700 dark:text-slate-300">소재지</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-100 dark:divide-navy-800">
                 {[
                   { vendor: "Supabase Inc.", task: "데이터베이스 및 인증 인프라 운영", country: "미국" },
                   { vendor: "Vercel Inc.", task: "웹 애플리케이션 호스팅", country: "미국" },
                   { vendor: "Google LLC", task: "OAuth 인증 (Google 로그인)", country: "미국" },
                   { vendor: "Kakao Corp.", task: "OAuth 인증 (카카오 로그인)", country: "대한민국" },
                 ].map(({ vendor, task, country }) => (
-                  <tr key={vendor} className="hover:bg-slate-50">
-                    <td className="px-4 py-3 font-mono text-xs font-semibold text-slate-900">{vendor}</td>
-                    <td className="px-4 py-3 text-slate-600">{task}</td>
+                  <tr key={vendor} className="hover:bg-slate-50 dark:hover:bg-navy-800">
+                    <td className="px-4 py-3 font-mono text-xs font-semibold text-slate-900 dark:text-slate-100">{vendor}</td>
+                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{task}</td>
                     <td className="px-4 py-3 text-slate-400">{country}</td>
                   </tr>
                 ))}
@@ -228,9 +228,9 @@ export default function PrivacyPage() {
               { icon: "📦", title: "이동", desc: "데이터 내보내기 요청" },
               { icon: "📝", title: "동의 철회", desc: "서비스 탈퇴로 처리" },
             ].map(({ icon, title, desc }) => (
-              <div key={title} className="rounded-xl border border-slate-100 bg-white p-4 text-center">
+              <div key={title} className="rounded-xl border border-slate-100 bg-white p-4 text-center dark:border-navy-800 dark:bg-navy-900">
                 <div className="mb-2 text-2xl">{icon}</div>
-                <p className="text-sm font-semibold text-slate-900">{title}</p>
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{title}</p>
                 <p className="text-xs text-slate-400">{desc}</p>
               </div>
             ))}
@@ -269,11 +269,11 @@ export default function PrivacyPage() {
 
         {/* 개인정보 보호책임자 */}
         <Section num="10" title="개인정보 보호책임자">
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-6">
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-6 dark:border-navy-800 dark:bg-navy-800">
             <div className="grid gap-3 text-sm sm:grid-cols-2">
               <div>
                 <p className="mb-0.5 font-mono text-xs text-slate-400">개인정보 보호책임자</p>
-                <p className="font-semibold text-slate-900">Sidedock 운영팀</p>
+                <p className="font-semibold text-slate-900 dark:text-slate-100">Sidedock 운영팀</p>
               </div>
               <div>
                 <p className="mb-0.5 font-mono text-xs text-slate-400">이메일</p>
@@ -283,10 +283,10 @@ export default function PrivacyPage() {
               </div>
               <div className="sm:col-span-2">
                 <p className="mb-0.5 font-mono text-xs text-slate-400">처리 기간</p>
-                <p className="text-slate-600">요청 접수 후 영업일 10일 이내</p>
+                <p className="text-slate-600 dark:text-slate-300">요청 접수 후 영업일 10일 이내</p>
               </div>
             </div>
-            <p className="mt-4 border-t border-slate-200 pt-4 text-xs text-slate-400">
+            <p className="mt-4 border-t border-slate-200 pt-4 text-xs text-slate-400 dark:border-navy-800">
               개인정보 침해에 대한 신고·상담은{" "}
               <a href="https://privacy.kisa.or.kr" target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-600">
                 개인정보침해신고센터(privacy.kisa.or.kr)
@@ -301,10 +301,10 @@ export default function PrivacyPage() {
         </Section>
 
         {/* 하단 링크 */}
-        <div className="flex items-center gap-4 border-t border-slate-100 pt-8 text-sm text-slate-400">
+        <div className="flex items-center gap-4 border-t border-slate-100 pt-8 text-sm text-slate-400 dark:border-navy-800">
           <Link href="/terms" className="hover:text-slate-700 hover:underline">이용약관</Link>
           <span>·</span>
-          <span className="font-medium text-slate-700">개인정보처리방침</span>
+          <span className="font-medium text-slate-700 dark:text-slate-300">개인정보처리방침</span>
           <span>·</span>
           <Link href="/" className="hover:text-slate-700 hover:underline">홈으로</Link>
         </div>
@@ -319,7 +319,7 @@ function Section({ num, title, children }: { num: string; title: string; childre
     <section>
       <div className="mb-4 flex items-center gap-3">
         <span className="font-mono text-xs font-bold text-slate-300">§{num}</span>
-        <h2 className="text-lg font-bold text-slate-900">{title}</h2>
+        <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">{title}</h2>
       </div>
       {children}
     </section>

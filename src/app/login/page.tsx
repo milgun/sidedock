@@ -35,35 +35,37 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-50 px-4 py-12">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-50 px-4 py-12 dark:bg-navy-950">
       {/* 배경 — 흐릿한 그라디언트 오브 */}
       <div className="pointer-events-none absolute -left-40 -top-40 h-[600px] w-[600px] rounded-full bg-blue-200/50 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-32 -right-32 h-[500px] w-[500px] rounded-full bg-indigo-200/40 blur-3xl" />
       <div className="pointer-events-none absolute left-1/2 top-1/2 h-[300px] w-[300px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-100/30 blur-3xl" />
 
       {/* 카드 */}
-      <div className="relative w-full max-w-md rounded-3xl border border-white/80 bg-white/90 p-8 shadow-2xl backdrop-blur-xl">
+      <div className="relative w-full max-w-md rounded-3xl border border-white/80 bg-white/90 p-8 shadow-2xl backdrop-blur-xl dark:border-navy-800 dark:bg-navy-900/90">
         {/* 로고 */}
         <div className="mb-6 flex items-center justify-center gap-2">
-          <Image src="/logo.svg" alt="Sidedock" width={28} height={30} className="h-7 w-auto" />
-          <Image src="/logo-text.png" alt="Sidedock" width={100} height={24} className="h-5 w-auto" priority />
+          <Image src="/logo.svg" alt="Sidedock" width={28} height={30} className="h-7 w-auto dark:hidden" />
+          <Image src="/logo_white.svg" alt="Sidedock" width={28} height={30} className="hidden h-7 w-auto dark:block" />
+          <Image src="/logo-text.png" alt="Sidedock" width={100} height={24} className="h-5 w-auto dark:hidden" priority />
+          <Image src="/logo-text_white.png" alt="Sidedock" width={100} height={24} className="hidden h-5 w-auto dark:block" priority />
         </div>
 
         {/* 제목 */}
         <div className="mb-6 text-center">
-          <h1 className="text-xl font-black text-slate-900">
+          <h1 className="text-xl font-black text-slate-900 dark:text-slate-100">
             Build Something.{" "}
             <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
               Launch Here.
             </span>
           </h1>
-          <p className="mt-1 text-sm text-slate-500">만드는 사람들을 위한 런치패드.</p>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">만드는 사람들을 위한 런치패드.</p>
         </div>
 
         {/* 혜택 포인트 */}
         <ul className="mb-7 space-y-2.5">
           {BENEFITS.map((b) => (
-            <li key={b.text} className="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-2.5 text-sm text-slate-700">
+            <li key={b.text} className="flex items-center gap-3 rounded-xl bg-slate-50 px-4 py-2.5 text-sm text-slate-700 dark:bg-navy-800 dark:text-slate-300">
               <span className="text-base">{b.icon}</span>
               {b.text}
             </li>
@@ -74,7 +76,7 @@ export default function LoginPage() {
         <div className="space-y-3">
           <button
             onClick={signInWithGoogle}
-            className="flex w-full items-center gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50 hover:shadow-md active:scale-[0.98]"
+            className="flex w-full items-center gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50 hover:shadow-md active:scale-[0.98] dark:border-navy-700 dark:bg-navy-800 dark:text-slate-100 dark:hover:bg-navy-700"
           >
             <GoogleIcon />
             <span className="flex-1 text-center">Google 계정으로 로그인</span>

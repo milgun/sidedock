@@ -42,8 +42,8 @@ export default async function HotProductsPage(props: {
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
       <div className="mb-8">
-        <h1 className="text-2xl font-black text-slate-900">🔥 Hot Products</h1>
-        <p className="mt-1 text-slate-500">
+        <h1 className="text-2xl font-black text-slate-900 dark:text-slate-100">🔥 Hot Products</h1>
+        <p className="mt-1 text-slate-500 dark:text-slate-400">
           가장 유용하고 인기 있는 제품들을 만나보세요.
         </p>
       </div>

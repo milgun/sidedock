@@ -67,8 +67,8 @@ export default function StackButton({
           disabled={isPending}
           className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-medium transition ${
             hasSaved
-              ? "border-amber-300 bg-amber-50 text-amber-600"
-              : "border-slate-200 bg-white text-slate-500 hover:border-amber-300 hover:text-amber-500"
+              ? "border-amber-300 bg-amber-50 text-amber-600 dark:border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-300"
+              : "border-slate-200 bg-white text-slate-500 hover:border-amber-300 hover:text-amber-500 dark:border-navy-700 dark:bg-navy-800 dark:text-slate-400"
           }`}
         >
           <StackIcon filled={hasSaved} size={15} />
@@ -90,8 +90,8 @@ export default function StackButton({
         disabled={isPending}
         className={`flex items-center justify-center rounded-lg border p-1.5 transition ${
           hasSaved
-            ? "border-amber-300 bg-amber-50 text-amber-500"
-            : "border-transparent text-slate-300 hover:border-amber-200 hover:text-amber-400"
+            ? "border-amber-300 bg-amber-50 text-amber-500 dark:border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-300"
+            : "border-transparent text-slate-300 hover:border-amber-200 hover:text-amber-400 dark:text-slate-500"
         }`}
       >
         <StackIcon filled={hasSaved} size={14} />
