@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useTheme } from "next-themes";
-import { updateProfile, type UpdateProfileInput } from "@/lib/actions/profile";
+import { updateProfile, updateThemePreference, type UpdateProfileInput } from "@/lib/actions/profile";
 import Image from "next/image";
 
 type Profile = {
@@ -37,11 +37,12 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  // 테마 선택: 즉시 미리보기 적용 + 저장 대상 form에 반영
+  // 테마 선택: 즉시 미리보기 적용 + 계정에 바로 저장
   const selectTheme = (value: "light" | "dark" | "system") => {
     setTheme(value);
     setForm((f) => ({ ...f, theme_preference: value }));
     setSaved(false);
+    void updateThemePreference(value);
   };
 
   const set = (key: keyof UpdateProfileInput, value: string) => {
