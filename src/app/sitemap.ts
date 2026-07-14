@@ -3,8 +3,9 @@ import { createServerClient } from "@supabase/ssr";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://sidedock.io";
 
-// 매시간 재생성 (신규 런칭·데브로그 반영)
-export const revalidate = 3600;
+// 매 요청마다 최신 DB 상태로 생성 (ISR 캐시로 신규 런칭이 누락되는 문제 방지).
+// 엣지(Cloudflare) 캐시는 별도 Cache Rule의 짧은 TTL로 부하를 흡수한다.
+export const dynamic = "force-dynamic";
 
 // 쿠키 없이 공개 데이터만 읽는 클라이언트 — 라우트를 정적 캐시 가능하게 유지
 function createPublicClient() {
