@@ -2,8 +2,66 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import type { Metadata } from "next";
 import type { DevlogPostWithAuthor, DevlogComment, Profile } from "@/types";
 import DevlogDetailClient from "./DevlogDetailClient";
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://sidedock.io";
+
+// 마크다운 문법을 제거해 메타 설명/본문 요약용 순수 텍스트로 변환
+function stripMarkdown(md: string): string {
+  return md
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/[#>*_`~-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+export async function generateMetadata(
+  props: { params: Promise<{ slug: string }> }
+): Promise<Metadata> {
+  const { slug: rawSlug } = await props.params;
+  const slug = decodeURIComponent(rawSlug);
+  const supabase = await createClient();
+
+  const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
+  const { data: post } = await supabase
+    .from("devlog_posts")
+    .select("title, content, thumbnail_url, tags, author:profiles(username, display_name)")
+    .eq(isUUID ? "id" : "slug", slug)
+    .maybeSingle();
+
+  if (!post) return {};
+
+  const title = post.title as string;
+  const description = stripMarkdown((post.content as string | null) ?? "").slice(0, 160);
+  const images = post.thumbnail_url
+    ? [{ url: post.thumbnail_url as string, width: 1200, height: 630 }]
+    : [{ url: "/og-default.png", width: 1200, height: 630 }];
+  const author = post.author as { username?: string; display_name?: string | null } | null;
+
+  return {
+    title,
+    description,
+    keywords: (post.tags as string[] | null) ?? undefined,
+    openGraph: {
+      title: `${title} — Sidedock Dev Log`,
+      description,
+      type: "article",
+      locale: "ko_KR",
+      images,
+      ...(author ? { authors: [author.display_name ?? author.username ?? "Sidedock"] } : {}),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${title} — Sidedock Dev Log`,
+      description,
+      images: images.map((i) => i.url),
+    },
+  };
+}
 
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -54,8 +112,53 @@ export default async function DevlogDetailPage(props: {
   const comments = (rawComments ?? []) as unknown as (DevlogComment & { author: Profile })[];
   const userId = user?.id ?? null;
 
+  const authorName = post.author?.display_name ?? post.author?.username ?? "Sidedock Maker";
+  const postUrl = `${APP_URL}/devlog/${encodeURIComponent(post.slug)}`;
+  const articleJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: stripMarkdown(post.content ?? "").slice(0, 200),
+    ...(post.thumbnail_url ? { image: post.thumbnail_url } : {}),
+    datePublished: new Date(post.created_at).toISOString(),
+    dateModified: new Date(post.updated_at ?? post.created_at).toISOString(),
+    author: {
+      "@type": "Person",
+      name: authorName,
+      ...(post.author?.username ? { url: `${APP_URL}/profile/${post.author.username}` } : {}),
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "Sidedock",
+      logo: { "@type": "ImageObject", url: `${APP_URL}/apple-touch-icon.png` },
+    },
+    mainEntityOfPage: { "@type": "WebPage", "@id": postUrl },
+    url: postUrl,
+    inLanguage: "ko-KR",
+    ...(Array.isArray(post.tags) && post.tags.length > 0
+      ? { keywords: post.tags.join(", ") }
+      : {}),
+  };
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "홈", item: APP_URL },
+      { "@type": "ListItem", position: 2, name: "Dev Log", item: `${APP_URL}/devlog` },
+      { "@type": "ListItem", position: 3, name: post.title, item: postUrl },
+    ],
+  };
+
   return (
     <div className="mx-auto max-w-2xl px-4 py-10">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       {/* Breadcrumb */}
       <div className="mb-6 flex items-center gap-2 text-sm text-slate-400">
         <Link href="/devlog" className="hover:text-blue-600">Dev Log</Link>

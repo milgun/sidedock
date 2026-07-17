@@ -2,6 +2,13 @@
 import type { ProductWithMaker } from "@/types";
 import HotProductsClient from "@/components/hot/HotProductsClient";
 
+export const metadata = {
+  title: "지금 인기 있는 AI 툴·SaaS·사이드 프로젝트",
+  description:
+    "Sidedock에서 가장 많은 추천을 받은 AI 툴, SaaS, 사이드 프로젝트를 카테고리별로 둘러보세요.",
+  alternates: { canonical: "/hot" },
+};
+
 export default async function HotProductsPage(props: {
   searchParams: Promise<{ category?: string }>;
 }) {

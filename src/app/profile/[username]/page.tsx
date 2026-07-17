@@ -3,8 +3,53 @@ import { getIsAdmin } from "@/lib/admin";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import ProfileTabsClient from "@/components/profile/ProfileTabsClient";
 import BrandIcon from "@/components/product/BrandIcon";
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://sidedock.io";
+
+export async function generateMetadata(
+  props: { params: Promise<{ username: string }> }
+): Promise<Metadata> {
+  const { username } = await props.params;
+  const supabase = await createClient();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("username, display_name, headline, bio, avatar_url")
+    .eq("username", username)
+    .maybeSingle();
+
+  if (!profile) return {};
+
+  const name = (profile.display_name as string | null) ?? (profile.username as string);
+  const description =
+    (profile.headline as string | null) ??
+    (profile.bio as string | null)?.slice(0, 160) ??
+    `${name}님이 Sidedock에서 만든 AI 툴·SaaS·사이드 프로젝트를 확인하세요.`;
+  const images = profile.avatar_url
+    ? [{ url: profile.avatar_url as string, width: 400, height: 400 }]
+    : [{ url: "/og-default.png", width: 1200, height: 630 }];
+
+  return {
+    title: `${name} (@${profile.username})`,
+    description,
+    alternates: { canonical: `/profile/${encodeURIComponent(profile.username as string)}` },
+    openGraph: {
+      title: `${name} (@${profile.username}) — Sidedock`,
+      description,
+      type: "profile",
+      locale: "ko_KR",
+      images,
+    },
+    twitter: {
+      card: profile.avatar_url ? "summary" : "summary_large_image",
+      title: `${name} (@${profile.username}) — Sidedock`,
+      description,
+      images: images.map((i) => i.url),
+    },
+  };
+}
 
 export default async function ProfilePage(props: {
   params: Promise<{ username: string }>;
@@ -32,8 +77,30 @@ export default async function ProfilePage(props: {
     .eq("maker_id", profile.id)
     .eq("status", "published");
 
+  const displayName = (profile.display_name as string | null) ?? username;
+  const sameAs = [profile.website_url, profile.twitter_url].filter(Boolean) as string[];
+  const personJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ProfilePage",
+    url: `${APP_URL}/profile/${encodeURIComponent(username)}`,
+    inLanguage: "ko-KR",
+    mainEntity: {
+      "@type": "Person",
+      name: displayName,
+      alternateName: `@${username}`,
+      ...(profile.headline ? { description: profile.headline as string } : {}),
+      ...(profile.avatar_url ? { image: profile.avatar_url as string } : {}),
+      url: `${APP_URL}/profile/${encodeURIComponent(username)}`,
+      ...(sameAs.length > 0 ? { sameAs } : {}),
+    },
+  };
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
+      />
       {/* ── Profile Header ── */}
       <div className="mb-8 flex flex-col items-center gap-5 text-center sm:flex-row sm:text-left">
         <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-navy-900 ring-4 ring-blue-100">

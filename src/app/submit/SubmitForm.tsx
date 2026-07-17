@@ -546,7 +546,7 @@ export default function SubmitForm({ username, editProduct }: SubmitFormProps) {
               <Field label="제품 이름" required hint="짧고 기억에 남는 이름 (60자 이내)">
                 <input type="text" value={form.name} onChange={set("name")} placeholder="예: DevPilot AI" maxLength={60} className={inputCls} />
               </Field>
-              <Field label="한 줄 소개 (Tagline)" required hint="80자 이내로 핵심 가치를 표현하세요">
+              <Field label="한 줄 소개 (Tagline)" required hint="80자 이내로 핵심 가치를 표현하세요 (SEO 권장 길이: 20자 이내)">
                 <input type="text" value={form.tagline} onChange={set("tagline")} placeholder="예: 코드 리뷰를 10배 빠르게 만드는 AI 도구" maxLength={80} className={inputCls} />
               </Field>
               <Field label="제품 설명" required hint="어떤 문제를 해결하는지 자세히 설명하세요 (최소 20자)">

@@ -2,10 +2,38 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://sidedock.io";
+
 export const metadata: Metadata = {
-  title: "Why Sidedock? | Sidedock",
+  title: { absolute: "Sidedock 소개 — 한국 메이커를 위한 런칭·발견 플랫폼" },
   description:
     "한국 메이커들의 AI 툴, SaaS, 사이드 프로젝트를 발견하고 공유하는 플랫폼 Sidedock을 소개합니다.",
+  alternates: { canonical: "/about" },
+  openGraph: {
+    title: "Sidedock 소개 — 한국 메이커를 위한 런칭·발견 플랫폼",
+    description:
+      "한국 메이커들의 AI 툴, SaaS, 사이드 프로젝트를 발견하고 공유하는 플랫폼 Sidedock을 소개합니다.",
+    type: "website",
+    locale: "ko_KR",
+    images: [{ url: "/og-default.png", width: 1200, height: 630 }],
+  },
+};
+
+const aboutJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "AboutPage",
+  name: "Sidedock 소개",
+  url: `${APP_URL}/about`,
+  inLanguage: "ko-KR",
+  mainEntity: {
+    "@type": "Organization",
+    name: "Sidedock",
+    alternateName: "사이드독",
+    url: APP_URL,
+    logo: `${APP_URL}/apple-touch-icon.png`,
+    description:
+      "한국의 1인 개발자와 스타트업이 AI 툴·SaaS·사이드 프로젝트를 런칭하고 평가받고 홍보하는 프로덕트 발견 플랫폼.",
+  },
 };
 
 /* ─────────────────────────────────────────────
@@ -71,6 +99,10 @@ export default async function AboutPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutJsonLd) }}
+      />
       {/* Back */}
       <Link
         href="/"

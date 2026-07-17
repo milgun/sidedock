@@ -12,6 +12,25 @@ import ClaimButton from "@/components/product/ClaimButton";
 import BrandIcon, { BRAND_LABELS } from "@/components/product/BrandIcon";
 import { CATEGORY_LABELS, CATEGORY_COLORS } from "@/components/product/ProductCard";
 
+// 제품 카테고리 → schema.org SoftwareApplication.applicationCategory 매핑
+const APP_CATEGORY_MAP: Record<string, string> = {
+  "ai-tool": "BusinessApplication",
+  "saas": "BusinessApplication",
+  "dev-tool": "DeveloperApplication",
+  "productivity": "BusinessApplication",
+  "design": "DesignApplication",
+  "marketing": "BusinessApplication",
+  "mobile-app": "MobileApplication",
+  "browser-extension": "UtilitiesApplication",
+  "desktop-app": "UtilitiesApplication",
+  "game": "GameApplication",
+  "api": "DeveloperApplication",
+  "education": "EducationApplication",
+  "finance": "FinanceApplication",
+  "health": "HealthApplication",
+  "social": "SocialNetworkingApplication",
+};
+
 export async function generateMetadata(
   props: { params: Promise<{ slug: string }> }
 ): Promise<Metadata> {
@@ -20,15 +39,24 @@ export async function generateMetadata(
   const supabase = await createClient();
   const { data: product } = await supabase
     .from("products")
-    .select("name, tagline, thumbnail_url, description")
+    .select("name, tagline, thumbnail_url, description, category")
     .eq("slug", slug)
     .single();
 
   if (!product) return {};
 
-  const title = product.name as string;
+  const name = product.name as string;
+  const tagline = (product.tagline as string | null)?.trim() || null;
+  const categoryLabel = CATEGORY_LABELS[product.category as string] ?? null;
+
+  // 검색·AI 노출용 서술형 title: "제품명 · 한 줄 소개".
+  // Google은 한글 기준 ~30자만 노출하므로, 브랜드명(— Sidedock)이 잘리지 않도록
+  // tagline이 짧을 때만 결합하고, 길거나 없으면 짧고 키워드가 명확한 카테고리로 폴백한다.
+  const titleSuffix = tagline && tagline.length <= 28 ? tagline : categoryLabel;
+  const title = titleSuffix ? `${name} · ${titleSuffix}` : name;
+
   const description = (
-    (product.tagline as string | null) ??
+    tagline ??
     (product.description as string | null)?.slice(0, 120) ??
     ""
   );
@@ -39,8 +67,9 @@ export async function generateMetadata(
   return {
     title,
     description,
+    alternates: { canonical: `/products/${encodeURIComponent(slug)}` },
     openGraph: {
-      title: `${title} — Sidedock`,
+      title: `${name} — Sidedock`,
       description,
       type: "website",
       locale: "ko_KR",
@@ -48,7 +77,7 @@ export async function generateMetadata(
     },
     twitter: {
       card: product.thumbnail_url ? "summary" : "summary_large_image",
-      title: `${title} — Sidedock`,
+      title: `${name} — Sidedock`,
       description,
       images: images.map((i) => i.url),
     },
@@ -227,9 +256,16 @@ export default async function ProductDetailPage(props: {
       (product.tagline as string | null) ??
       (product.description as string | null)?.slice(0, 200) ??
       "",
-    applicationCategory: "BusinessApplication",
+    applicationCategory: APP_CATEGORY_MAP[product.category as string] ?? "BusinessApplication",
+    operatingSystem: "Web",
     url: `${APP_URL}/products/${encodeURIComponent(product.slug as string)}`,
     ...(product.thumbnail_url ? { image: product.thumbnail_url as string } : {}),
+    ...(Array.isArray(product.tags) && product.tags.length > 0
+      ? { keywords: (product.tags as string[]).join(", ") }
+      : {}),
+    ...(product.launched_at
+      ? { datePublished: new Date(product.launched_at as string).toISOString() }
+      : {}),
     inLanguage: "ko-KR",
     author: { "@type": "Person", name: makerName },
     isPartOf: { "@type": "WebSite", name: "Sidedock", url: APP_URL },
@@ -246,11 +282,30 @@ export default async function ProductDetailPage(props: {
       : {}),
   };
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "홈", item: APP_URL },
+      { "@type": "ListItem", position: 2, name: "제품", item: `${APP_URL}/products` },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: product.name,
+        item: `${APP_URL}/products/${encodeURIComponent(product.slug as string)}`,
+      },
+    ],
+  };
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       {/* Breadcrumb */}
       <div className="mb-6 flex items-center justify-between gap-1.5 text-sm text-slate-400">

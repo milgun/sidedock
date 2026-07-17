@@ -3,6 +3,13 @@ import Link from "next/link";
 import type { ProductWithMaker } from "@/types";
 import LaunchesClient from "@/components/launches/LaunchesClient";
 
+export const metadata = {
+  title: "오늘의 신규 런칭 — AI 툴·SaaS·사이드 프로젝트",
+  description:
+    "한국 메이커들이 오늘 새로 런칭한 AI 툴, SaaS, 사이드 프로젝트를 가장 먼저 만나보세요.",
+  alternates: { canonical: "/launches" },
+};
+
 type Period = "today" | "week" | "month" | "all";
 
 export default async function LaunchesPage(props: {

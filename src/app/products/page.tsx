@@ -4,6 +4,13 @@ import type { ProductWithMaker } from "@/types";
 import ProductCard, { CATEGORY_LABELS } from "@/components/product/ProductCard";
 import ExpandableProductList from "@/components/home/ExpandableProductList";
 
+export const metadata = {
+  title: "제품 둘러보기 — AI 툴·SaaS·사이드 프로젝트 디렉터리",
+  description:
+    "카테고리별로 국내 AI 툴, SaaS, 개발 툴, 사이드 프로젝트를 검색하고 발견하세요. Sidedock 제품 디렉터리.",
+  alternates: { canonical: "/products" },
+};
+
 const CATEGORIES = [
   { value: "",             label: "전체" },
   { value: "ai-tool",     label: "AI 툴" },
@@ -66,8 +73,32 @@ export default async function ProductsPage(props: {
   const catLabel = category ? (CATEGORY_LABELS[category] ?? category) : "전체";
   const title = q ? `"${q}" 검색 결과` : catLabel;
 
+  const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://sidedock.io";
+  const collectionJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: q ? `"${q}" 검색 결과` : `${catLabel} 제품`,
+    url: `${APP_URL}/products`,
+    inLanguage: "ko-KR",
+    isPartOf: { "@type": "WebSite", name: "Sidedock", url: APP_URL },
+    mainEntity: {
+      "@type": "ItemList",
+      numberOfItems: products.length,
+      itemListElement: products.map((p, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        name: p.name,
+        url: `${APP_URL}/products/${encodeURIComponent(p.slug)}`,
+      })),
+    },
+  };
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }}
+      />
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-black text-slate-900">{title}</h1>
