@@ -1,8 +1,43 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 
-export const metadata = {
-  title: "제품 등록 가이드라인 | Sidedock",
-  description: "Sidedock에 제품을 등록하는 방법과 기준을 안내합니다.",
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://sidedock.io";
+
+export const metadata: Metadata = {
+  title: { absolute: "제품 등록 가이드라인 — Sidedock" },
+  description:
+    "Sidedock에 AI 툴·SaaS·사이드 프로젝트를 등록하는 방법과 기준 — 제품 등록 조건, 설명 작성법, 이미지 가이드, 심사 프로세스와 커뮤니티 규칙을 안내합니다.",
+  alternates: { canonical: "/guidelines" },
+  openGraph: {
+    title: "제품 등록 가이드라인 — Sidedock",
+    description:
+      "Sidedock에 제품을 등록하는 방법과 기준 — 등록 조건, 설명 작성법, 이미지 가이드, 심사 프로세스, 커뮤니티 규칙.",
+    type: "article",
+    locale: "ko_KR",
+    images: [{ url: "/og-default.png", width: 1200, height: 630 }],
+  },
+};
+
+const guidelinesJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  name: "제품 등록 가이드라인",
+  url: `${APP_URL}/guidelines`,
+  description:
+    "Sidedock에 제품을 등록하는 방법과 기준 — 등록 조건, 설명 작성법, 이미지 가이드, 심사 프로세스, 커뮤니티 규칙.",
+  inLanguage: "ko-KR",
+  isPartOf: { "@type": "WebSite", name: "Sidedock", url: APP_URL },
+  breadcrumb: { "@id": `${APP_URL}/guidelines#breadcrumb` },
+};
+
+const breadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "@id": `${APP_URL}/guidelines#breadcrumb`,
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "홈", item: APP_URL },
+    { "@type": "ListItem", position: 2, name: "제품 등록 가이드라인", item: `${APP_URL}/guidelines` },
+  ],
 };
 
 function Section({
@@ -70,6 +105,14 @@ function TipCard({
 export default function GuidelinesPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(guidelinesJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       {/* 헤더 */}
       <div className="mb-12">
         <Link
@@ -131,7 +174,7 @@ export default function GuidelinesPage() {
               <p className="mb-2 text-sm font-bold text-blue-700 dark:text-blue-300">🔨 메이커 (Maker)</p>
               <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">
                 직접 만든 제품을 올립니다. 제품에 대한 질문에 직접 답변하고 업데이트를 공유할 수 있습니다.
-                메이커로 등록하면 프로필에 "제작자" 배지가 표시됩니다.
+                메이커로 등록하면 프로필에 “제작자” 배지가 표시됩니다.
               </p>
             </div>
             <div className="rounded-2xl border border-amber-100 bg-amber-50 p-5 dark:border-amber-500/20 dark:bg-amber-500/10">
@@ -164,11 +207,11 @@ export default function GuidelinesPage() {
         <Section num="03" title="좋은 제품 설명 작성법">
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <TipCard emoji="🏷️" title="제품 이름">
-              실제 서비스 이름을 그대로 쓰세요. 과장된 수식어(예: "세계 최고의")는 피해주세요.
+              실제 서비스 이름을 그대로 쓰세요. 과장된 수식어(예: “세계 최고의”)는 피해주세요.
             </TipCard>
             <TipCard emoji="💬" title="한 줄 소개 (tagline)">
-              "누구를 위해, 무엇을 해주는 제품인지"를 한 문장으로 담으세요.
-              예: <em>"개발자를 위한 AI 코드 리뷰 도구"</em>
+              “누구를 위해, 무엇을 해주는 제품인지”를 한 문장으로 담으세요.
+              예: <em>“개발자를 위한 AI 코드 리뷰 도구”</em>
             </TipCard>
             <TipCard emoji="📝" title="제품 설명">
               주요 기능 3가지, 해결하는 문제, 차별점을 포함하면 좋습니다.
@@ -185,13 +228,13 @@ export default function GuidelinesPage() {
               <div className="bg-red-50 p-4 dark:bg-red-500/10">
                 <p className="mb-2 font-mono text-xs font-bold text-red-400 dark:text-red-300">✕ 이런 설명은 피하세요</p>
                 <p className="text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-                  "혁신적인 AI 기반의 세계 최초 차세대 플랫폼입니다. 모든 문제를 해결해드립니다. 지금 바로 가입하세요!!!"
+                  “혁신적인 AI 기반의 세계 최초 차세대 플랫폼입니다. 모든 문제를 해결해드립니다. 지금 바로 가입하세요!!!”
                 </p>
               </div>
               <div className="bg-green-50 p-4 dark:bg-green-500/10">
                 <p className="mb-2 font-mono text-xs font-bold text-green-600 dark:text-green-300">✓ 이런 설명을 추천해요</p>
                 <p className="text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-                  "PR을 올리면 AI가 코드 품질, 보안 취약점, 스타일 가이드를 자동으로 리뷰해줍니다. GitHub Actions와 연동되며 무료로 시작할 수 있습니다."
+                  “PR을 올리면 AI가 코드 품질, 보안 취약점, 스타일 가이드를 자동으로 리뷰해줍니다. GitHub Actions와 연동되며 무료로 시작할 수 있습니다.”
                 </p>
               </div>
             </div>
