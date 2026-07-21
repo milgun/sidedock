@@ -1,8 +1,23 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { redirect } from "next/navigation";
 import { generateUniqueSlug } from "@/lib/slug";
+import { resend, EMAIL_FROM } from "@/lib/resend";
+import { ProductApprovedEmail, ProductRejectedEmail } from "@/lib/emails/product-review";
+
+// 제출자(maker)의 이메일 주소를 service role로 조회 (profiles엔 email이 없음)
+async function getMakerEmail(makerId: string): Promise<string | null> {
+  try {
+    const admin = createAdminClient();
+    const { data } = await admin.auth.admin.getUserById(makerId);
+    return data.user?.email ?? null;
+  } catch (err) {
+    console.error("[email] maker email 조회 실패:", err);
+    return null;
+  }
+}
 
 // ── Shared input types ────────────────────────────────────────────────────────
 
@@ -315,7 +330,7 @@ export async function approveProduct(
       rejection_reason: null,
     })
     .eq("id", productId)
-    .select("name, maker_id")
+    .select("name, slug, maker_id")
     .single();
 
   if (error) return { error: error.message };
@@ -330,6 +345,22 @@ export async function approveProduct(
         product_name: product.name,
       },
     });
+
+    // 승인 이메일 발송 (실패해도 승인 처리는 유지)
+    const email = await getMakerEmail(product.maker_id);
+    if (email) {
+      await resend.emails
+        .send({
+          from: EMAIL_FROM,
+          to: email,
+          subject: `🚀 "${product.name}" 가 Sidedock에 공개됐어요!`,
+          html: ProductApprovedEmail({
+            productName: product.name as string,
+            slug: (product.slug as string) ?? productId,
+          }),
+        })
+        .catch((err: unknown) => console.error("[resend] approve email failed:", err));
+    }
   }
 
   return {};
@@ -380,6 +411,22 @@ export async function rejectProduct(
         reason: reason.trim(),
       },
     });
+
+    // 반려 이메일 발송 (실패해도 반려 처리는 유지)
+    const email = await getMakerEmail(product.maker_id);
+    if (email) {
+      await resend.emails
+        .send({
+          from: EMAIL_FROM,
+          to: email,
+          subject: `"${product.name}" 심사 결과 안내`,
+          html: ProductRejectedEmail({
+            productName: product.name as string,
+            reason: reason.trim(),
+          }),
+        })
+        .catch((err: unknown) => console.error("[resend] reject email failed:", err));
+    }
   }
 
   return {};
