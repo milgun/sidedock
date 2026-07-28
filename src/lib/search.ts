@@ -5,6 +5,38 @@ function getStringValue(item: SearchItem, key: string) {
   return typeof value === "string" ? value : "";
 }
 
+function getStringArrayValue(item: SearchItem, key: string) {
+  const value = item[key];
+  if (Array.isArray(value)) {
+    return value.filter((entry): entry is string => typeof entry === "string");
+  }
+  if (typeof value === "string") {
+    return value.split(/[,|]/).map((entry) => entry.trim()).filter(Boolean);
+  }
+  return [];
+}
+
+export function matchesSearchQuery(item: SearchItem, type: "products" | "devlogs", queryText: string) {
+  const normalizedQuery = queryText.trim().toLowerCase();
+  if (!normalizedQuery) return true;
+
+  const title = type === "products"
+    ? getStringValue(item, "name")
+    : getStringValue(item, "title");
+  const body = type === "products"
+    ? `${getStringValue(item, "tagline")} ${getStringValue(item, "description")}`.trim()
+    : `${getStringValue(item, "content")}`.trim();
+  const tags = type === "products"
+    ? [
+        getStringValue(item, "category"),
+        ...getStringArrayValue(item, "categories"),
+      ]
+    : getStringArrayValue(item, "tags");
+
+  const haystacks = [title, body, ...tags].map((value) => value.toLowerCase());
+  return haystacks.some((value) => value.includes(normalizedQuery));
+}
+
 function getDateValue(item: SearchItem) {
   const value = item.created_at;
   if (typeof value === "string" && value) return new Date(value);

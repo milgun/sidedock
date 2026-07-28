@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { sortSearchResults } from "../src/lib/search.ts";
+import { matchesSearchQuery, sortSearchResults } from "../src/lib/search.ts";
 
 test("sortSearchResults prioritizes exact name matches for relevance", () => {
   const items = [
@@ -68,4 +68,18 @@ test("sortSearchResults orders newest first when requested", () => {
 
   assert.equal(result[0].id, "2");
   assert.equal(result[1].id, "1");
+});
+
+test("matchesSearchQuery finds category and tag values", () => {
+  const item = {
+    name: "Example Product",
+    tagline: "A tool",
+    category: "dev-tool",
+    categories: ["api", "backend"],
+    tags: ["database", "postgres"],
+  };
+
+  assert.equal(matchesSearchQuery(item as Record<string, unknown>, "products", "backend"), true);
+  assert.equal(matchesSearchQuery(item as Record<string, unknown>, "products", "api"), true);
+  assert.equal(matchesSearchQuery(item as Record<string, unknown>, "devlogs", "postgres"), true);
 });

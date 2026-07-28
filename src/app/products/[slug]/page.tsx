@@ -382,9 +382,13 @@ export default async function ProductDetailPage(props: {
               ? (product.categories as string[])
               : [product.category as string]
             ).map((cat: string) => (
-              <span key={cat} className={`rounded-full px-3 py-1 text-xs font-semibold ${CATEGORY_COLORS[cat] ?? CATEGORY_COLORS.other}`}>
+              <a
+                key={cat}
+                href={`/search?q=${encodeURIComponent(CATEGORY_LABELS[cat] ?? cat)}`}
+                className={`cursor-pointer rounded-full px-3 py-1 text-xs font-semibold transition hover:opacity-90 ${CATEGORY_COLORS[cat] ?? CATEGORY_COLORS.other}`}
+              >
                 {CATEGORY_LABELS[cat] ?? cat}
-              </span>
+              </a>
             ))}
             {(product.is_open_source as boolean) && (
               <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700 dark:bg-green-500/15 dark:text-green-300">
@@ -392,9 +396,13 @@ export default async function ProductDetailPage(props: {
               </span>
             )}
             {(product.tags as string[]).map((tag: string) => (
-              <span key={tag} className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-500 dark:bg-navy-800 dark:text-slate-300">
+              <a
+                key={tag}
+                href={`/search?q=${encodeURIComponent(tag)}`}
+                className="cursor-pointer rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-500 transition hover:bg-slate-200 dark:bg-navy-800 dark:text-slate-300 dark:hover:bg-navy-700"
+              >
                 {tag}
-              </span>
+              </a>
             ))}
           </div>
 
