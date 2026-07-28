@@ -173,6 +173,10 @@ export default function SubmitForm({ username, editProduct }: SubmitFormProps) {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isGalleryUploading, setIsGalleryUploading] = useState(false);
   const [galleryUploadError, setGalleryUploadError] = useState<string | null>(null);
+  const [isThumbnailDragActive, setIsThumbnailDragActive] = useState(false);
+  const [isGalleryDragActive, setIsGalleryDragActive] = useState(false);
+  const thumbnailInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
   const [memberSearch, setMemberSearch] = useState("");
   const [searchResults, setSearchResults] = useState<ProfileResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -316,8 +320,8 @@ export default function SubmitForm({ username, editProduct }: SubmitFormProps) {
   const updateShoutout = (id: string, field: keyof Omit<Shoutout, "id">, value: string) =>
     setForm((f) => ({ ...f, shoutouts: f.shoutouts.map((s) => (s.id === id ? { ...s, [field]: value } : s)) }));
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleThumbnailFiles = async (files: FileList | File[]) => {
+    const file = Array.from(files)[0];
     if (!file) return;
     setIsUploading(true); setUploadError(null);
     const fd = new globalThis.FormData();
@@ -328,22 +332,66 @@ export default function SubmitForm({ username, editProduct }: SubmitFormProps) {
       if (!res.ok) setUploadError(data.error ?? "업로드 실패");
       else setForm((f) => ({ ...f, thumbnail_url: data.url! }));
     } catch { setUploadError("업로드 중 오류가 발생했습니다."); }
-    finally { setIsUploading(false); }
+    finally {
+      setIsUploading(false);
+      setIsThumbnailDragActive(false);
+      if (thumbnailInputRef.current) thumbnailInputRef.current.value = "";
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files?.length) return;
+    await handleThumbnailFiles(files);
+  };
+
+  const handleGalleryFiles = async (files: FileList | File[]) => {
+    const incomingFiles = Array.from(files);
+    if (!incomingFiles.length) return;
+    if (form.gallery_images.length + incomingFiles.length > 8) {
+      setGalleryUploadError("갤러리는 최대 8장까지 업로드할 수 있습니다.");
+      return;
+    }
+
+    setIsGalleryUploading(true); setGalleryUploadError(null);
+    const uploadedUrls: string[] = [];
+    try {
+      for (const file of incomingFiles) {
+        const fd = new globalThis.FormData();
+        fd.append("file", file);
+        const res = await fetch("/api/upload", { method: "POST", body: fd });
+        const data = await res.json() as { url?: string; error?: string };
+        if (!res.ok) {
+          setGalleryUploadError(data.error ?? "업로드 실패");
+          return;
+        }
+        if (data.url) uploadedUrls.push(data.url);
+      }
+      if (uploadedUrls.length) {
+        setForm((f) => ({ ...f, gallery_images: [...f.gallery_images, ...uploadedUrls] }));
+      }
+    } catch { setGalleryUploadError("업로드 중 오류가 발생했습니다."); }
+    finally {
+      setIsGalleryUploading(false);
+      setIsGalleryDragActive(false);
+      if (galleryInputRef.current) galleryInputRef.current.value = "";
+    }
   };
 
   const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || form.gallery_images.length >= 8) return;
-    setIsGalleryUploading(true); setGalleryUploadError(null);
-    const fd = new globalThis.FormData();
-    fd.append("file", file);
-    try {
-      const res = await fetch("/api/upload", { method: "POST", body: fd });
-      const data = await res.json() as { url?: string; error?: string };
-      if (!res.ok) setGalleryUploadError(data.error ?? "업로드 실패");
-      else setForm((f) => ({ ...f, gallery_images: [...f.gallery_images, data.url!] }));
-    } catch { setGalleryUploadError("업로드 중 오류가 발생했습니다."); }
-    finally { setIsGalleryUploading(false); e.target.value = ""; }
+    const files = e.target.files;
+    if (!files?.length) return;
+    await handleGalleryFiles(files);
+  };
+
+  const handleThumbnailDrop = (e: React.DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    void handleThumbnailFiles(e.dataTransfer.files);
+  };
+
+  const handleGalleryDrop = (e: React.DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    void handleGalleryFiles(e.dataTransfer.files);
   };
 
   const handleSubmit = async () => {
@@ -655,23 +703,31 @@ export default function SubmitForm({ username, editProduct }: SubmitFormProps) {
           {step === 3 && (
             <div className="space-y-6">
               <StepHeader title="이미지와 미디어를 추가하세요" desc="제품을 시각적으로 소개하세요. (선택 사항)" />
-              <Field label="썸네일 (아이콘)" hint="정사각형 권장 (512×512 이상) · jpg, png, webp, gif · 최대 5MB">
-                <label className="block cursor-pointer">
-                  <div className={`flex items-center gap-3 ${inputCls} cursor-pointer hover:border-blue-400`}>
+              <Field label="썸네일 (아이콘)" hint="정사각형 권장 (512×512 이상) · jpg, png, webp, gif · 최대 5MB · 드래그 앤 드롭 가능">
+                <label
+                  className={`block cursor-pointer rounded-xl border border-dashed transition ${isThumbnailDragActive ? "border-blue-400 bg-blue-50 dark:border-blue-500/50 dark:bg-blue-500/10" : "border-slate-200 dark:border-navy-700"}`}
+                  onDragEnter={(e) => { e.preventDefault(); setIsThumbnailDragActive(true); }}
+                  onDragOver={(e) => { e.preventDefault(); setIsThumbnailDragActive(true); }}
+                  onDragLeave={(e) => { e.preventDefault(); if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setIsThumbnailDragActive(false); }}
+                  onDrop={(e) => { e.preventDefault(); setIsThumbnailDragActive(false); handleThumbnailDrop(e); }}
+                >
+                  <div className={`flex items-center gap-3 ${inputCls} cursor-pointer border-0 hover:border-blue-400`}>
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 flex-shrink-0 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                     </svg>
-                    <span className="text-slate-500">{isUploading ? "업로드 중..." : form.thumbnail_url ? "다른 파일 선택" : "파일 선택"}</span>
+                    <span className="text-slate-500">{isUploading ? "업로드 중..." : form.thumbnail_url ? "다른 파일 선택 또는 드래그 앤 드롭" : "파일 선택 또는 드래그 앤 드롭"}</span>
                   </div>
-                  <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="sr-only" disabled={isUploading} onChange={handleFileUpload} />
+                  <input ref={thumbnailInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="sr-only" disabled={isUploading} onChange={handleFileUpload} />
                 </label>
                 {uploadError && <p className="mt-1.5 text-sm text-red-500">{uploadError}</p>}
                 {form.thumbnail_url && (
-                  <div className="mt-3 flex items-center gap-4 rounded-xl border border-green-100 bg-green-50 p-4">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={form.thumbnail_url} alt="preview" className="h-16 w-16 rounded-xl object-cover ring-1 ring-green-200" />
+                  <div className="mt-3 flex items-center gap-4 rounded-xl border border-emerald-200/80 bg-emerald-50/80 p-4 shadow-sm dark:border-emerald-500/20 dark:bg-emerald-500/10">
+                    <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-100/80 shadow-inner dark:border-navy-700 dark:bg-navy-900/70">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={form.thumbnail_url} alt="preview" className="h-full w-full object-cover" />
+                    </div>
                     <div>
-                      <p className="text-sm font-semibold text-green-700">✓ 업로드 완료</p>
+                      <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">✓ 업로드 완료</p>
                       <button type="button" onClick={() => setForm((f) => ({ ...f, thumbnail_url: "" }))} className="mt-0.5 text-xs text-red-400 hover:text-red-600">삭제</button>
                     </div>
                   </div>
@@ -680,16 +736,22 @@ export default function SubmitForm({ username, editProduct }: SubmitFormProps) {
               <Field label="소개 영상 (YouTube URL)" hint="유튜브 링크를 넣으면 갤러리 첫 번째 슬라이드에 표시됩니다">
                 <input type="url" value={form.video_url} onChange={set("video_url")} placeholder="https://www.youtube.com/watch?v=..." className={inputCls} />
               </Field>
-              <Field label="갤러리 이미지" hint="스크린샷 등 최대 8장 · jpg, png, webp · 최대 5MB">
+              <Field label="갤러리 이미지" hint="스크린샷 등 최대 8장 · jpg, png, webp · 최대 5MB · 여러 장 한 번에 드래그 앤 드롭 가능">
                 {form.gallery_images.length < 8 && (
-                  <label className="block cursor-pointer">
-                    <div className={`flex items-center gap-3 ${inputCls} cursor-pointer hover:border-blue-400`}>
+                  <label
+                    className={`block cursor-pointer rounded-xl border border-dashed transition ${isGalleryDragActive ? "border-blue-400 bg-blue-50 dark:border-blue-500/50 dark:bg-blue-500/10" : "border-slate-200 dark:border-navy-700"}`}
+                    onDragEnter={(e) => { e.preventDefault(); setIsGalleryDragActive(true); }}
+                    onDragOver={(e) => { e.preventDefault(); setIsGalleryDragActive(true); }}
+                    onDragLeave={(e) => { e.preventDefault(); if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setIsGalleryDragActive(false); }}
+                    onDrop={(e) => { e.preventDefault(); setIsGalleryDragActive(false); handleGalleryDrop(e); }}
+                  >
+                    <div className={`flex items-center gap-3 ${inputCls} cursor-pointer border-0 hover:border-blue-400`}>
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 flex-shrink-0 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                       </svg>
                       <span className="text-slate-500">{isGalleryUploading ? "업로드 중..." : `이미지 추가 (${form.gallery_images.length}/8)`}</span>
                     </div>
-                    <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="sr-only" disabled={isGalleryUploading} onChange={handleGalleryUpload} />
+                    <input ref={galleryInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="sr-only" disabled={isGalleryUploading} multiple onChange={handleGalleryUpload} />
                   </label>
                 )}
                 {galleryUploadError && <p className="mt-1.5 text-sm text-red-500">{galleryUploadError}</p>}

@@ -130,6 +130,7 @@ export default function DevlogEditor({
 
   // 썸네일 업로드
   const [isThumbnailUploading, setIsThumbnailUploading] = useState(false);
+  const [isThumbnailDragActive, setIsThumbnailDragActive] = useState(false);
   const thumbnailInputRef = useRef<HTMLInputElement>(null);
 
   // 링크 모달
@@ -242,8 +243,8 @@ export default function DevlogEditor({
     }
   };
 
-  const handleThumbnailUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleThumbnailFiles = async (files: FileList | File[]) => {
+    const file = Array.from(files)[0];
     if (!file) return;
     setIsThumbnailUploading(true);
     const fd = new FormData();
@@ -254,8 +255,20 @@ export default function DevlogEditor({
       if (res.ok && data.url) setThumbnail(data.url);
     } finally {
       setIsThumbnailUploading(false);
-      e.target.value = "";
+      setIsThumbnailDragActive(false);
+      if (thumbnailInputRef.current) thumbnailInputRef.current.value = "";
     }
+  };
+
+  const handleThumbnailUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files?.length) return;
+    await handleThumbnailFiles(files);
+  };
+
+  const handleThumbnailDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    void handleThumbnailFiles(e.dataTransfer.files);
   };
 
   const handleLinkInsert = () => {
@@ -348,7 +361,11 @@ export default function DevlogEditor({
         <p className="mb-2 text-xs font-medium text-slate-500 dark:text-slate-400">썸네일 이미지 (선택)</p>
         <div
           onClick={() => thumbnailInputRef.current?.click()}
-          className="relative flex cursor-pointer items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 transition hover:border-blue-300 hover:bg-blue-50 dark:border-navy-700 dark:bg-navy-800 dark:hover:border-blue-500/40 dark:hover:bg-navy-700"
+          onDragEnter={(e) => { e.preventDefault(); setIsThumbnailDragActive(true); }}
+          onDragOver={(e) => { e.preventDefault(); setIsThumbnailDragActive(true); }}
+          onDragLeave={(e) => { e.preventDefault(); if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setIsThumbnailDragActive(false); }}
+          onDrop={(e) => { e.preventDefault(); handleThumbnailDrop(e); }}
+          className={`relative flex cursor-pointer items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed bg-slate-50 transition hover:border-blue-300 hover:bg-blue-50 dark:bg-navy-800 dark:hover:border-blue-500/40 dark:hover:bg-navy-700 ${isThumbnailDragActive ? "border-blue-400 bg-blue-50 dark:border-blue-500/50 dark:bg-blue-500/10" : "border-slate-200 dark:border-navy-700"}`}
           style={{ height: 180 }}
         >
           {thumbnail ? (
@@ -373,7 +390,7 @@ export default function DevlogEditor({
                 <circle cx="8.5" cy="8.5" r="1.5" />
                 <polyline points="21 15 16 10 5 21" />
               </svg>
-              <p className="text-sm">클릭하여 썸네일 업로드</p>
+              <p className="text-sm">클릭하거나 드래그해서 썸네일 업로드</p>
               <p className="text-xs">권장: 1200×630px</p>
             </div>
           )}

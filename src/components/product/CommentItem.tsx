@@ -6,13 +6,13 @@ import Link from "next/link";
 import { toggleReaction, createComment, updateComment, deleteComment } from "@/lib/actions/comment";
 import type { Comment, ReactionEmoji } from "@/types";
 
-const REACTIONS: { emoji: ReactionEmoji; label: string; color: string; bg: string; ring: string }[] = [
-  { emoji: "🚀", label: "임팩트!",   color: "text-indigo-600",  bg: "bg-indigo-50",  ring: "ring-indigo-300" },
-  { emoji: "🔥", label: "핫해요",    color: "text-orange-500", bg: "bg-orange-50",  ring: "ring-orange-300" },
-  { emoji: "💡", label: "인사이트",  color: "text-amber-500",  bg: "bg-amber-50",   ring: "ring-amber-300" },
-  { emoji: "❤️", label: "좋아요",    color: "text-rose-500",   bg: "bg-rose-50",    ring: "ring-rose-300" },
-  { emoji: "✨", label: "멋져요",    color: "text-cyan-500",   bg: "bg-cyan-50",    ring: "ring-cyan-300" },
-  { emoji: "🥺", label: "귀여워요",  color: "text-pink-500",   bg: "bg-pink-50",    ring: "ring-pink-300" },
+const REACTIONS: { emoji: ReactionEmoji; label: string; color: string; bg: string; ring: string; darkColor: string; darkBg: string; darkRing: string }[] = [
+  { emoji: "🚀", label: "임팩트!",   color: "text-indigo-600",  bg: "bg-indigo-50",  ring: "ring-indigo-300", darkColor: "dark:text-indigo-300", darkBg: "dark:bg-indigo-500/15", darkRing: "dark:ring-indigo-500/30" },
+  { emoji: "🔥", label: "핫해요",    color: "text-orange-500", bg: "bg-orange-50",  ring: "ring-orange-300", darkColor: "dark:text-orange-300", darkBg: "dark:bg-orange-500/15", darkRing: "dark:ring-orange-500/30" },
+  { emoji: "💡", label: "인사이트",  color: "text-amber-500",  bg: "bg-amber-50",   ring: "ring-amber-300", darkColor: "dark:text-amber-300", darkBg: "dark:bg-amber-500/15", darkRing: "dark:ring-amber-500/30" },
+  { emoji: "❤️", label: "좋아요",    color: "text-rose-500",   bg: "bg-rose-50",    ring: "ring-rose-300", darkColor: "dark:text-rose-300", darkBg: "dark:bg-rose-500/15", darkRing: "dark:ring-rose-500/30" },
+  { emoji: "✨", label: "멋져요",    color: "text-cyan-500",   bg: "bg-cyan-50",    ring: "ring-cyan-300", darkColor: "dark:text-cyan-300", darkBg: "dark:bg-cyan-500/15", darkRing: "dark:ring-cyan-500/30" },
+  { emoji: "🥺", label: "귀여워요",  color: "text-pink-500",   bg: "bg-pink-50",    ring: "ring-pink-300", darkColor: "dark:text-pink-300", darkBg: "dark:bg-pink-500/15", darkRing: "dark:ring-pink-500/30" },
 ];
 
 const REACTION_EMOJIS = REACTIONS.map((r) => r.emoji) as ReactionEmoji[];
@@ -89,7 +89,7 @@ function ReactionBar({ comment, productId, userId, onReplyClick, showReplyCancel
   return (
     <div className="relative mt-2 flex flex-wrap items-center gap-1.5" style={{ minHeight: 28 }}>
       {/* Existing reaction pills */}
-      {REACTIONS.filter(({ emoji }) => grouped[emoji]).map(({ emoji, label, color, bg, ring }) => {
+      {REACTIONS.filter(({ emoji }) => grouped[emoji]).map(({ emoji, label, color, bg, ring, darkColor, darkBg, darkRing }) => {
         const { count, userReacted } = grouped[emoji]!;
         return (
           <button
@@ -99,7 +99,7 @@ function ReactionBar({ comment, productId, userId, onReplyClick, showReplyCancel
             title={label}
             className={`group flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold shadow-sm transition-all duration-150 hover:scale-105 active:scale-95 disabled:cursor-default ${
               userReacted
-                ? `ring-2 ${ring} border-transparent ${bg} ${color}`
+                ? `ring-2 ${ring} ${darkRing} border-transparent ${bg} ${darkBg} ${color} ${darkColor}`
                 : `border-slate-200 bg-white text-slate-500 hover:${bg} hover:${color} hover:border-transparent dark:border-navy-700 dark:bg-navy-900 dark:text-slate-400`
             }`}
           >
@@ -128,15 +128,15 @@ function ReactionBar({ comment, productId, userId, onReplyClick, showReplyCancel
                 onClick={() => setShowPicker(false)}
               />
               <div className="absolute bottom-9 left-0 z-20 flex gap-0.5 rounded-2xl border border-slate-100 bg-white/90 p-2 shadow-xl backdrop-blur-sm dark:border-navy-800 dark:bg-navy-900/90">
-                {REACTIONS.map(({ emoji, label, bg, color }) => (
+                {REACTIONS.map(({ emoji, label, bg, color, darkBg, darkColor }) => (
                   <button
                     key={emoji}
                     onClick={() => handleReact(emoji)}
                     title={label}
-                    className={`group relative flex flex-col items-center gap-0.5 rounded-xl p-2 transition-all duration-150 hover:scale-125 hover:${bg}`}
+                    className={`group relative flex flex-col items-center gap-0.5 rounded-xl p-2 transition-all duration-150 hover:scale-125 hover:${bg} dark:hover:${darkBg}`}
                   >
                     <span className="text-xl leading-none">{emoji}</span>
-                    <span className={`text-[9px] font-semibold leading-none opacity-0 transition-opacity group-hover:opacity-100 ${color}`}>{label}</span>
+                    <span className={`text-[9px] font-semibold leading-none opacity-0 transition-opacity group-hover:opacity-100 ${color} ${darkColor}`}>{label}</span>
                   </button>
                 ))}
               </div>
