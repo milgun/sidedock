@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import type { User } from "@supabase/supabase-js";
 import NotificationBell from "./NotificationBell";
+import QuickSearch from "./QuickSearch";
 
 interface NavbarClientProps {
   user: User | null;
@@ -39,6 +40,8 @@ export default function NavbarClient({ user, avatarUrl, isAdmin, username }: Nav
 
   return (
     <div className="flex flex-shrink-0 items-center gap-2">
+      <QuickSearch />
+
       {/* Submit CTA */}
       <Link
         href="/submit"
