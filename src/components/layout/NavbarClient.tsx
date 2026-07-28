@@ -39,13 +39,13 @@ export default function NavbarClient({ user, avatarUrl, isAdmin, username }: Nav
   };
 
   return (
-    <div className="flex flex-shrink-0 items-center gap-2">
+    <div className="ml-auto flex flex-shrink-0 items-center gap-1.5 sm:gap-2">
       <QuickSearch />
 
       {/* Submit CTA */}
       <Link
         href="/submit"
-        className="rounded-full bg-blue-600 px-4 py-1.5 text-sm font-semibold text-white transition hover:bg-blue-700"
+        className="hidden rounded-full bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-blue-700 sm:inline-flex"
       >
         + 등록
       </Link>
@@ -54,7 +54,7 @@ export default function NavbarClient({ user, avatarUrl, isAdmin, username }: Nav
       {!user ? (
         <Link
           href="/login"
-          className="rounded-full border border-slate-200 px-4 py-1.5 text-sm font-medium text-slate-700 transition hover:border-slate-400 dark:border-navy-700 dark:text-slate-200 dark:hover:border-navy-600"
+          className="hidden rounded-full border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:border-slate-400 sm:inline-flex dark:border-navy-700 dark:text-slate-200 dark:hover:border-navy-600"
         >
           로그인
         </Link>

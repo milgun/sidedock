@@ -135,13 +135,14 @@ export default function QuickSearch() {
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="rounded-full border border-slate-200 px-3.5 py-1.5 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 dark:border-navy-700 dark:text-slate-200 dark:hover:border-navy-600 dark:hover:bg-navy-800"
+        className="inline-flex items-center justify-center rounded-full border border-slate-200 px-2.5 py-1.5 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 sm:px-3.5 dark:border-navy-700 dark:text-slate-200 dark:hover:border-navy-600 dark:hover:bg-navy-800"
       >
-        🔎 조회하기
+        <span aria-hidden="true">🔎</span>
+        <span className="ml-1 hidden sm:inline">조회하기</span>
       </button>
 
       {open && (
-        <div className="absolute right-0 top-11 z-50 w-[min(92vw,440px)] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-navy-800 dark:bg-navy-900">
+        <div className="fixed left-3 right-3 top-16 z-[60] max-h-[80vh] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl sm:absolute sm:left-auto sm:right-0 sm:top-11 sm:w-[min(92vw,440px)] dark:border-navy-800 dark:bg-navy-900">
           <div className="border-b border-slate-100 p-3 dark:border-navy-800">
             <label className="block">
               <span className="sr-only">검색어</span>
@@ -155,7 +156,7 @@ export default function QuickSearch() {
               />
             </label>
 
-            <div className="mt-3 flex gap-2">
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
               <button
                 type="button"
                 onClick={() => setTab("products")}

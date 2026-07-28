@@ -28,7 +28,7 @@ export default function SearchForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-2 sm:flex-row">
       <label className="flex-1">
         <span className="sr-only">검색어</span>
         <input
@@ -40,7 +40,7 @@ export default function SearchForm({
       </label>
       <button
         type="submit"
-        className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"
+        className="w-full rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 sm:w-auto"
       >
         검색
       </button>
