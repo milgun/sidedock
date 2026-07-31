@@ -54,7 +54,7 @@ export default function NavbarClient({ user, avatarUrl, isAdmin, username }: Nav
       {!user ? (
         <Link
           href="/login"
-          className="hidden rounded-full border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:border-slate-400 sm:inline-flex dark:border-navy-700 dark:text-slate-200 dark:hover:border-navy-600"
+          className="inline-flex rounded-full border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 transition hover:border-slate-400 dark:border-navy-700 dark:text-slate-200 dark:hover:border-navy-600"
         >
           로그인
         </Link>
