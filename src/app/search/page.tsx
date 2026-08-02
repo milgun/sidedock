@@ -179,7 +179,7 @@ export default async function SearchPage({
                   className="relative flex items-center gap-3 border-b border-slate-100 bg-white px-3 py-3.5 transition last:border-0 hover:bg-slate-50/70 dark:border-navy-800 dark:bg-navy-900 dark:hover:bg-navy-800/50"
                 >
                   <Link href={`/products/${item.slug}`} className="absolute inset-0" aria-hidden="true" tabIndex={-1} />
-                  <div className="relative z-10 flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 ring-1 ring-black/5 dark:from-slate-300 dark:to-slate-400 dark:ring-0 sm:h-12 sm:w-12">
+                  <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 ring-1 ring-black/5 dark:from-slate-300 dark:to-slate-400 dark:ring-0 sm:h-12 sm:w-12">
                     {item.thumbnail_url ? (
                       <Image src={item.thumbnail_url} alt={item.name} width={48} height={48} className="h-full w-full object-cover" unoptimized />
                     ) : (
@@ -187,7 +187,7 @@ export default async function SearchPage({
                     )}
                   </div>
 
-                  <div className="relative z-10 min-w-0 flex-1">
+                  <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-baseline gap-x-2">
                       <HighlightText text={item.name} query={query} className="block text-sm font-semibold text-slate-900 dark:text-slate-100 sm:text-base" />
                       <span className="hidden text-slate-300 sm:inline dark:text-slate-600">—</span>
@@ -198,7 +198,7 @@ export default async function SearchPage({
                     <p className="mt-0.5 truncate text-sm text-slate-500 sm:hidden dark:text-slate-400">
                       {item.tagline || "제품 상세 페이지로 이동합니다."}
                     </p>
-                    <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                    <div className="relative z-10 mt-1.5 flex flex-wrap items-center gap-1.5">
                       {cats.map((cat) => (
                         <span
                           key={cat}
@@ -251,37 +251,36 @@ export default async function SearchPage({
           {devlogs.map((item) => (
             <div
               key={item.id}
-              className="w-full rounded-2xl border border-slate-200 bg-white p-3 transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-lg dark:border-navy-800 dark:bg-navy-900 dark:hover:border-blue-500/40"
+              className="relative flex items-start gap-2.5 rounded-2xl border border-slate-200 bg-white p-3 transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-lg dark:border-navy-800 dark:bg-navy-900 dark:hover:border-blue-500/40 sm:gap-3"
             >
-              <Link href={`/devlog/${item.slug ?? item.id}`} className="flex items-start gap-2.5 sm:gap-3">
-                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 ring-1 ring-black/5 dark:from-slate-300 dark:to-slate-400 dark:ring-0 sm:h-12 sm:w-12">
-                  {item.thumbnail_url ? (
-                    <Image src={item.thumbnail_url} alt={item.title} width={48} height={48} className="h-full w-full object-cover" unoptimized />
-                  ) : (
-                    <span className="text-lg font-black text-slate-400">{item.title.trim().slice(0, 1).toUpperCase() || "•"}</span>
-                  )}
+              <Link href={`/devlog/${item.slug ?? item.id}`} className="absolute inset-0 rounded-2xl" aria-hidden="true" tabIndex={-1} />
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 ring-1 ring-black/5 dark:from-slate-300 dark:to-slate-400 dark:ring-0 sm:h-12 sm:w-12">
+                {item.thumbnail_url ? (
+                  <Image src={item.thumbnail_url} alt={item.title} width={48} height={48} className="h-full w-full object-cover" unoptimized />
+                ) : (
+                  <span className="text-lg font-black text-slate-400">{item.title.trim().slice(0, 1).toUpperCase() || "•"}</span>
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <HighlightText text={item.title} query={query} className="block text-sm font-semibold text-slate-900 dark:text-slate-100 sm:text-base" />
+                <p className="mt-1 line-clamp-2 text-sm text-slate-500 dark:text-slate-400">{item.content.replace(/[#*`>\[\]!]/g, "").slice(0, 140)}</p>
+                <div className="relative z-10 mt-1.5 flex flex-wrap items-center gap-1">
+                  {item.author?.display_name || item.author?.username ? (
+                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] text-slate-500 dark:bg-navy-800 dark:text-slate-300">
+                      {item.author?.display_name || item.author?.username}
+                    </span>
+                  ) : null}
+                  {(item.tags ?? []).slice(0, 3).map((tag) => (
+                    <a
+                      key={tag}
+                      href={buildSearchHref(tag, "devlogs")}
+                      className="cursor-pointer rounded-full bg-slate-100 px-2 py-0.5 text-[10px] text-slate-500 transition hover:bg-slate-200 dark:bg-navy-800 dark:text-slate-300 dark:hover:bg-navy-700"
+                    >
+                      #{tag}
+                    </a>
+                  ))}
                 </div>
-                <div className="min-w-0 flex-1">
-                  <HighlightText text={item.title} query={query} className="block text-sm font-semibold text-slate-900 dark:text-slate-100 sm:text-base" />
-                  <p className="mt-1 line-clamp-2 text-sm text-slate-500 dark:text-slate-400">{item.content.replace(/[#*`>\[\]!]/g, "").slice(0, 140)}</p>
-                  <div className="mt-1.5 flex flex-wrap items-center gap-1">
-                    {item.author?.display_name || item.author?.username ? (
-                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] text-slate-500 dark:bg-navy-800 dark:text-slate-300">
-                        {item.author?.display_name || item.author?.username}
-                      </span>
-                    ) : null}
-                    {(item.tags ?? []).slice(0, 3).map((tag) => (
-                      <a
-                        key={tag}
-                        href={buildSearchHref(tag, "devlogs")}
-                        className="cursor-pointer rounded-full bg-slate-100 px-2 py-0.5 text-[10px] text-slate-500 transition hover:bg-slate-200 dark:bg-navy-800 dark:text-slate-300 dark:hover:bg-navy-700"
-                      >
-                        #{tag}
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              </Link>
+              </div>
             </div>
           ))}
         </div>

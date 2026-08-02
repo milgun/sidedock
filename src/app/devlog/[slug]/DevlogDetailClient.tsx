@@ -166,7 +166,7 @@ export default function DevlogDetailClient({
               </blockquote>
             ),
             code: ({
-              inline,
+              className,
               children,
               ...props
             }: {
@@ -174,20 +174,21 @@ export default function DevlogDetailClient({
               className?: string;
               children?: React.ReactNode;
             }) =>
-              inline ? (
+              /language-/.test(className ?? "") ? (
+                <code className={`font-mono text-sm text-slate-100 ${className ?? ""}`} {...props}>
+                  {children}
+                </code>
+              ) : (
                 <code
                   className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-sm text-pink-600 dark:bg-navy-800 dark:text-pink-400"
                   {...props}
                 >
                   {children}
                 </code>
-              ) : (
-                <pre className="my-4 overflow-x-auto rounded-xl bg-slate-900 px-5 py-4">
-                  <code className="font-mono text-sm text-slate-100" {...props}>
-                    {children}
-                  </code>
-                </pre>
               ),
+            pre: ({ children }) => (
+              <pre className="my-4 overflow-x-auto rounded-xl bg-slate-900 px-5 py-4">{children}</pre>
+            ),
             ul: ({ children }) => (
               <ul className="mb-4 ml-6 list-disc space-y-1.5 text-slate-700 dark:text-slate-300">{children}</ul>
             ),
