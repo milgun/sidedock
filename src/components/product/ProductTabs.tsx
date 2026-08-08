@@ -604,7 +604,7 @@ function ReviewsPanel({
               onChange={(e) => setContent(e.target.value)}
               rows={4}
               placeholder="이 제품을 사용해 본 경험을 자유롭게 작성해주세요. (최소 10자)"
-              className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100 dark:border-navy-700 dark:bg-navy-800 dark:text-slate-100 dark:placeholder-slate-500"
+              className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition focus:border-blue-400 focus:bg-white focus:ring-2 focus:ring-blue-100 dark:border-navy-700 dark:bg-navy-800 dark:text-slate-100 dark:placeholder-slate-500 dark:focus:bg-navy-800 dark:focus:ring-blue-500/20"
             />
             <p
               className={`mt-1 text-right text-xs ${
