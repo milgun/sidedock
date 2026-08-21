@@ -272,10 +272,12 @@ CREATE TABLE IF NOT EXISTS public.devlog_comments (
   id         uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   author_id  uuid REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
   post_id    uuid REFERENCES public.devlog_posts(id) ON DELETE CASCADE NOT NULL,
+  parent_id  uuid REFERENCES public.devlog_comments(id) ON DELETE CASCADE,
   content    text NOT NULL,
   created_at timestamptz DEFAULT now() NOT NULL
 );
 CREATE INDEX IF NOT EXISTS devlog_comments_post_id_idx ON public.devlog_comments(post_id);
+CREATE INDEX IF NOT EXISTS devlog_comments_parent_id_idx ON public.devlog_comments(parent_id);
 
 CREATE OR REPLACE FUNCTION public.handle_devlog_comment_insert() RETURNS trigger AS $$
 BEGIN UPDATE public.devlog_posts SET comment_count = comment_count + 1 WHERE id = NEW.post_id; RETURN NEW; END;
@@ -285,6 +287,16 @@ BEGIN UPDATE public.devlog_posts SET comment_count = comment_count - 1 WHERE id 
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE TRIGGER on_devlog_comment_insert AFTER INSERT ON public.devlog_comments FOR EACH ROW EXECUTE PROCEDURE public.handle_devlog_comment_insert();
 CREATE OR REPLACE TRIGGER on_devlog_comment_delete AFTER DELETE ON public.devlog_comments FOR EACH ROW EXECUTE PROCEDURE public.handle_devlog_comment_delete();
+
+CREATE TABLE IF NOT EXISTS public.devlog_comment_reactions (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  comment_id uuid REFERENCES public.devlog_comments(id) ON DELETE CASCADE NOT NULL,
+  user_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  emoji text NOT NULL CHECK (emoji IN ('🚀','🔥','💡','❤️','✨','🥺')),
+  created_at timestamptz DEFAULT now() NOT NULL,
+  UNIQUE(comment_id, user_id, emoji)
+);
+CREATE INDEX IF NOT EXISTS devlog_comment_reactions_comment_id_idx ON public.devlog_comment_reactions(comment_id);
 
 -- ── 12. comment_reactions (v7) ────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.comment_reactions (
@@ -336,6 +348,7 @@ ALTER TABLE public.notifications        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.devlog_posts         ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.devlog_likes         ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.devlog_comments      ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.devlog_comment_reactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.comment_reactions    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.product_claims       ENABLE ROW LEVEL SECURITY;
 
@@ -421,6 +434,12 @@ CREATE POLICY "devlog_likes_delete_own"  ON public.devlog_likes FOR DELETE USING
 CREATE POLICY "devlog_comments_read_all"    ON public.devlog_comments FOR SELECT USING (true);
 CREATE POLICY "devlog_comments_insert_auth" ON public.devlog_comments FOR INSERT WITH CHECK (auth.uid() = author_id);
 CREATE POLICY "devlog_comments_delete_own"  ON public.devlog_comments FOR DELETE USING (auth.uid() = author_id);
+CREATE POLICY "devlog_comments_update_own"   ON public.devlog_comments FOR UPDATE USING (auth.uid() = author_id) WITH CHECK (auth.uid() = author_id);
+
+-- devlog_comment_reactions
+CREATE POLICY "devlog_reactions_read_all"    ON public.devlog_comment_reactions FOR SELECT USING (true);
+CREATE POLICY "devlog_reactions_insert_auth" ON public.devlog_comment_reactions FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "devlog_reactions_delete_own"  ON public.devlog_comment_reactions FOR DELETE USING (auth.uid() = user_id);
 
 -- comment_reactions
 CREATE POLICY "reactions_read_all"    ON public.comment_reactions FOR SELECT USING (true);

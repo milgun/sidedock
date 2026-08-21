@@ -97,6 +97,22 @@ function notificationInfo(n: Notification): {
           : `'${p.product_name}'`,
         href: p.product_id ? `/products/${p.product_id}` : undefined,
       };
+    case "reply":
+      return {
+        icon: "↩️",
+        title: `${p.actor_username ?? "누군가"} 님이 내 댓글에 답글을 달았습니다`,
+        body: p.comment_preview ? `"${p.comment_preview}${p.comment_preview.length >= 100 ? "..." : ""}"` : undefined,
+        href: p.product_id ? `/products/${p.product_id}` : undefined,
+      };
+    case "devlog_comment":
+      return {
+        icon: "📝",
+        title: `${p.actor_username ?? "누군가"} 님이 Dev Log에 댓글을 달았습니다`,
+        body: p.devlog_title
+          ? `'${p.devlog_title}'${p.comment_preview ? ` — "${p.comment_preview}${p.comment_preview.length >= 100 ? "..." : ""}"` : ""}`
+          : p.comment_preview,
+        href: p.devlog_slug ? `/devlog/${p.devlog_slug}` : undefined,
+      };
     default:
       return { icon: "🔔", title: "새 알림이 있습니다" };
   }

@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import type { ReactionEmoji } from "@/types";
+import { sendNotificationEmail } from "@/lib/emails/notification";
 
 export async function createComment(formData: FormData) {
   const supabase = await createClient();
@@ -82,6 +83,17 @@ export async function createComment(formData: FormData) {
 
   if (notificationsToInsert.length > 0) {
     await supabase.from("notifications").insert(notificationsToInsert);
+    await Promise.all(notificationsToInsert.map(async (notification) => {
+      const item = notification as { user_id: string; type: "comment" | "reply"; payload: Record<string, string> };
+      await sendNotificationEmail({
+        userId: item.user_id,
+        type: item.type,
+        actorName,
+        productName: item.payload.product_name,
+        productHref: `/products/${item.payload.product_id}`,
+        commentPreview: item.payload.comment_preview,
+      });
+    }));
   }
 
   revalidatePath(`/products/${productId}`);

@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { useTheme } from "next-themes";
-import { updateProfile, updateThemePreference, type UpdateProfileInput } from "@/lib/actions/profile";
+import { useState, useRef } from "react";
+import { updateProfile, type UpdateProfileInput } from "@/lib/actions/profile";
 import Image from "next/image";
 
 type Profile = {
@@ -13,7 +12,6 @@ type Profile = {
   twitter_url: string | null;
   avatar_url: string | null;
   username: string;
-  theme_preference: string;
 };
 
 export default function SettingsForm({ profile }: { profile: Profile }) {
@@ -24,7 +22,6 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
     website_url: profile.website_url ?? "",
     twitter_url: profile.twitter_url ?? "",
     avatar_url: profile.avatar_url ?? "",
-    theme_preference: profile.theme_preference ?? "system",
   });
 
   const [saving, setSaving] = useState(false);
@@ -32,18 +29,6 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-
-  // 테마 선택: 즉시 미리보기 적용 + 계정에 바로 저장
-  const selectTheme = (value: "light" | "dark" | "system") => {
-    setTheme(value);
-    setForm((f) => ({ ...f, theme_preference: value }));
-    setSaved(false);
-    void updateThemePreference(value);
-  };
 
   const set = (key: keyof UpdateProfileInput, value: string) => {
     setForm((f) => ({ ...f, [key]: value }));
@@ -236,43 +221,6 @@ export default function SettingsForm({ profile }: { profile: Profile }) {
           placeholder="https://x.com/yourhandle"
           className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:bg-navy-800 dark:border-navy-700 dark:text-slate-100 dark:placeholder-slate-500"
         />
-      </Field>
-
-      {/* Theme */}
-      <Field
-        label="화면 테마"
-        hint="라이트 / 다크 / 시스템 설정을 선택하세요. 계정에 저장되어 기기 간 유지됩니다."
-      >
-        <div className="grid grid-cols-3 gap-2">
-          {([
-            { value: "light", label: "라이트", icon: "☀️" },
-            { value: "dark", label: "다크", icon: "🌙" },
-            { value: "system", label: "시스템", icon: "💻" },
-          ] as const).map((opt) => {
-            const active = (form.theme_preference ?? "system") === opt.value;
-            return (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => selectTheme(opt.value)}
-                aria-pressed={active}
-                className={`flex flex-col items-center gap-1 rounded-xl border px-3 py-3 text-sm font-medium transition ${
-                  active
-                    ? "border-blue-400 bg-blue-50 text-blue-600 dark:bg-navy-800 dark:text-blue-300"
-                    : "border-slate-200 text-slate-600 hover:border-slate-300 dark:border-navy-700 dark:text-slate-300"
-                }`}
-              >
-                <span className="text-lg leading-none">{opt.icon}</span>
-                {opt.label}
-              </button>
-            );
-          })}
-        </div>
-        {mounted && (
-          <p className="mt-1.5 text-xs text-slate-400">
-            현재 적용: {theme === "dark" ? "다크" : theme === "light" ? "라이트" : "시스템"}
-          </p>
-        )}
       </Field>
 
       {/* Error */}

@@ -109,7 +109,15 @@ export default async function DevlogDetailPage(props: {
     .order("created_at", { ascending: true });
 
   const post = { ...rawPost, has_liked: hasLiked } as unknown as DevlogPostWithAuthor;
-  const comments = (rawComments ?? []) as unknown as (DevlogComment & { author: Profile })[];
+  const commentRows = (rawComments ?? []) as unknown as (DevlogComment & { author: Profile })[];
+  const commentIds = commentRows.map((comment) => comment.id);
+  const { data: reactionRows } = commentIds.length > 0
+    ? await supabase.from("devlog_comment_reactions").select("*").in("comment_id", commentIds)
+    : { data: [] };
+  const comments = commentRows.map((comment) => ({
+    ...comment,
+    reactions: (reactionRows ?? []).filter((reaction) => reaction.comment_id === comment.id),
+  })) as (DevlogComment & { author: Profile })[];
   const userId = user?.id ?? null;
 
   const authorName = post.author?.display_name ?? post.author?.username ?? "Sidedock Maker";

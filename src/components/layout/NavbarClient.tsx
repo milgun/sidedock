@@ -102,6 +102,13 @@ export default function NavbarClient({ user, avatarUrl, isAdmin, username }: Nav
                 >
                   제품 등록
                 </Link>
+                <Link
+                  href="/settings"
+                  onClick={() => setOpen(false)}
+                  className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-navy-800"
+                >
+                  설정
+                </Link>
                 {isAdmin && (
                   <Link
                     href="/admin/upload"

@@ -205,9 +205,20 @@ export interface DevlogComment {
   id: string;
   author_id: string;
   post_id: string;
+  parent_id: string | null;
   content: string;
   created_at: string;
   author?: Profile;
+  reactions?: DevlogCommentReaction[];
+  replies?: DevlogComment[];
+}
+
+export interface DevlogCommentReaction {
+  id: string;
+  comment_id: string;
+  user_id: string;
+  emoji: ReactionEmoji;
+  created_at: string;
 }
 
 export interface DevlogPostWithAuthor extends DevlogPost {

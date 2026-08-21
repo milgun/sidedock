@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { sendNotificationEmail } from "@/lib/emails/notification";
 
 export async function toggleUpvote(
   productId: string
@@ -57,6 +58,13 @@ export async function toggleUpvote(
           actor_username:
             actorProfile?.display_name ?? actorProfile?.username ?? "누군가",
         },
+      });
+      await sendNotificationEmail({
+        userId: product.maker_id,
+        type: "upvote",
+        actorName: actorProfile?.display_name ?? actorProfile?.username ?? "누군가",
+        productName: product.name,
+        productHref: `/products/${productId}`,
       });
     }
 

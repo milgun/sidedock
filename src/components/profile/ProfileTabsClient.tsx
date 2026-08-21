@@ -249,7 +249,7 @@ function TabContent({
         {!profileBio && isOwn && (
           <div className="rounded-2xl border border-dashed border-slate-200 dark:border-navy-800 py-10 text-center">
             <p className="text-sm text-slate-400">아직 소개가 없습니다.</p>
-            <Link href="/settings" className="mt-1 inline-block text-xs text-blue-600 hover:underline">
+            <Link href="/settings/profile" className="mt-1 inline-block text-xs text-blue-600 hover:underline">
               프로필 설정하기 →
             </Link>
           </div>

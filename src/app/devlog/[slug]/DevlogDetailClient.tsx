@@ -7,9 +7,9 @@ import remarkGfm from "remark-gfm";
 import remarkCjkFriendly from "remark-cjk-friendly";
 import { toggleDevlogLike, createDevlogComment, deleteDevlogPost } from "@/lib/actions/devlog";
 import type { DevlogComment, Profile } from "@/types";
-import Image from "next/image";
 import Link from "next/link";
 import ShareButton from "@/components/product/ShareButton";
+import DevlogCommentItem from "./DevlogCommentItem";
 
 interface Props {
   postId: string;
@@ -57,6 +57,34 @@ function withSoftBreaks(content: string): string {
     .join("");
 }
 
+function nestComments(comments: (DevlogComment & { author: Profile })[]) {
+  const byId = new Map(comments.map((comment) => [comment.id, { ...comment, replies: [] as DevlogComment[] }]));
+  const roots: (DevlogComment & { author: Profile })[] = [];
+  byId.forEach((comment) => {
+    if (comment.parent_id && byId.has(comment.parent_id)) {
+      byId.get(comment.parent_id)?.replies?.push(comment);
+    } else {
+      roots.push(comment);
+    }
+  });
+  return roots;
+}
+
+function collectWithDescendants(comments: (DevlogComment & { author: Profile })[], targetId: string): Set<string> {
+  const ids = new Set([targetId]);
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const c of comments) {
+      if (c.parent_id && ids.has(c.parent_id) && !ids.has(c.id)) {
+        ids.add(c.id);
+        changed = true;
+      }
+    }
+  }
+  return ids;
+}
+
 export default function DevlogDetailClient({
   postId,
   postSlug,
@@ -73,6 +101,7 @@ export default function DevlogDetailClient({
   const [count, setCount] = useState(likeCount);
   const [comments, setComments] = useState(initialComments);
   const [commentText, setCommentText] = useState("");
+  const [replyingTo, setReplyingTo] = useState<(DevlogComment & { author: Profile }) | null>(null);
   const [commentError, setCommentError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [isDeleting, startDeleteTransition] = useTransition();
@@ -103,9 +132,12 @@ export default function DevlogDetailClient({
     const fd = new FormData();
     fd.append("post_id", postId);
     fd.append("content", commentText);
+    if (replyingTo) fd.append("parent_id", replyingTo.id);
     const res = await createDevlogComment(fd);
     if (res.error) { setCommentError(res.error); return; }
+    if (res.comment) setComments((prev) => [...prev, res.comment as DevlogComment & { author: Profile }]);
     setCommentText("");
+    setReplyingTo(null);
     formRef.current?.reset();
   };
 
@@ -254,11 +286,17 @@ export default function DevlogDetailClient({
         {/* Comment form */}
         {userId ? (
           <form ref={formRef} onSubmit={handleComment} className="mb-6">
+            {replyingTo && (
+              <div className="mb-2 flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-500 dark:bg-navy-800 dark:text-slate-300">
+                <span>@{replyingTo.author?.username}님에게 답글 작성 중</span>
+                <button type="button" onClick={() => setReplyingTo(null)} className="font-medium text-blue-600">취소</button>
+              </div>
+            )}
             <textarea
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
               rows={3}
-              placeholder="댓글을 작성하세요..."
+              placeholder={replyingTo ? "답글을 작성하세요..." : "댓글을 작성하세요..."}
               className="w-full resize-none rounded-xl border border-slate-200 px-4 py-3 text-sm focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:bg-navy-800 dark:border-navy-700 dark:text-slate-100 dark:placeholder-slate-500"
             />
             {commentError && (
@@ -270,7 +308,7 @@ export default function DevlogDetailClient({
                 disabled={!commentText.trim()}
                 className="rounded-xl bg-navy-900 px-5 py-2 text-sm font-semibold text-white transition hover:bg-navy-800 disabled:opacity-40 dark:bg-blue-600 dark:hover:bg-blue-700"
               >
-                댓글 등록
+                {replyingTo ? "답글 등록" : "댓글 등록"}
               </button>
             </div>
           </form>
@@ -283,25 +321,21 @@ export default function DevlogDetailClient({
         {/* Comment list */}
         {comments.length > 0 && (
           <div className="space-y-4">
-            {comments.map((c) => (
-              <div key={c.id} className="flex gap-3">
-                <div className="h-8 w-8 flex-shrink-0 overflow-hidden rounded-full bg-navy-900">
-                  {c.author?.avatar_url ? (
-                    <Image src={c.author.avatar_url} alt={c.author.username} width={32} height={32} className="h-full w-full object-cover" />
-                  ) : (
-                    <span className="flex h-full w-full items-center justify-center text-xs font-bold text-white">
-                      {c.author?.username?.[0]?.toUpperCase()}
-                    </span>
-                  )}
-                </div>
-                <div className="flex-1 rounded-xl bg-slate-50 px-4 py-3 dark:bg-navy-800">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">@{c.author?.username}</span>
-                    <span className="text-xs text-slate-400">{timeAgo(c.created_at)}</span>
-                  </div>
-                  <p className="mt-1 text-sm text-slate-700 whitespace-pre-wrap dark:text-slate-300">{c.content}</p>
-                </div>
-              </div>
+            {nestComments(comments).map((comment) => (
+              <DevlogCommentItem
+                key={comment.id}
+                comment={comment}
+                postId={postId}
+                userId={userId}
+                onReply={setReplyingTo}
+                onDeleted={(commentId) => {
+                  setComments((prev) => {
+                    const idsToRemove = collectWithDescendants(prev, commentId);
+                    return prev.filter((c) => !idsToRemove.has(c.id));
+                  });
+                  setReplyingTo((current) => (current?.id === commentId ? null : current));
+                }}
+              />
             ))}
           </div>
         )}
