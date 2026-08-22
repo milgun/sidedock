@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, getUser } from "@/lib/supabase/server";
 
-type Period = "today" | "week" | "month" | "all";
+type Period = "week" | "month" | "year" | "all";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const rawPeriod = searchParams.get("period") ?? "today";
-  const period = (["today", "week", "month", "all"].includes(rawPeriod) ? rawPeriod : "today") as Period;
+  const rawPeriod = searchParams.get("period") ?? "all";
+  const period = (["week", "month", "year", "all"].includes(rawPeriod) ? rawPeriod : "all") as Period;
 
   const supabase = await createClient();
   const user = await getUser();
@@ -18,15 +18,15 @@ export async function GET(req: NextRequest) {
     .eq("source", "launch")
     .eq("status", "published");
 
-  if (period === "today") {
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-    query = query.gte("created_at", todayStart).order("created_at", { ascending: false });
-  } else if (period === "week") {
+  if (period === "week") {
     const weekAgo = new Date(now.getTime() - 7 * 24 * 3_600_000).toISOString();
     query = query.gte("created_at", weekAgo).order("upvote_count", { ascending: false });
   } else if (period === "month") {
     const monthAgo = new Date(now.getTime() - 30 * 24 * 3_600_000).toISOString();
     query = query.gte("created_at", monthAgo).order("upvote_count", { ascending: false });
+  } else if (period === "year") {
+    const yearAgo = new Date(now.getTime() - 365 * 24 * 3_600_000).toISOString();
+    query = query.gte("created_at", yearAgo).order("upvote_count", { ascending: false });
   } else {
     // all: 역대 인기순 (boost + 댓글)
     query = query

@@ -5,13 +5,13 @@ import Link from "next/link";
 import type { ProductWithMaker } from "@/types";
 import ProductCard from "@/components/product/ProductCard";
 
-type Period = "today" | "week" | "month" | "all";
+type Period = "week" | "month" | "year" | "all";
 
 const PERIOD_TABS: { value: Period; label: string; icon: string; desc: string }[] = [
   { value: "all",   label: "역대 인기", icon: "🔥", desc: "Boost · 댓글 기준 역대 인기 런치" },
-  { value: "today", label: "오늘",    icon: "✨", desc: "오늘 새롭게 등록된 제품들" },
   { value: "week",  label: "이번 주", icon: "📈", desc: "이번 주 가장 많은 주목을 받은 제품들" },
   { value: "month", label: "이번 달", icon: "🏆", desc: "이번 달 가장 인기 있었던 제품들" },
+  { value: "year",  label: "이번 해", icon: "📅", desc: "이번 해 가장 인기 있었던 제품들" },
 ];
 
 interface LaunchesClientProps {
@@ -55,7 +55,7 @@ export default function LaunchesClient({
   };
 
   const currentTab = PERIOD_TABS.find((t) => t.value === period)!;
-  const isRanked = period !== "today";
+  const isRanked = true;
 
   return (
     <>
@@ -117,9 +117,9 @@ export default function LaunchesClient({
 
 function EmptyState({ period }: { period: Period }) {
   const config: Record<Period, { icon: string; message: string }> = {
-    today: { icon: "🚀", message: "오늘은 아직 등록된 제품이 없습니다." },
     week:  { icon: "📈", message: "이번 주 런치된 제품이 없습니다." },
     month: { icon: "🏆", message: "이번 달 런치된 제품이 없습니다." },
+    year:  { icon: "📅", message: "이번 해 런치된 제품이 없습니다." },
     all:   { icon: "🔥", message: "아직 등록된 런치 제품이 없습니다." },
   };
   const { icon, message } = config[period];

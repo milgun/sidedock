@@ -3,6 +3,8 @@ import Link from "next/link";
 import type { ProductWithMaker } from "@/types";
 import ExpandableProductList from "@/components/home/ExpandableProductList";
 import WelcomeBanner from "@/components/home/WelcomeBanner";
+import DevlogHomeList from "@/components/home/DevlogHomeList";
+import type { DevlogPostWithAuthor } from "@/types";
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -11,6 +13,7 @@ export default async function HomePage() {
   const [
     { data: rawCurated },
     { data: rawNew },
+    { data: rawDevlogs },
     { data: rawHot },
     { data: upvotes },
   ] = await Promise.all([
@@ -28,6 +31,11 @@ export default async function HomePage() {
       .eq("status", "published")
       .order("created_at", { ascending: false })
       .limit(50),
+    supabase
+      .from("devlog_posts")
+      .select("*, author:profiles(id, username, avatar_url, display_name)")
+      .order("created_at", { ascending: false })
+      .limit(5),
     supabase
       .from("products")
       .select("*, maker:profiles(id, username, avatar_url, display_name)")
@@ -51,6 +59,7 @@ export default async function HomePage() {
 
   const curatedProducts = (rawCurated ?? []).map(enrich);
   const newLaunches = (rawNew ?? []).map(enrich);
+  const devlogs = (rawDevlogs ?? []) as unknown as DevlogPostWithAuthor[];
   const hotLaunches = (rawHot ?? []).map(enrich);
   const userId = user?.id ?? null;
 
@@ -58,47 +67,20 @@ export default async function HomePage() {
     <div className="mx-auto max-w-3xl px-4 py-8">
       <WelcomeBanner />
 
-      {/* ── Section A: 에디터 큐레이션 ── */}
-      <section>
-        <SectionHeader
-          icon="📌"
-          title="에디터 큐레이션"
-          desc="Sidedock 팀이 직접 고른 유용한 도구들"
-          href="/hot"
-          linkText="큐레이션 전체 보기"
-        />
-        {curatedProducts.length > 0 ? (
-          <ExpandableProductList
-            products={curatedProducts}
-            initialCount={5}
-            pageSize={10}
-            userId={userId}
-            context="launch-rank"
-          />
-        ) : (
-          <EmptyState
-            icon="📌"
-            message="아직 큐레이션 제품이 없습니다."
-            href="/submit"
-            linkText="첫 번째 제품 제안하기 →"
-          />
-        )}
-      </section>
-
-      {/* ── Section B: 신규 런치 ── */}
+      {/* ── Section A: 신규 런치 ── */}
       <section className="mt-14">
         <SectionHeader
           icon="🚀"
           title="신규 런치"
           desc="메이커들이 새롭게 공개한 제품들"
-          href="/launches?period=today"
+          href="/launches?period=week"
           linkText="런치 전체 보기"
         />
         {newLaunches.length > 0 ? (
           <ExpandableProductList
             products={newLaunches}
             initialCount={6}
-            pageSize={10}
+            pageSize={6}
             userId={userId}
             variant="grid"
           />
@@ -112,8 +94,24 @@ export default async function HomePage() {
         )}
       </section>
 
+      {/* ── Section B: Dev Log ── */}
+      <section className="mt-14">
+        <SectionHeader
+          icon="📝"
+          title="Dev Log"
+          desc="메이커와 개발자들의 빌드 기록"
+          href="/devlog"
+          linkText="Dev Log 전체 보기"
+        />
+        {devlogs.length > 0 ? (
+          <DevlogHomeList posts={devlogs} />
+        ) : (
+          <EmptyState icon="📝" message="아직 작성된 Dev Log가 없습니다." href="/devlog/new" linkText="첫 번째 기록 남기기 →" />
+        )}
+      </section>
+
       {/* ── Section C: 인기 런치 ── */}
-      <section className="mt-14 pb-16">
+      <section className="mt-14">
         <SectionHeader
           icon="🔥"
           title="인기 런치"
@@ -136,6 +134,22 @@ export default async function HomePage() {
             href="/submit"
             linkText="런치에 참여하기 →"
           />
+        )}
+      </section>
+
+      {/* ── Section D: 에디터 큐레이션 ── */}
+      <section className="mt-14 pb-16">
+        <SectionHeader
+          icon="📌"
+          title="에디터 큐레이션"
+          desc="Sidedock 팀이 직접 고른 유용한 도구들"
+          href="/hot"
+          linkText="큐레이션 전체 보기"
+        />
+        {curatedProducts.length > 0 ? (
+          <ExpandableProductList products={curatedProducts} initialCount={5} pageSize={10} userId={userId} context="launch-rank" />
+        ) : (
+          <EmptyState icon="📌" message="아직 큐레이션 제품이 없습니다." href="/submit" linkText="첫 번째 제품 제안하기 →" />
         )}
       </section>
     </div>

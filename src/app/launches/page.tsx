@@ -10,14 +10,14 @@ export const metadata = {
   alternates: { canonical: "/launches" },
 };
 
-type Period = "today" | "week" | "month" | "all";
+type Period = "week" | "month" | "year" | "all";
 
 export default async function LaunchesPage(props: {
   searchParams: Promise<{ period?: string }>;
 }) {
   const { period: rawPeriod } = await props.searchParams;
   const period = (
-    ["today", "week", "month", "all"].includes(rawPeriod ?? "") ? rawPeriod : "all"
+    ["week", "month", "year", "all"].includes(rawPeriod ?? "") ? rawPeriod : "all"
   ) as Period;
 
   const supabase = await createClient();
@@ -31,10 +31,7 @@ export default async function LaunchesPage(props: {
     .eq("source", "launch")
     .eq("status", "published");
 
-  if (period === "today") {
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-    query = query.gte("created_at", todayStart).order("created_at", { ascending: false });
-  } else if (period === "week") {
+  if (period === "week") {
     const weekAgo = new Date(now.getTime() - 7 * 24 * 3_600_000).toISOString();
     query = query.gte("created_at", weekAgo).order("upvote_count", { ascending: false });
   } else if (period === "month") {
