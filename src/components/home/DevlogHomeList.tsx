@@ -1,5 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 import type { DevlogPostWithAuthor } from "@/types";
 
 function timeAgo(dateStr: string): string {
@@ -13,9 +16,14 @@ function timeAgo(dateStr: string): string {
 }
 
 export default function DevlogHomeList({ posts }: { posts: DevlogPostWithAuthor[] }) {
+  const [visibleCount, setVisibleCount] = useState(5);
+  const visiblePosts = posts.slice(0, visibleCount);
+  const remaining = posts.length - visibleCount;
+
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white dark:border-navy-800 dark:bg-navy-900">
-      {posts.map((post) => {
+    <div>
+      <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white dark:border-navy-800 dark:bg-navy-900">
+      {visiblePosts.map((post) => {
         const authorName = post.author?.display_name ?? post.author?.username ?? "익명의 메이커";
         return (
           <Link
@@ -51,6 +59,15 @@ export default function DevlogHomeList({ posts }: { posts: DevlogPostWithAuthor[
           </Link>
         );
       })}
+      </div>
+      {remaining > 0 && (
+        <button
+          onClick={() => setVisibleCount((count) => Math.min(count + 5, posts.length))}
+          className="mt-3 w-full rounded-xl border border-slate-200 py-3 text-sm font-medium text-slate-500 transition hover:border-blue-300 hover:text-blue-600 dark:border-navy-700 dark:text-slate-400 dark:hover:border-blue-500/50"
+        >
+          {Math.min(5, remaining)}개 더 보기
+        </button>
+      )}
     </div>
   );
 }

@@ -26,6 +26,8 @@ export async function GET(request: Request) {
       }
       return NextResponse.redirect(`${origin}${next}`);
     }
+
+    console.error("OAuth session exchange failed:", error.message);
   }
 
   return NextResponse.redirect(`${origin}/auth/error`);

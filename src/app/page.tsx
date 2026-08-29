@@ -35,7 +35,7 @@ export default async function HomePage() {
       .from("devlog_posts")
       .select("*, author:profiles(id, username, avatar_url, display_name)")
       .order("created_at", { ascending: false })
-      .limit(5),
+      .limit(50),
     supabase
       .from("products")
       .select("*, maker:profiles(id, username, avatar_url, display_name)")
