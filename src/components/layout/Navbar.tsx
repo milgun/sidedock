@@ -68,7 +68,7 @@ export default async function Navbar() {
         </Link>
 
         {/* Category Tabs — desktop only */}
-        <Suspense fallback={<div className="hidden h-9 flex-1 md:block" />}>
+        <Suspense fallback={<div className="hidden h-9 flex-1 lg:block" />}>
           <NavbarTabs />
         </Suspense>
 
@@ -76,7 +76,7 @@ export default async function Navbar() {
         <NavbarClient user={user} avatarUrl={avatarUrl} isAdmin={isAdmin} username={username} />
       </div>
 
-      {/* Mobile tab bar — shown only below md breakpoint */}
+      {/* Mobile tab bar — shown below the desktop breakpoint */}
       <MobileNavTabs />
     </header>
   );

@@ -182,7 +182,7 @@ function TodayDiscovery({ product }: { product: ProductWithMaker }) {
   const makerName = product.maker?.display_name ?? product.maker?.username ?? "Sidedock";
 
   return (
-    <aside className="order-2 mb-10 min-[1400px]:order-none min-[1400px]:col-start-3 min-[1400px]:row-span-2 min-[1400px]:row-start-1 min-[1400px]:mb-0 min-[1400px]:sticky min-[1400px]:top-20">
+    <aside className="order-2 mb-10 hidden lg:block min-[1400px]:order-none min-[1400px]:col-start-3 min-[1400px]:row-span-2 min-[1400px]:row-start-1 min-[1400px]:mb-0 min-[1400px]:sticky min-[1400px]:top-20">
       <div className="border-y border-slate-200 py-5 dark:border-navy-800 min-[1400px]:border-y-0 min-[1400px]:py-1 min-[1400px]:pl-7">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
