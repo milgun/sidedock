@@ -68,7 +68,7 @@ export default async function Navbar() {
         </Link>
 
         {/* Category Tabs — desktop only */}
-        <Suspense fallback={<div className="hidden h-9 flex-1 lg:block" />}>
+        <Suspense fallback={<div className="hidden h-9 flex-1 md:block" />}>
           <NavbarTabs />
         </Suspense>
 

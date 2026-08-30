@@ -18,7 +18,7 @@ export default function NavbarTabs() {
   };
 
   return (
-    <nav className="hidden lg:flex items-center gap-1">
+    <nav className="hidden md:flex items-center gap-1">
       {TABS.map(({ label, href }) => (
         <Link
           key={href}
