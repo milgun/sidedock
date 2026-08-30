@@ -78,12 +78,12 @@ export default async function HomePage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 min-[1400px]:max-w-[88rem]">
-      <div className="grid min-[1400px]:grid-cols-[20rem_minmax(0,46rem)_20rem] min-[1400px]:items-start">
+      <div className="grid grid-cols-1 min-[1400px]:grid-cols-[20rem_minmax(0,46rem)_20rem] min-[1400px]:items-start">
         <div className="order-1 mx-auto w-full max-w-[46rem] min-[1400px]:col-start-2">
           <WelcomeBanner />
         </div>
 
-        <main className="order-3 min-[1400px]:order-none min-[1400px]:col-start-2 min-[1400px]:row-start-2">
+        <main className="order-3 min-w-0 min-[1400px]:order-none min-[1400px]:col-start-2 min-[1400px]:row-start-2">
           {/* ── Section A: 신규 런치 ── */}
           <section className="mt-14 lg:mt-0">
             <SectionHeader
