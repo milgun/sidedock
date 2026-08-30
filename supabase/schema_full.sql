@@ -71,6 +71,8 @@ CREATE TABLE IF NOT EXISTS public.products (
   comment_count    integer DEFAULT 0 NOT NULL,
   is_featured      boolean DEFAULT false NOT NULL,
   featured_label   text,
+  is_discovery_pick boolean DEFAULT false NOT NULL,
+  discovery_picked_at timestamptz,
   source           text NOT NULL DEFAULT 'launch' CHECK (source IN ('curated', 'launch')),
   status           product_status NOT NULL DEFAULT 'draft',  -- v4
   rejection_reason text,                                     -- v4
@@ -92,6 +94,7 @@ CREATE INDEX IF NOT EXISTS products_search_idx           ON public.products USIN
 CREATE INDEX IF NOT EXISTS products_launched_at_idx      ON public.products(launched_at DESC);
 CREATE INDEX IF NOT EXISTS products_upvote_count_idx     ON public.products(upvote_count DESC);
 CREATE INDEX IF NOT EXISTS products_is_featured_idx      ON public.products(is_featured) WHERE is_featured = true;
+CREATE INDEX IF NOT EXISTS products_discovery_pick_idx   ON public.products(discovery_picked_at DESC) WHERE is_discovery_pick = true;
 CREATE INDEX IF NOT EXISTS products_source_idx           ON public.products(source);
 CREATE INDEX IF NOT EXISTS products_status_idx           ON public.products(status);
 CREATE INDEX IF NOT EXISTS products_status_created_at_idx ON public.products(status, created_at DESC);

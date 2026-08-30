@@ -20,13 +20,24 @@ export default async function ModerationPage() {
 
   if (!profile?.is_admin) redirect("/");
 
-  const { data: pending } = await supabase
-    .from("products")
-    .select("id, slug, name, tagline, description, url, thumbnail_url, category, categories, created_at, maker:profiles(id, username, display_name, avatar_url)")
-    .eq("status", "pending_review")
-    .order("created_at", { ascending: true });
+  const [{ data: pending }, { data: publishedLaunches }] = await Promise.all([
+    supabase
+      .from("products")
+      .select("id, slug, name, tagline, description, url, thumbnail_url, category, categories, created_at, maker:profiles(id, username, display_name, avatar_url)")
+      .eq("status", "pending_review")
+      .order("created_at", { ascending: true }),
+    supabase
+      .from("products")
+      .select("id, slug, name, tagline, thumbnail_url, created_at, is_discovery_pick, maker:profiles(id, username, display_name, avatar_url)")
+      .eq("source", "launch")
+      .eq("status", "published")
+      .order("is_discovery_pick", { ascending: false })
+      .order("launched_at", { ascending: false })
+      .limit(20),
+  ]);
 
   const products = (pending ?? []) as unknown as Parameters<typeof ModerationClient>[0]["products"];
+  const discoveryProducts = (publishedLaunches ?? []) as unknown as Parameters<typeof ModerationClient>[0]["discoveryProducts"];
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
@@ -77,7 +88,7 @@ export default async function ModerationPage() {
         </div>
       </div>
 
-      <ModerationClient products={products} />
+      <ModerationClient products={products} discoveryProducts={discoveryProducts} />
     </div>
   );
 }

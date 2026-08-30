@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { generateUniqueSlug } from "@/lib/slug";
 import { resend, EMAIL_FROM } from "@/lib/resend";
@@ -363,6 +364,58 @@ export async function approveProduct(
     }
   }
 
+  return {};
+}
+
+// ── setDiscoveryPick ────────────────────────────────────────────────────────
+// 관리자: 공개된 Launches 제품 하나를 홈 "오늘의 발견"으로 선정
+
+export async function setDiscoveryPick(
+  productId: string
+): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "로그인이 필요합니다." };
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("is_admin")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile?.is_admin) return { error: "관리자 권한이 필요합니다." };
+
+  const { data: product, error: productError } = await supabase
+    .from("products")
+    .select("source, status")
+    .eq("id", productId)
+    .single();
+
+  if (productError || !product) return { error: "제품을 찾을 수 없습니다." };
+  if (product.source !== "launch" || product.status !== "published") {
+    return { error: "공개된 Launches 제품만 오늘의 발견으로 선정할 수 있습니다." };
+  }
+
+  const { error: clearError } = await supabase
+    .from("products")
+    .update({ is_discovery_pick: false, discovery_picked_at: null })
+    .eq("source", "launch")
+    .eq("is_discovery_pick", true);
+
+  if (clearError) return { error: clearError.message };
+
+  const { error: selectError } = await supabase
+    .from("products")
+    .update({ is_discovery_pick: true, discovery_picked_at: new Date().toISOString() })
+    .eq("id", productId);
+
+  if (selectError) return { error: selectError.message };
+
+  revalidatePath("/");
+  revalidatePath("/admin/moderation");
   return {};
 }
 

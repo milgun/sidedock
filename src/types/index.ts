@@ -51,6 +51,8 @@ export interface Product {
   comment_count: number;
   is_featured: boolean;
   featured_label: string | null;
+  is_discovery_pick: boolean;
+  discovery_picked_at: string | null;
   slug: string;
   source: 'curated' | 'launch';
   gallery_images: string[];
