@@ -16,6 +16,7 @@ export default async function HomePage() {
     { data: rawCurated },
     { data: rawNew },
     { data: rawDevlogs },
+    { data: rawHomeDevlogs },
     { data: rawHot },
     { data: rawDiscovery },
     { data: upvotes },
@@ -39,6 +40,12 @@ export default async function HomePage() {
       .select("*, author:profiles(id, username, avatar_url, display_name)")
       .order("created_at", { ascending: false })
       .limit(50),
+    supabase
+      .from("devlog_posts")
+      .select("*, author:profiles(id, username, avatar_url, display_name)")
+      .eq("is_home_featured", true)
+      .order("home_featured_at", { ascending: false })
+      .limit(3),
     supabase
       .from("products")
       .select("*, maker:profiles(id, username, avatar_url, display_name)")
@@ -72,6 +79,8 @@ export default async function HomePage() {
   const curatedProducts = (rawCurated ?? []).map(enrich);
   const newLaunches = (rawNew ?? []).map(enrich);
   const devlogs = (rawDevlogs ?? []) as unknown as DevlogPostWithAuthor[];
+  const homeDevlogs = (rawHomeDevlogs ?? []) as unknown as DevlogPostWithAuthor[];
+  const sidebarDevlogs = homeDevlogs.length > 0 ? homeDevlogs : devlogs.slice(0, 3);
   const hotLaunches = (rawHot ?? []).map(enrich);
   const discovery = rawDiscovery ? enrich(rawDiscovery as RawProduct) : null;
   const userId = user?.id ?? null;
@@ -171,7 +180,14 @@ export default async function HomePage() {
           </section>
         </main>
 
-        {discovery && <TodayDiscovery product={discovery} />}
+        {(discovery || sidebarDevlogs.length > 0) && (
+          <aside className="order-2 mb-10 hidden lg:block min-[1400px]:order-none min-[1400px]:col-start-3 min-[1400px]:row-span-2 min-[1400px]:row-start-1 min-[1400px]:mb-0 min-[1400px]:sticky min-[1400px]:top-20">
+            <div className="border-y border-slate-200 py-5 dark:border-navy-800 min-[1400px]:border-y-0 min-[1400px]:py-1 min-[1400px]:pl-7">
+              {discovery && <TodayDiscovery product={discovery} />}
+              {sidebarDevlogs.length > 0 && <RecentDevlogs posts={sidebarDevlogs} />}
+            </div>
+          </aside>
+        )}
       </div>
     </div>
   );
@@ -182,49 +198,95 @@ function TodayDiscovery({ product }: { product: ProductWithMaker }) {
   const makerName = product.maker?.display_name ?? product.maker?.username ?? "Sidedock";
 
   return (
-    <aside className="order-2 mb-10 hidden lg:block min-[1400px]:order-none min-[1400px]:col-start-3 min-[1400px]:row-span-2 min-[1400px]:row-start-1 min-[1400px]:mb-0 min-[1400px]:sticky min-[1400px]:top-20">
-      <div className="border-y border-slate-200 py-5 dark:border-navy-800 min-[1400px]:border-y-0 min-[1400px]:py-1 min-[1400px]:pl-7">
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <div>
-            <p className="text-xs font-bold text-blue-600 dark:text-blue-400">TODAY&apos;S DISCOVERY</p>
-            <h2 className="mt-1 text-base font-black text-slate-900 dark:text-slate-100">오늘의 발견</h2>
+    <section>
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div>
+          <p className="text-xs font-bold text-blue-600 dark:text-blue-400">TODAY&apos;S DISCOVERY</p>
+          <h2 className="mt-1 text-base font-black text-slate-900 dark:text-slate-100">오늘의 발견</h2>
+        </div>
+        <span className="text-lg" aria-hidden="true">✦</span>
+      </div>
+
+      <Link href={`/products/${product.slug}`} className="group block">
+        <div className="flex items-start gap-3">
+          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-100 ring-1 ring-black/5 dark:bg-navy-800 dark:ring-0">
+            {product.thumbnail_url ? (
+              <Image src={product.thumbnail_url} alt={product.name} width={48} height={48} className="h-full w-full object-cover" unoptimized />
+            ) : (
+              <span className="text-xl font-black text-slate-400">{product.name[0]?.toUpperCase()}</span>
+            )}
           </div>
-          <span className="text-lg" aria-hidden="true">✦</span>
+          <div className="min-w-0">
+            <h3 className="truncate font-bold text-slate-900 transition group-hover:text-blue-600 dark:text-slate-100 dark:group-hover:text-blue-400">{product.name}</h3>
+            <p className="mt-0.5 line-clamp-2 text-sm leading-5 text-slate-500 dark:text-slate-400">{product.tagline}</p>
+          </div>
         </div>
 
-        <Link href={`/products/${product.slug}`} className="group block">
-          <div className="flex items-start gap-3">
-            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-100 ring-1 ring-black/5 dark:bg-navy-800 dark:ring-0">
-              {product.thumbnail_url ? (
-                <Image src={product.thumbnail_url} alt={product.name} width={48} height={48} className="h-full w-full object-cover" unoptimized />
-              ) : (
-                <span className="text-xl font-black text-slate-400">{product.name[0]?.toUpperCase()}</span>
-              )}
-            </div>
-            <div className="min-w-0">
-              <h3 className="truncate font-bold text-slate-900 transition group-hover:text-blue-600 dark:text-slate-100 dark:group-hover:text-blue-400">{product.name}</h3>
-              <p className="mt-0.5 line-clamp-2 text-sm leading-5 text-slate-500 dark:text-slate-400">{product.tagline}</p>
-            </div>
-          </div>
+        <div className="mt-4 flex flex-wrap gap-1.5">
+          {categories.slice(0, 2).map((category) => (
+            <span key={category} className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${CATEGORY_COLORS[category] ?? CATEGORY_COLORS.other}`}>
+              {CATEGORY_LABELS[category] ?? category}
+            </span>
+          ))}
+        </div>
 
-          <div className="mt-4 flex flex-wrap gap-1.5">
-            {categories.slice(0, 2).map((category) => (
-              <span key={category} className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${CATEGORY_COLORS[category] ?? CATEGORY_COLORS.other}`}>
-                {CATEGORY_LABELS[category] ?? category}
-              </span>
-            ))}
-          </div>
+        <p className="mt-4 border-l-2 border-blue-500 pl-3 text-sm leading-5 text-slate-600 dark:text-slate-300">
+          Sidedock이 발견한 {makerName}의 새 서비스입니다.
+        </p>
+        <span className="mt-4 inline-flex text-sm font-semibold text-blue-600 transition group-hover:text-blue-700 dark:text-blue-400">
+          제품 자세히 보기 →
+        </span>
+      </Link>
+    </section>
+  );
+}
 
-          <p className="mt-4 border-l-2 border-blue-500 pl-3 text-sm leading-5 text-slate-600 dark:text-slate-300">
-            Sidedock이 발견한 {makerName}의 새 서비스입니다.
-          </p>
-          <span className="mt-4 inline-flex text-sm font-semibold text-blue-600 transition group-hover:text-blue-700 dark:text-blue-400">
-            제품 자세히 보기 →
-          </span>
+function RecentDevlogs({ posts }: { posts: DevlogPostWithAuthor[] }) {
+  return (
+    <section className="mt-8 border-t border-slate-200 pt-6 dark:border-navy-800">
+      <div className="mb-4 flex items-end justify-between gap-3">
+        <div>
+          <p className="font-mono text-[10px] font-bold tracking-wide text-emerald-600 dark:text-emerald-400">RECENT BUILD NOTES</p>
+          <h2 className="mt-1 text-base font-black text-slate-900 dark:text-slate-100">Dev Log</h2>
+        </div>
+        <Link href="/devlog" className="text-xs font-semibold text-slate-400 transition hover:text-emerald-600 dark:hover:text-emerald-400">
+          모두 보기 →
         </Link>
       </div>
-    </aside>
+
+      <div className="border-l border-slate-200 dark:border-navy-700">
+        {posts.map((post, index) => {
+          const authorName = post.author?.display_name ?? post.author?.username ?? "메이커";
+          return (
+            <Link
+              key={post.id}
+              href={`/devlog/${post.slug ?? post.id}`}
+              className="group relative block py-3 pl-4 first:pt-0 last:pb-0"
+            >
+              <span className="absolute -left-[5px] top-4 h-2 w-2 rounded-full border-2 border-white bg-emerald-500 dark:border-navy-900 group-first:top-1" />
+              <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                <span className="font-mono text-emerald-600 dark:text-emerald-400">{String(index + 1).padStart(2, "0")}</span>
+                <span className="truncate">{authorName}</span>
+              </div>
+              <h3 className="mt-1 line-clamp-2 text-sm font-bold leading-5 text-slate-700 transition group-hover:text-emerald-600 dark:text-slate-200 dark:group-hover:text-emerald-400">
+                {post.title}
+              </h3>
+              <p className="mt-1 text-xs text-slate-400">{devlogTimeAgo(post.created_at)} · 관심 ♥ {post.like_count}</p>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
   );
+}
+
+function devlogTimeAgo(dateStr: string): string {
+  const elapsedMinutes = Math.floor((Date.now() - new Date(dateStr).getTime()) / 60000);
+  if (elapsedMinutes < 60) return `${Math.max(1, elapsedMinutes)}분 전`;
+  const elapsedHours = Math.floor(elapsedMinutes / 60);
+  if (elapsedHours < 24) return `${elapsedHours}시간 전`;
+  const elapsedDays = Math.floor(elapsedHours / 24);
+  return `${elapsedDays}일 전`;
 }
 
 function SectionHeader({

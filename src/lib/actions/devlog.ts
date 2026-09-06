@@ -81,6 +81,54 @@ export async function deleteDevlogPost(postId: string): Promise<{ error?: string
   return {};
 }
 
+export async function toggleHomeDevlog(postId: string): Promise<{ error?: string; isFeatured?: boolean }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "로그인이 필요합니다." };
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("is_admin")
+    .eq("id", user.id)
+    .single();
+  if (!profile?.is_admin) return { error: "관리자 권한이 필요합니다." };
+
+  const { data: post, error: postError } = await supabase
+    .from("devlog_posts")
+    .select("is_home_featured")
+    .eq("id", postId)
+    .single();
+  if (postError || !post) return { error: "Dev Log를 찾을 수 없습니다." };
+
+  if (post.is_home_featured) {
+    const { error } = await supabase
+      .from("devlog_posts")
+      .update({ is_home_featured: false, home_featured_at: null })
+      .eq("id", postId);
+    if (error) return { error: error.message };
+    revalidatePath("/");
+    revalidatePath("/admin/devlog");
+    return { isFeatured: false };
+  }
+
+  const { count, error: countError } = await supabase
+    .from("devlog_posts")
+    .select("id", { count: "exact", head: true })
+    .eq("is_home_featured", true);
+  if (countError) return { error: countError.message };
+  if ((count ?? 0) >= 3) return { error: "홈에 표시할 Dev Log는 최대 3편까지 선택할 수 있습니다." };
+
+  const { error } = await supabase
+    .from("devlog_posts")
+    .update({ is_home_featured: true, home_featured_at: new Date().toISOString() })
+    .eq("id", postId);
+  if (error) return { error: error.message };
+
+  revalidatePath("/");
+  revalidatePath("/admin/devlog");
+  return { isFeatured: true };
+}
+
 /** 프로필 탭 등 리다이렉트 없이 삭제할 때 사용 */
 export async function deleteDevlogPostSilent(postId: string): Promise<{ success: boolean; error?: string }> {
   const supabase = await createClient();

@@ -235,6 +235,8 @@ CREATE TABLE IF NOT EXISTS public.devlog_posts (
   slug          text,              -- v8
   like_count    integer DEFAULT 0 NOT NULL,
   comment_count integer DEFAULT 0 NOT NULL,
+  is_home_featured boolean DEFAULT false NOT NULL,
+  home_featured_at timestamptz,
   created_at    timestamptz DEFAULT now() NOT NULL,
   updated_at    timestamptz DEFAULT now() NOT NULL,
   search_vector tsvector GENERATED ALWAYS AS (
@@ -249,6 +251,7 @@ ALTER TABLE public.devlog_posts ALTER COLUMN slug SET NOT NULL;
 
 CREATE INDEX IF NOT EXISTS devlog_posts_author_idx    ON public.devlog_posts(author_id);
 CREATE INDEX IF NOT EXISTS devlog_posts_created_at_idx ON public.devlog_posts(created_at DESC);
+CREATE INDEX IF NOT EXISTS devlog_posts_home_featured_idx ON public.devlog_posts(home_featured_at DESC) WHERE is_home_featured = true;
 CREATE INDEX IF NOT EXISTS devlog_posts_search_idx    ON public.devlog_posts USING gin(search_vector);
 CREATE UNIQUE INDEX IF NOT EXISTS devlog_posts_slug_idx ON public.devlog_posts(slug);
 
@@ -426,6 +429,9 @@ CREATE POLICY "notifications_insert_auth" ON public.notifications FOR INSERT WIT
 CREATE POLICY "devlog_posts_read_all"    ON public.devlog_posts FOR SELECT USING (true);
 CREATE POLICY "devlog_posts_insert_auth" ON public.devlog_posts FOR INSERT WITH CHECK (auth.uid() = author_id);
 CREATE POLICY "devlog_posts_update_own"  ON public.devlog_posts FOR UPDATE USING (auth.uid() = author_id);
+CREATE POLICY "devlog_posts_update_admin" ON public.devlog_posts FOR UPDATE USING (
+  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true)
+);
 CREATE POLICY "devlog_posts_delete_own"  ON public.devlog_posts FOR DELETE USING (auth.uid() = author_id);
 
 -- devlog_likes

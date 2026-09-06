@@ -190,6 +190,8 @@ export interface DevlogPost {
   thumbnail_url: string | null;
   like_count: number;
   comment_count: number;
+  is_home_featured: boolean;
+  home_featured_at: string | null;
   created_at: string;
   updated_at: string;
 }
