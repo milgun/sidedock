@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import ClaimsClient, { type PendingClaim } from "./ClaimsClient";
 
 export default async function ClaimsPage() {
@@ -31,19 +30,11 @@ export default async function ClaimsPage() {
   const claims = (pending ?? []) as unknown as PendingClaim[];
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10">
+    <div>
       {/* Header */}
       <div className="mb-8 flex items-center gap-4">
         <div>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/admin/upload"
-              className="text-sm text-slate-400 hover:text-slate-600"
-            >
-              ← 관리자 홈
-            </Link>
-          </div>
-          <h1 className="mt-1 text-2xl font-black text-slate-900 dark:text-slate-100">
+          <h1 className="text-2xl font-black text-slate-900 dark:text-slate-100">
             소유권 요청 심사
           </h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">

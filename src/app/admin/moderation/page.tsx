@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import ModerationClient from "./ModerationClient";
 
 export default async function ModerationPage() {
@@ -20,39 +19,19 @@ export default async function ModerationPage() {
 
   if (!profile?.is_admin) redirect("/");
 
-  const [{ data: pending }, { data: publishedLaunches }] = await Promise.all([
-    supabase
-      .from("products")
-      .select("id, slug, name, tagline, description, url, thumbnail_url, category, categories, created_at, maker:profiles(id, username, display_name, avatar_url)")
-      .eq("status", "pending_review")
-      .order("created_at", { ascending: true }),
-    supabase
-      .from("products")
-      .select("id, slug, name, tagline, thumbnail_url, created_at, is_discovery_pick, maker:profiles(id, username, display_name, avatar_url)")
-      .eq("source", "launch")
-      .eq("status", "published")
-      .order("is_discovery_pick", { ascending: false })
-      .order("launched_at", { ascending: false })
-      .limit(20),
-  ]);
+  const { data: pending } = await supabase
+    .from("products")
+    .select("id, slug, name, tagline, description, url, thumbnail_url, category, categories, created_at, maker:profiles(id, username, display_name, avatar_url)")
+    .eq("status", "pending_review")
+    .order("created_at", { ascending: true });
 
   const products = (pending ?? []) as unknown as Parameters<typeof ModerationClient>[0]["products"];
-  const discoveryProducts = (publishedLaunches ?? []) as unknown as Parameters<typeof ModerationClient>[0]["discoveryProducts"];
-
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10">
+    <div>
       {/* Header */}
       <div className="mb-8 flex items-center gap-4">
         <div>
-          <div className="flex items-center gap-3">
-            <Link
-              href="/admin/upload"
-              className="text-sm text-slate-400 hover:text-slate-600"
-            >
-              ← 관리자 홈
-            </Link>
-          </div>
-          <h1 className="mt-1 text-2xl font-black text-slate-900 dark:text-slate-100">
+          <h1 className="text-2xl font-black text-slate-900 dark:text-slate-100">
             제품 심사 대기열
           </h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
@@ -88,7 +67,7 @@ export default async function ModerationPage() {
         </div>
       </div>
 
-      <ModerationClient products={products} discoveryProducts={discoveryProducts} />
+      <ModerationClient products={products} />
     </div>
   );
 }

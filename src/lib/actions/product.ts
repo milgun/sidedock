@@ -416,6 +416,7 @@ export async function setDiscoveryPick(
 
   revalidatePath("/");
   revalidatePath("/admin/moderation");
+  revalidatePath("/admin/discovery");
   return {};
 }
 

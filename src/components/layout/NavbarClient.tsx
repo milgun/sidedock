@@ -111,11 +111,11 @@ export default function NavbarClient({ user, avatarUrl, isAdmin, username }: Nav
                 </Link>
                 {isAdmin && (
                   <Link
-                    href="/admin/upload"
+                    href="/admin"
                     onClick={() => setOpen(false)}
                     className="block px-4 py-2 text-sm font-medium text-amber-600 hover:bg-amber-50 dark:hover:bg-navy-800"
                   >
-                    🛠 Hot Products 등록
+                    관리자 설정
                   </Link>
                 )}
                 <button
