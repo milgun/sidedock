@@ -51,7 +51,7 @@ export default function DevlogHomeList({ posts }: { posts: DevlogPostWithAuthor[
             </div>
             <div className="relative hidden h-16 w-24 flex-shrink-0 overflow-hidden rounded-xl bg-slate-100 sm:block dark:bg-navy-800">
               {post.thumbnail_url ? (
-                <Image src={post.thumbnail_url} alt="" fill className="object-cover transition group-hover:scale-105" sizes="96px" />
+                <Image src={post.thumbnail_url} alt="" fill className="object-cover transition group-hover:scale-105" sizes="96px" unoptimized />
               ) : (
                 <span className="flex h-full items-center justify-center text-2xl">📝</span>
               )}

@@ -56,6 +56,7 @@ export default function FeaturedHeroCard({ product }: FeaturedHeroCardProps) {
                 width={176}
                 height={144}
                 className="h-full w-full object-cover transition group-hover:scale-105"
+                unoptimized
               />
             </div>
           )}

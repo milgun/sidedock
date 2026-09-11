@@ -75,6 +75,7 @@ export default function NavbarClient({ user, avatarUrl, isAdmin, username }: Nav
                   width={32}
                   height={32}
                   className="h-full w-full object-cover"
+                  unoptimized
                 />
               ) : (
                 <span className="flex h-full w-full items-center justify-center bg-navy-900 text-xs font-bold text-white">

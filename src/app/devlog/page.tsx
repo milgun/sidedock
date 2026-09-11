@@ -81,6 +81,7 @@ export default async function DevlogPage() {
                     fill
                     className="object-cover transition group-hover:scale-[1.02]"
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    unoptimized
                   />
                 ) : (
                   <div className="flex h-full items-center justify-center text-4xl select-none">
@@ -118,6 +119,7 @@ export default async function DevlogPage() {
                       width={24}
                       height={24}
                       className="rounded-full object-cover"
+                      unoptimized
                     />
                   ) : (
                     <div className="h-6 w-6 rounded-full bg-slate-200 flex items-center justify-center text-xs text-slate-500 dark:bg-navy-800 dark:text-slate-400">

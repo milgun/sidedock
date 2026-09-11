@@ -193,7 +193,7 @@ export default async function DevlogDetailPage(props: {
         <div className="mt-4 flex items-center gap-3">
           <div className="h-8 w-8 overflow-hidden rounded-full bg-navy-900">
             {post.author?.avatar_url ? (
-              <Image src={post.author.avatar_url} alt={post.author.username} width={32} height={32} className="h-full w-full object-cover" />
+              <Image src={post.author.avatar_url} alt={post.author.username} width={32} height={32} className="h-full w-full object-cover" unoptimized />
             ) : (
               <span className="flex h-full w-full items-center justify-center text-xs font-bold text-white">
                 {post.author?.username?.[0]?.toUpperCase()}

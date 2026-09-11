@@ -370,7 +370,7 @@ export default function DevlogEditor({
         >
           {thumbnail ? (
             <>
-              <Image src={thumbnail} alt="썸네일" fill className="object-cover" />
+              <Image src={thumbnail} alt="썸네일" fill className="object-cover" unoptimized />
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); setThumbnail(null); }}
