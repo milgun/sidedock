@@ -24,6 +24,7 @@ const nextConfig: NextConfig = {
         hostname: "**",
       },
     ],
+    minimumCacheTTL: 60 * 60 * 24 * 30,
   },
 };
 
