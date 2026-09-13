@@ -33,6 +33,14 @@ const preferenceForType: Record<EngagementNotificationType, keyof NotificationPr
   upvote: "email_upvotes",
 };
 
+const defaultEmailPreferences: NotificationPreferences = {
+  email_comments: true,
+  email_replies: true,
+  email_upvotes: false,
+  email_product_status: true,
+  email_claims: true,
+};
+
 const typeConfig: Record<EngagementNotificationType, {
   prompt: string;
   promptColor: string;
@@ -197,7 +205,10 @@ export async function sendNotificationEmail({ userId, type, actorName, productNa
     admin.auth.admin.getUserById(userId),
     admin.from("notification_preferences").select(preference).eq("user_id", userId).maybeSingle(),
   ]);
-  if (settings && (settings as Record<string, boolean>)[preference] === false) return;
+  const enabled = settings
+    ? (settings as Record<string, boolean>)[preference]
+    : defaultEmailPreferences[preference];
+  if (!enabled) return;
   const email = authUser.user?.email;
   if (!email) return;
 
