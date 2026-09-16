@@ -31,6 +31,11 @@ const APP_CATEGORY_MAP: Record<string, string> = {
   "social": "SocialNetworkingApplication",
 };
 
+function toExternalUrl(value: string): string {
+  const trimmed = value.trim();
+  return /^[a-z][a-z\d+.-]*:/i.test(trimmed) ? trimmed : `https://${trimmed}`;
+}
+
 export async function generateMetadata(
   props: { params: Promise<{ slug: string }> }
 ): Promise<Metadata> {
@@ -410,7 +415,7 @@ export default async function ProductDetailPage(props: {
           <div className="mt-4 flex flex-wrap items-center gap-2">
             {product.url && (
               <a
-                href={product.url as string}
+                href={toExternalUrl(product.url as string)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 rounded-xl bg-navy-900 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-navy-800"
@@ -423,7 +428,7 @@ export default async function ProductDetailPage(props: {
               return (
                 <a
                   key={link.id}
-                  href={link.url}
+                  href={toExternalUrl(link.url)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:shadow-sm dark:border-navy-700 dark:bg-navy-900 dark:text-slate-200 dark:hover:border-navy-600"
