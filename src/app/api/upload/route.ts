@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
+import sharp from "sharp";
 import { createClient } from "@/lib/supabase/server";
 
 const ALLOWED: Record<string, string> = {
@@ -8,6 +9,12 @@ const ALLOWED: Record<string, string> = {
   "image/webp": "webp",
   "image/gif": "gif",
 };
+
+// 원본 이미지 최대 변 길이 — Supabase Egress/Vercel Transformation 절감을 위해 업로드 시점에 리사이즈
+const MAX_DIMENSION = 1600;
+const WEBP_QUALITY = 80;
+// UUID 파일명이라 내용이 바뀌지 않으므로 1년 장기 캐시 사용
+const CACHE_CONTROL = "31536000";
 
 const BUCKET = process.env.SUPABASE_STORAGE_BUCKET ?? "uploads";
 
@@ -44,12 +51,31 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const filename = `${randomUUID()}.${ext}`;
-  const buffer = Buffer.from(await file.arrayBuffer());
+  const inputBuffer = Buffer.from(await file.arrayBuffer());
+
+  // GIF(애니메이션)는 재인코딩하지 않고 원본 그대로 업로드, 그 외는 리사이즈 + WebP 재인코딩
+  let outputBuffer = inputBuffer;
+  let outputExt = ext;
+  let outputContentType = file.type;
+  if (ext !== "gif") {
+    outputBuffer = await sharp(inputBuffer)
+      .rotate()
+      .resize({ width: MAX_DIMENSION, height: MAX_DIMENSION, fit: "inside", withoutEnlargement: true })
+      .webp({ quality: WEBP_QUALITY })
+      .toBuffer();
+    outputExt = "webp";
+    outputContentType = "image/webp";
+  }
+
+  const filename = `${randomUUID()}.${outputExt}`;
 
   const { error } = await supabase.storage
     .from(BUCKET)
-    .upload(filename, buffer, { contentType: file.type, upsert: false });
+    .upload(filename, outputBuffer, {
+      contentType: outputContentType,
+      upsert: false,
+      cacheControl: CACHE_CONTROL,
+    });
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
