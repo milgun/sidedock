@@ -6,7 +6,7 @@ import Image from "next/image";
 import type { ProductWithMaker } from "@/types";
 import ProductCard from "@/components/product/ProductCard";
 import ProfileProducts from "@/components/profile/ProfileProducts";
-import { deleteDevlogPostSilent } from "@/lib/actions/devlog";
+import { deleteDevlogFolder, deleteDevlogPostSilent, renameDevlogFolder } from "@/lib/actions/devlog";
 
 // ── Tab definition ────────────────────────────────────────────────────────────
 const TABS = [
@@ -57,7 +57,11 @@ interface DevlogData {
     id: string; slug?: string; title: string; tags: string[];
     thumbnail_url: string | null;
     like_count: number; comment_count: number; created_at: string;
+    visibility?: "public" | "private";
+    folder_id?: string | null;
+    folder?: { id: string; name: string; slug: string } | null;
   }>;
+  folders?: Array<{ id: string; name: string; slug: string }>;
 }
 
 type TabData = AboutData | ActivityData | ProductsData | BoostData | StackData | ReviewsData | DevlogData;
@@ -191,7 +195,7 @@ export default function ProfileTabsClient({
               if (!cur) return prev;
               return {
                 ...prev,
-                devlog: { devlogs: cur.devlogs.filter((d) => d.id !== id) },
+                devlog: { ...cur, devlogs: cur.devlogs.filter((d) => d.id !== id) },
               };
             });
           }}
@@ -407,6 +411,7 @@ function TabContent({
     return (
       <DevlogTabContent
         devlogs={devlogs}
+        folders={(data as DevlogData).folders ?? []}
         isOwn={isOwn}
         onDevlogDeleted={onDevlogDeleted}
       />
@@ -438,25 +443,99 @@ function TabContent({
 // ── DevlogTabContent (태그 필터 포함) ─────────────────────────────────────────
 function DevlogTabContent({
   devlogs,
+  folders,
   isOwn,
   onDevlogDeleted,
 }: {
   devlogs: DevlogData["devlogs"];
+  folders: NonNullable<DevlogData["folders"]>;
   isOwn: boolean;
   onDevlogDeleted: (id: string) => void;
 }) {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
+  const [menuFolderId, setMenuFolderId] = useState<string | null>(null);
+  const [folderMenuPosition, setFolderMenuPosition] = useState<{ top: number; left: number } | null>(null);
+  const folderMenuRef = useRef<HTMLDivElement>(null);
+  const [editingFolder, setEditingFolder] = useState<{ id: string; name: string } | null>(null);
+  const [folderName, setFolderName] = useState("");
+  const [folderError, setFolderError] = useState<string | null>(null);
+  const [isFolderPending, startFolderTransition] = useTransition();
+  const folderOptions = folders;
 
   // 전체 태그 목록 (중복 제거, 사용 빈도순)
   const tagCounts = devlogs.reduce<Record<string, number>>((acc, post) => {
     post.tags.forEach((tag) => { acc[tag] = (acc[tag] ?? 0) + 1; });
     return acc;
   }, {});
-  const allTags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]).map(([tag]) => tag);
+  const allTags = Object.entries(tagCounts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([tag]) => tag);
 
-  const filtered = selectedTag
-    ? devlogs.filter((p) => p.tags.includes(selectedTag))
+  const folderFiltered = selectedFolder
+    ? selectedFolder === "__uncategorized"
+      ? devlogs.filter((post) => !post.folder_id)
+      : devlogs.filter((post) => post.folder_id === selectedFolder)
     : devlogs;
+  const filtered = selectedTag
+    ? folderFiltered.filter((p) => p.tags.includes(selectedTag))
+    : folderFiltered;
+
+  const tagRows = Array.from({ length: 3 }, (_, rowIndex) => allTags.filter((_, index) => index % 3 === rowIndex));
+
+  useEffect(() => {
+    if (!menuFolderId) return;
+    const closeMenu = (event: MouseEvent) => {
+      if (!folderMenuRef.current?.contains(event.target as Node)) {
+        setMenuFolderId(null);
+        setFolderMenuPosition(null);
+      }
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMenuFolderId(null);
+        setFolderMenuPosition(null);
+      }
+    };
+    document.addEventListener("mousedown", closeMenu);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("mousedown", closeMenu);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [menuFolderId]);
+
+  const openEditModal = (folder: { id: string; name: string }) => {
+    setEditingFolder(folder);
+    setFolderName(folder.name);
+    setFolderError(null);
+    setMenuFolderId(null);
+  };
+
+  const saveFolderName = () => {
+    if (!editingFolder) return;
+    startFolderTransition(async () => {
+      const result = await renameDevlogFolder(editingFolder.id, folderName);
+      if (result.error) {
+        setFolderError(result.error);
+        return;
+      }
+      window.location.reload();
+    });
+  };
+
+  const removeFolder = (folder: { id: string; name: string }) => {
+    setMenuFolderId(null);
+    if (!window.confirm(`'${folder.name}' Work Folder를 삭제할까요? 포함된 글은 미분류로 유지됩니다.`)) return;
+    startFolderTransition(async () => {
+      const result = await deleteDevlogFolder(folder.id);
+      if (result.error) {
+        setFolderError(result.error);
+        return;
+      }
+      window.location.reload();
+    });
+  };
 
   if (devlogs.length === 0) {
     return (
@@ -470,31 +549,91 @@ function DevlogTabContent({
 
   return (
     <div className="space-y-4">
+      {/* Work Folder 탐색 */}
+      {folderOptions.length > 0 && (
+        <div className="relative -mx-1">
+          <div className="flex gap-2 overflow-x-auto px-1 pb-1 scrollbar-none">
+            <button onClick={() => setSelectedFolder(null)} className={`flex-shrink-0 rounded-xl border px-3 py-2 text-xs font-semibold transition ${selectedFolder === null ? "border-blue-500 bg-blue-600 text-white" : "border-slate-200 text-slate-500 hover:border-blue-300 dark:border-navy-700 dark:text-slate-400"}`}>전체 글 <span className="ml-1 opacity-70">{devlogs.length}</span></button>
+            {folderOptions.map((folder) => {
+              const count = devlogs.filter((post) => post.folder_id === folder.id).length;
+              return <div key={folder.id} className="relative flex flex-shrink-0" ref={menuFolderId === folder.id ? folderMenuRef : undefined}>
+                <button type="button" onClick={() => { setSelectedFolder(selectedFolder === folder.id ? null : folder.id); setSelectedTag(null); }} className={`rounded-l-xl border py-2 pl-3 pr-2 text-xs font-semibold transition ${selectedFolder === folder.id ? "border-blue-500 bg-blue-600 text-white" : "border-slate-200 text-slate-500 hover:border-blue-300 dark:border-navy-700 dark:text-slate-400"}`}>{folder.name} <span className="ml-1 opacity-70">{count}</span></button>
+                {isOwn && <button type="button" onMouseDown={(event) => event.stopPropagation()} onClick={(event) => {
+                  if (menuFolderId === folder.id) {
+                    setMenuFolderId(null);
+                    setFolderMenuPosition(null);
+                    return;
+                  }
+                  const rect = event.currentTarget.getBoundingClientRect();
+                  setMenuFolderId(folder.id);
+                  setFolderMenuPosition({ top: rect.bottom + 6, left: rect.left });
+                }} aria-label={`${folder.name} 관리`} className={`rounded-r-xl border border-l-0 px-2 py-2 text-xs transition ${selectedFolder === folder.id ? "border-blue-500 bg-blue-600 text-white" : "border-slate-200 text-slate-400 hover:border-blue-300 hover:text-blue-600 dark:border-navy-700"}`}>···</button>}
+              </div>;
+            })}
+            {isOwn && <button onClick={() => setSelectedFolder(selectedFolder === "__uncategorized" ? null : "__uncategorized")} className={`flex-shrink-0 rounded-xl border px-3 py-2 text-xs font-semibold transition ${selectedFolder === "__uncategorized" ? "border-blue-500 bg-blue-600 text-white" : "border-dashed border-slate-300 text-slate-500 hover:border-blue-300 dark:border-navy-700 dark:text-slate-400"}`}>미분류 <span className="ml-1 opacity-70">{devlogs.filter((post) => !post.folder_id).length}</span></button>}
+          </div>
+        </div>
+      )}
+
+      {isOwn && menuFolderId && folderMenuPosition && (() => {
+        const folder = folderOptions.find((item) => item.id === menuFolderId);
+        if (!folder) return null;
+        return (
+          <div className="fixed z-40 min-w-24 overflow-hidden rounded-lg border border-slate-100 bg-white py-1 shadow-lg dark:border-navy-800 dark:bg-navy-900" ref={folderMenuRef} style={{ top: folderMenuPosition.top, left: folderMenuPosition.left }}>
+            <button type="button" onClick={() => openEditModal(folder)} className="block w-full px-3 py-1.5 text-left text-xs text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-navy-800">수정</button>
+            <button type="button" onClick={() => removeFolder(folder)} className="block w-full px-3 py-1.5 text-left text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10">삭제</button>
+          </div>
+        );
+      })()}
+
+      {editingFolder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-sm rounded-xl border border-slate-100 bg-white p-5 shadow-xl dark:border-navy-800 dark:bg-navy-900">
+            <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">Work Folder 수정</h2>
+            <p className="mt-1 text-xs text-slate-400">이름을 변경해도 포함된 글은 그대로 유지됩니다.</p>
+            <input value={folderName} onChange={(event) => setFolderName(event.target.value)} maxLength={40} autoFocus className="mt-4 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-400 dark:border-navy-700 dark:bg-navy-800 dark:text-slate-100" />
+            {folderError && <p className="mt-2 text-xs text-red-500">{folderError}</p>}
+            <div className="mt-4 flex justify-end gap-2">
+              <button type="button" onClick={() => setEditingFolder(null)} className="rounded-lg px-3 py-2 text-sm text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-navy-800">취소</button>
+              <button type="button" onClick={saveFolderName} disabled={isFolderPending || !folderName.trim()} className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{isFolderPending ? "저장 중..." : "저장"}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 태그 필터 */}
       {allTags.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          <button
-            onClick={() => setSelectedTag(null)}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition ${
-              selectedTag === null
-                ? "bg-slate-900 dark:bg-blue-600 text-white"
-                : "bg-slate-100 dark:bg-navy-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-navy-700"
-            }`}
-          >
-            전체 <span className={`ml-0.5 ${selectedTag === null ? "text-slate-300" : "text-slate-400"}`}>{devlogs.length}</span>
-          </button>
-          {allTags.map((tag) => (
-            <button
-              key={tag}
-              onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
-              className={`rounded-full px-3 py-1 text-xs font-medium transition ${
-                selectedTag === tag
-                  ? "bg-slate-900 dark:bg-blue-600 text-white"
-                  : "bg-slate-100 dark:bg-navy-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-navy-700"
-              }`}
-            >
-              #{tag} <span className={`ml-0.5 ${selectedTag === tag ? "text-slate-300" : "text-slate-400"}`}>{tagCounts[tag]}</span>
-            </button>
+        <div className="space-y-1">
+          {tagRows.map((row, rowIndex) => (
+            <TagScrollRow key={rowIndex}>
+              {rowIndex === 0 && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedTag(null)}
+                  className={`flex-shrink-0 whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition ${
+                    selectedTag === null
+                      ? "bg-slate-900 dark:bg-blue-600 text-white"
+                      : "bg-slate-100 dark:bg-navy-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-navy-700"
+                  }`}
+                >
+                  태그 전체 <span className={`ml-0.5 ${selectedTag === null ? "text-slate-300" : "text-slate-400"}`}>{folderFiltered.length}</span>
+                </button>
+              )}
+              {row.map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
+                  className={`flex-shrink-0 whitespace-nowrap rounded-full px-3 py-1 text-xs font-medium transition ${
+                    selectedTag === tag
+                      ? "bg-slate-900 dark:bg-blue-600 text-white"
+                      : "bg-slate-100 dark:bg-navy-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-navy-700"
+                  }`}
+                >
+                  #{tag} <span className={`ml-0.5 ${selectedTag === tag ? "text-slate-300" : "text-slate-400"}`}>{tagCounts[tag]}</span>
+                </button>
+              ))}
+            </TagScrollRow>
           ))}
         </div>
       )}
@@ -514,6 +653,57 @@ function DevlogTabContent({
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function TagScrollRow({ children }: { children: React.ReactNode }) {
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef({ active: false, dragging: false, suppressClick: false, startX: 0, scrollLeft: 0 });
+
+  const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+    dragRef.current = { active: true, dragging: false, suppressClick: false, startX: event.clientX, scrollLeft: scroller.scrollLeft };
+  };
+
+  const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    const scroller = scrollerRef.current;
+    if (!dragRef.current.active || !scroller) return;
+    const distance = event.clientX - dragRef.current.startX;
+    if (!dragRef.current.dragging && Math.abs(distance) < 6) return;
+    dragRef.current.dragging = true;
+    event.preventDefault();
+    scroller.scrollLeft = dragRef.current.scrollLeft - distance;
+  };
+
+  const handlePointerUp = () => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+    dragRef.current.active = false;
+    dragRef.current.suppressClick = dragRef.current.dragging;
+  };
+
+  const handleClickCapture = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (!dragRef.current.suppressClick) return;
+    event.preventDefault();
+    event.stopPropagation();
+    dragRef.current.suppressClick = false;
+  };
+
+  return (
+    <div
+      ref={scrollerRef}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+      onClickCapture={handleClickCapture}
+      style={{ touchAction: "pan-y" }}
+      className="flex cursor-grab select-none gap-2 overflow-x-auto px-1 pb-1 scrollbar-none active:cursor-grabbing"
+    >
+      {children}
     </div>
   );
 }
@@ -538,6 +728,8 @@ function DevlogCard({
     id: string; slug?: string; title: string; tags: string[];
     thumbnail_url: string | null;
     like_count: number; comment_count: number; created_at: string;
+    visibility?: "public" | "private";
+    folder?: { id: string; name: string; slug: string } | null;
   };
   isOwn: boolean;
   onDeleted: (id: string) => void;
@@ -577,6 +769,11 @@ function DevlogCard({
           <Link href={`/devlog/${post.slug ?? post.id}`} className="font-semibold text-slate-900 dark:text-slate-100 hover:text-blue-600 leading-snug line-clamp-2">
             {post.title}
           </Link>
+
+          <div className="mt-1 flex items-center gap-2 text-xs text-slate-400">
+            {post.folder && <span className="font-medium text-blue-600 dark:text-blue-400">{post.folder.name}</span>}
+            {isOwn && post.visibility === "private" && <span className="text-amber-500">비공개</span>}
+          </div>
 
           {post.tags.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-1">

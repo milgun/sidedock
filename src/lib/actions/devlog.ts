@@ -6,6 +6,57 @@ import { generateUniqueSlug } from "@/lib/slug";
 import { sendNotificationEmail } from "@/lib/emails/notification";
 import type { ReactionEmoji, DevlogComment, Profile } from "@/types";
 
+function normalizeFolderSlug(name: string) {
+  return name.trim().toLowerCase().replace(/[^a-z0-9가-힣]+/g, "-").replace(/^-|-$/g, "") || "work";
+}
+
+export async function createDevlogFolder(name: string): Promise<{ error?: string; folder?: { id: string; name: string } }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "로그인이 필요합니다." };
+  const trimmed = name.trim();
+  if (!trimmed || trimmed.length > 40) return { error: "Work Folder 이름은 1~40자로 입력해주세요." };
+  const { data, error } = await supabase
+    .from("devlog_folders")
+    .insert({ owner_id: user.id, name: trimmed, slug: normalizeFolderSlug(trimmed) })
+    .select("id, name")
+    .single();
+  if (error) return { error: error.code === "23505" ? "같은 이름의 Work Folder가 이미 있습니다." : error.message };
+  return { folder: data };
+}
+
+export async function renameDevlogFolder(folderId: string, name: string): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "로그인이 필요합니다." };
+  const trimmed = name.trim();
+  if (!trimmed || trimmed.length > 40) return { error: "Work Folder 이름은 1~40자로 입력해주세요." };
+
+  const { error } = await supabase
+    .from("devlog_folders")
+    .update({ name: trimmed, slug: normalizeFolderSlug(trimmed), updated_at: new Date().toISOString() })
+    .eq("id", folderId)
+    .eq("owner_id", user.id);
+  if (error) return { error: error.code === "23505" ? "같은 이름의 Work Folder가 이미 있습니다." : error.message };
+  revalidatePath("/devlog");
+  return {};
+}
+
+export async function deleteDevlogFolder(folderId: string): Promise<{ error?: string }> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "로그인이 필요합니다." };
+
+  const { error } = await supabase
+    .from("devlog_folders")
+    .delete()
+    .eq("id", folderId)
+    .eq("owner_id", user.id);
+  if (error) return { error: error.message };
+  revalidatePath("/devlog");
+  return {};
+}
+
 export async function createDevlogPost(formData: FormData): Promise<{ error?: string; slug?: string }> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -15,17 +66,23 @@ export async function createDevlogPost(formData: FormData): Promise<{ error?: st
   const content = (formData.get("content") as string)?.trim();
   const tagsRaw = (formData.get("tags") as string) ?? "";
   const thumbnail_url = (formData.get("thumbnail_url") as string) || null;
+  const visibility = formData.get("visibility") === "private" ? "private" : "public";
+  const folderId = (formData.get("folder_id") as string) || null;
 
   if (!title || !content) return { error: "제목과 내용을 입력해주세요." };
   if (title.length < 5) return { error: "제목은 5자 이상 입력해주세요." };
   if (content.length < 20) return { error: "내용은 20자 이상 입력해주세요." };
 
   const tags = tagsRaw.split(",").map((t) => t.trim()).filter(Boolean).slice(0, 5);
+  if (folderId) {
+    const { data: folder } = await supabase.from("devlog_folders").select("id").eq("id", folderId).eq("owner_id", user.id).maybeSingle();
+    if (!folder) return { error: "Work Folder를 확인해주세요." };
+  }
   const slug = await generateUniqueSlug(title, supabase as never, undefined, "devlog_posts");
 
   const { data, error } = await supabase
     .from("devlog_posts")
-    .insert({ author_id: user.id, title, content, tags, thumbnail_url, slug })
+    .insert({ author_id: user.id, title, content, tags, thumbnail_url, slug, visibility, folder_id: folderId })
     .select("id, slug")
     .single();
 
@@ -44,17 +101,23 @@ export async function updateDevlogPost(postId: string, formData: FormData): Prom
   const content = (formData.get("content") as string)?.trim();
   const tagsRaw = (formData.get("tags") as string) ?? "";
   const thumbnail_url = (formData.get("thumbnail_url") as string) || null;
+  const visibility = formData.get("visibility") === "private" ? "private" : "public";
+  const folderId = (formData.get("folder_id") as string) || null;
 
   if (!title || !content) return { error: "제목과 내용을 입력해주세요." };
   if (title.length < 5) return { error: "제목은 5자 이상 입력해주세요." };
   if (content.length < 20) return { error: "내용은 20자 이상 입력해주세요." };
 
   const tags = tagsRaw.split(",").map((t) => t.trim()).filter(Boolean).slice(0, 5);
+  if (folderId) {
+    const { data: folder } = await supabase.from("devlog_folders").select("id").eq("id", folderId).eq("owner_id", user.id).maybeSingle();
+    if (!folder) return { error: "Work Folder를 확인해주세요." };
+  }
   const slug = await generateUniqueSlug(title, supabase as never, postId, "devlog_posts");
 
   const { error } = await supabase
     .from("devlog_posts")
-    .update({ title, content, tags, thumbnail_url, slug, updated_at: new Date().toISOString() })
+    .update({ title, content, tags, thumbnail_url, slug, visibility, folder_id: folderId, updated_at: new Date().toISOString() })
     .eq("id", postId)
     .eq("author_id", user.id);
 

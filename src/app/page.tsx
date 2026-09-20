@@ -38,12 +38,14 @@ export default async function HomePage() {
     supabase
       .from("devlog_posts")
       .select("*, author:profiles(id, username, avatar_url, display_name)")
+      .eq("visibility", "public")
       .order("created_at", { ascending: false })
       .limit(50),
     supabase
       .from("devlog_posts")
       .select("*, author:profiles(id, username, avatar_url, display_name)")
       .eq("is_home_featured", true)
+      .eq("visibility", "public")
       .order("home_featured_at", { ascending: false })
       .limit(3),
     supabase

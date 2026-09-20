@@ -22,6 +22,7 @@ export default async function DevlogPage() {
     supabase
       .from("devlog_posts")
       .select("*, author:profiles(id, username, avatar_url, display_name)")
+      .eq("visibility", "public")
       .order("created_at", { ascending: false })
       .limit(50),
     user

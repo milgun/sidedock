@@ -84,6 +84,7 @@ export default async function SearchPage({
       supabase
         .from("devlog_posts")
         .select("id, slug, title, content, thumbnail_url, tags, created_at, author:profiles(display_name, username)")
+        .eq("visibility", "public")
         .limit(100),
       supabase.auth.getUser(),
     ]);

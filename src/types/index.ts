@@ -192,6 +192,17 @@ export interface DevlogPost {
   comment_count: number;
   is_home_featured: boolean;
   home_featured_at: string | null;
+  visibility: "public" | "private";
+  folder_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DevlogFolder {
+  id: string;
+  owner_id: string;
+  name: string;
+  slug: string;
   created_at: string;
   updated_at: string;
 }

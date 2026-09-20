@@ -20,12 +20,17 @@ export default function NavbarClient({ user, avatarUrl, isAdmin, username }: Nav
   const router = useRouter();
   const supabase = createClient();
   const [open, setOpen] = useState(false);
+  const [creationOpen, setCreationOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const creationRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) {
         setOpen(false);
+      }
+      if (creationRef.current && !creationRef.current.contains(e.target as Node)) {
+        setCreationOpen(false);
       }
     };
     document.addEventListener("mousedown", handler);
@@ -42,13 +47,40 @@ export default function NavbarClient({ user, avatarUrl, isAdmin, username }: Nav
     <div className="ml-auto flex flex-shrink-0 items-center gap-1.5 sm:gap-2">
       <QuickSearch />
 
-      {/* Submit CTA */}
-      <Link
-        href="/submit"
-        className="hidden rounded-full bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-blue-700 sm:inline-flex"
-      >
-        + 등록
-      </Link>
+      {/* Desktop creation menu */}
+      <div className="relative hidden md:block" ref={creationRef}>
+        <button
+          type="button"
+          onClick={() => setCreationOpen((v) => !v)}
+          aria-expanded={creationOpen}
+          className="inline-flex items-center gap-1.5 rounded-full bg-blue-600 px-3.5 py-1.5 text-sm font-semibold text-white transition hover:bg-blue-700"
+        >
+          + 등록
+            <svg viewBox="0 0 20 20" className={`h-3.5 w-3.5 transition-transform ${creationOpen ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+            <path d="m5 7.5 5 5 5-5" />
+          </svg>
+        </button>
+        {creationOpen && (
+          <div className="absolute right-0 top-11 z-50 w-48 overflow-hidden rounded-xl border border-slate-100 bg-white p-1.5 shadow-xl dark:border-navy-800 dark:bg-navy-900">
+            <Link
+              href="/submit"
+              onClick={() => setCreationOpen(false)}
+              className="block rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-blue-50 hover:text-blue-700 dark:text-slate-200 dark:hover:bg-navy-800 dark:hover:text-blue-300"
+            >
+              <span className="block">제품 등록</span>
+              <span className="mt-0.5 block text-xs font-normal text-slate-400">새로운 제품을 소개해요</span>
+            </Link>
+            <Link
+              href="/devlog/new"
+              onClick={() => setCreationOpen(false)}
+              className="block rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-blue-50 hover:text-blue-700 dark:text-slate-200 dark:hover:bg-navy-800 dark:hover:text-blue-300"
+            >
+              <span className="block">Dev Log 작성</span>
+              <span className="mt-0.5 block text-xs font-normal text-slate-400">빌드 과정을 기록해요</span>
+            </Link>
+          </div>
+        )}
+      </div>
 
       {/* Login / Profile */}
       {!user ? (
@@ -102,6 +134,13 @@ export default function NavbarClient({ user, avatarUrl, isAdmin, username }: Nav
                   className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-navy-800"
                 >
                   제품 등록
+                </Link>
+                <Link
+                  href="/devlog/new"
+                  onClick={() => setOpen(false)}
+                  className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-navy-800"
+                >
+                  Dev Log 작성
                 </Link>
                 <Link
                   href="/settings"

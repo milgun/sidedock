@@ -147,13 +147,24 @@ export async function GET(
       .limit(30);
     tabData = { reviews: data ?? [] };
   } else if (tab === "devlog") {
-    const { data } = await supabase
+    const [{ data }, { data: folders }] = await Promise.all([
+      supabase
       .from("devlog_posts")
-      .select("id, title, tags, thumbnail_url, like_count, comment_count, created_at")
+      .select("id, slug, title, tags, thumbnail_url, like_count, comment_count, created_at, visibility, folder_id")
       .eq("author_id", profile.id)
       .order("created_at", { ascending: false })
-      .limit(30);
-    tabData = { devlogs: data ?? [] };
+      .limit(100),
+      supabase
+        .from("devlog_folders")
+        .select("id, name, slug")
+        .eq("owner_id", profile.id)
+        .order("created_at", { ascending: true }),
+    ]);
+    const folderMap = new Map((folders ?? []).map((folder) => [folder.id, folder]));
+    tabData = {
+      devlogs: (data ?? []).map((post) => ({ ...post, folder: post.folder_id ? folderMap.get(post.folder_id) ?? null : null })),
+      folders: folders ?? [],
+    };
   } else if (tab === "stack") {
     if (!isOwn) {
       tabData = { savedProducts: [] };

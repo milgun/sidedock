@@ -42,6 +42,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       supabase
         .from("devlog_posts")
         .select("slug, updated_at")
+        .eq("visibility", "public")
         .order("updated_at", { ascending: false })
         .limit(5000),
       supabase

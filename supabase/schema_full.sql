@@ -225,6 +225,16 @@ CREATE INDEX IF NOT EXISTS notifications_created_at_idx ON public.notifications(
 CREATE INDEX IF NOT EXISTS notifications_unread_idx     ON public.notifications(user_id, created_at DESC) WHERE read_at IS NULL;
 
 -- ── 9. devlog_posts ───────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.devlog_folders (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  owner_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+  name text NOT NULL CHECK (char_length(trim(name)) BETWEEN 1 AND 40),
+  slug text NOT NULL,
+  created_at timestamptz DEFAULT now() NOT NULL,
+  updated_at timestamptz DEFAULT now() NOT NULL,
+  UNIQUE(owner_id, slug)
+);
+
 CREATE TABLE IF NOT EXISTS public.devlog_posts (
   id            uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   author_id     uuid REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
@@ -237,6 +247,8 @@ CREATE TABLE IF NOT EXISTS public.devlog_posts (
   comment_count integer DEFAULT 0 NOT NULL,
   is_home_featured boolean DEFAULT false NOT NULL,
   home_featured_at timestamptz,
+  visibility text DEFAULT 'public' NOT NULL CHECK (visibility IN ('public', 'private')),
+  folder_id uuid REFERENCES public.devlog_folders(id) ON DELETE SET NULL,
   created_at    timestamptz DEFAULT now() NOT NULL,
   updated_at    timestamptz DEFAULT now() NOT NULL,
   search_vector tsvector GENERATED ALWAYS AS (
@@ -254,6 +266,9 @@ CREATE INDEX IF NOT EXISTS devlog_posts_created_at_idx ON public.devlog_posts(cr
 CREATE INDEX IF NOT EXISTS devlog_posts_home_featured_idx ON public.devlog_posts(home_featured_at DESC) WHERE is_home_featured = true;
 CREATE INDEX IF NOT EXISTS devlog_posts_search_idx    ON public.devlog_posts USING gin(search_vector);
 CREATE UNIQUE INDEX IF NOT EXISTS devlog_posts_slug_idx ON public.devlog_posts(slug);
+CREATE INDEX IF NOT EXISTS devlog_folders_owner_idx ON public.devlog_folders(owner_id, created_at);
+CREATE INDEX IF NOT EXISTS devlog_posts_folder_idx ON public.devlog_posts(folder_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS devlog_posts_public_idx ON public.devlog_posts(visibility, created_at DESC);
 
 -- ── 10. devlog_likes ──────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.devlog_likes (
@@ -352,6 +367,7 @@ ALTER TABLE public.product_investor_info ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reviews              ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notifications        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.devlog_posts         ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.devlog_folders       ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.devlog_likes         ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.devlog_comments      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.devlog_comment_reactions ENABLE ROW LEVEL SECURITY;
@@ -426,13 +442,26 @@ CREATE POLICY "notifications_update_own"  ON public.notifications FOR UPDATE USI
 CREATE POLICY "notifications_insert_auth" ON public.notifications FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 
 -- devlog_posts
-CREATE POLICY "devlog_posts_read_all"    ON public.devlog_posts FOR SELECT USING (true);
+CREATE POLICY "devlog_posts_read_public_or_own" ON public.devlog_posts FOR SELECT USING (
+  visibility = 'public' OR auth.uid() = author_id
+  OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true)
+);
 CREATE POLICY "devlog_posts_insert_auth" ON public.devlog_posts FOR INSERT WITH CHECK (auth.uid() = author_id);
 CREATE POLICY "devlog_posts_update_own"  ON public.devlog_posts FOR UPDATE USING (auth.uid() = author_id);
 CREATE POLICY "devlog_posts_update_admin" ON public.devlog_posts FOR UPDATE USING (
   EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true)
 );
 CREATE POLICY "devlog_posts_delete_own"  ON public.devlog_posts FOR DELETE USING (auth.uid() = author_id);
+
+-- devlog_folders
+CREATE POLICY "devlog_folders_read_public_or_own" ON public.devlog_folders FOR SELECT USING (
+  auth.uid() = owner_id
+  OR EXISTS (SELECT 1 FROM public.devlog_posts WHERE folder_id = devlog_folders.id AND visibility = 'public')
+  OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true)
+);
+CREATE POLICY "devlog_folders_insert_own" ON public.devlog_folders FOR INSERT WITH CHECK (auth.uid() = owner_id);
+CREATE POLICY "devlog_folders_update_own" ON public.devlog_folders FOR UPDATE USING (auth.uid() = owner_id);
+CREATE POLICY "devlog_folders_delete_own" ON public.devlog_folders FOR DELETE USING (auth.uid() = owner_id);
 
 -- devlog_likes
 CREATE POLICY "devlog_likes_read_all"    ON public.devlog_likes FOR SELECT USING (true);

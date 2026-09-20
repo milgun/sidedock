@@ -178,6 +178,13 @@ export default async function DevlogDetailPage(props: {
       <article>
         <h1 className="text-3xl font-black leading-snug text-slate-900 dark:text-slate-100">{post.title}</h1>
 
+        {(post.folder_id || (user?.id === post.author_id && post.visibility === "private")) && (
+          <div className="mt-3 flex items-center gap-2 text-xs">
+            {post.folder_id && <span className="rounded-full border border-blue-200 px-2.5 py-1 font-semibold text-blue-600 dark:border-blue-500/40 dark:text-blue-400">Work Folder</span>}
+            {user?.id === post.author_id && post.visibility === "private" && <span className="rounded-full border border-amber-200 px-2.5 py-1 font-semibold text-amber-600 dark:border-amber-500/40 dark:text-amber-400">비공개</span>}
+          </div>
+        )}
+
         {/* Tags */}
         {post.tags.length > 0 && (
           <div className="mt-3 flex flex-wrap gap-1.5">

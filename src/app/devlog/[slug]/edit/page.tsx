@@ -2,6 +2,7 @@ import { createClient, getUser } from "@/lib/supabase/server";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import DevlogEditor from "@/app/devlog/new/DevlogEditor";
+import type { DevlogInitialData } from "@/app/devlog/new/DevlogEditor";
 
 export default async function DevlogEditPage(props: {
   params: Promise<{ slug: string }>;
@@ -16,20 +17,28 @@ export default async function DevlogEditPage(props: {
   const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
   const { data: post } = await supabase
     .from("devlog_posts")
-    .select("id, author_id, slug, title, content, tags, thumbnail_url")
+    .select("id, author_id, slug, title, content, tags, thumbnail_url, visibility, folder_id")
     .eq(isUUID ? "id" : "slug", slug)
     .maybeSingle();
 
   if (!post) notFound();
   if (post.author_id !== user.id) notFound();
 
+  const { data: folders } = await supabase
+    .from("devlog_folders")
+    .select("id, name")
+    .eq("owner_id", user.id)
+    .order("created_at", { ascending: true });
+
   const postSlug = (post.slug as string) || (post.id as string);
 
-  const initialData = {
+  const initialData: DevlogInitialData = {
     title: post.title as string,
     content: post.content as string,
     tags: ((post.tags ?? []) as string[]).join(", "),
     thumbnail_url: (post.thumbnail_url as string | null) ?? null,
+    visibility: post.visibility === "private" ? "private" : "public",
+    folder_id: (post.folder_id as string | null) ?? null,
   };
 
   return (
@@ -39,12 +48,12 @@ export default async function DevlogEditPage(props: {
         <span>/</span>
         <Link href={`/devlog/${postSlug}`} className="hover:text-blue-600 truncate max-w-xs">{initialData.title}</Link>
         <span>/</span>
-        <span className="text-slate-600">수정</span>
+        <span className="text-slate-600 dark:text-slate-300">수정</span>
       </div>
 
-      <h1 className="mb-6 text-2xl font-black text-slate-900">Dev Log 수정</h1>
+      <h1 className="mb-6 text-2xl font-black text-slate-900 dark:text-slate-100">Dev Log 수정</h1>
 
-      <DevlogEditor mode="edit" postId={post.id as string} initialData={initialData} />
+      <DevlogEditor mode="edit" postId={post.id as string} initialData={initialData} initialFolders={folders ?? []} />
     </div>
   );
 }

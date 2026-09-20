@@ -6,13 +6,20 @@ import Image from "next/image";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkCjkFriendly from "remark-cjk-friendly";
-import { createDevlogPost, updateDevlogPost } from "@/lib/actions/devlog";
+import { createDevlogFolder, createDevlogPost, updateDevlogPost } from "@/lib/actions/devlog";
+
+export interface DevlogFolderOption {
+  id: string;
+  name: string;
+}
 
 export interface DevlogInitialData {
   title: string;
   content: string;
   tags: string;
   thumbnail_url: string | null;
+  visibility?: "public" | "private";
+  folder_id?: string | null;
 }
 
 // ── 커서 삽입 헬퍼 ────────────────────────────────────────────────────────────
@@ -110,16 +117,23 @@ export default function DevlogEditor({
   mode = "create",
   postId,
   initialData,
+  initialFolders,
 }: {
   mode?: "create" | "edit";
   postId?: string;
   initialData?: DevlogInitialData;
+  initialFolders?: DevlogFolderOption[];
 }) {
   const router = useRouter();
   const [title, setTitle] = useState(initialData?.title ?? "");
   const [content, setContent] = useState(initialData?.content ?? "");
   const [tags, setTags] = useState(initialData?.tags ?? "");
   const [thumbnail, setThumbnail] = useState<string | null>(initialData?.thumbnail_url ?? null);
+  const [visibility, setVisibility] = useState<"public" | "private">(initialData?.visibility ?? "public");
+  const [folderId, setFolderId] = useState(initialData?.folder_id ?? "");
+  const [folders, setFolders] = useState<DevlogFolderOption[]>(initialFolders ?? []);
+  const [newFolderName, setNewFolderName] = useState("");
+  const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [view, setView] = useState<"split" | "edit" | "preview">("split");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -280,6 +294,20 @@ export default function DevlogEditor({
     setLinkUrl("");
   };
 
+  const handleCreateFolder = async () => {
+    const result = await createDevlogFolder(newFolderName);
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+    if (result.folder) {
+      setFolders((current) => [...current, result.folder!]);
+      setFolderId(result.folder.id);
+      setNewFolderName("");
+      setIsCreatingFolder(false);
+    }
+  };
+
   const handleSubmit = () => {
     setError(null);
     startTransition(async () => {
@@ -287,6 +315,8 @@ export default function DevlogEditor({
       fd.append("title", title);
       fd.append("content", content);
       fd.append("tags", tags);
+      fd.append("visibility", visibility);
+      if (folderId) fd.append("folder_id", folderId);
       if (thumbnail) fd.append("thumbnail_url", thumbnail);
 
       let result: { error?: string; slug?: string } | undefined;
@@ -365,8 +395,7 @@ export default function DevlogEditor({
           onDragOver={(e) => { e.preventDefault(); setIsThumbnailDragActive(true); }}
           onDragLeave={(e) => { e.preventDefault(); if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setIsThumbnailDragActive(false); }}
           onDrop={(e) => { e.preventDefault(); handleThumbnailDrop(e); }}
-          className={`relative flex cursor-pointer items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed bg-slate-50 transition hover:border-blue-300 hover:bg-blue-50 dark:bg-navy-800 dark:hover:border-blue-500/40 dark:hover:bg-navy-700 ${isThumbnailDragActive ? "border-blue-400 bg-blue-50 dark:border-blue-500/50 dark:bg-blue-500/10" : "border-slate-200 dark:border-navy-700"}`}
-          style={{ height: 180 }}
+          className={`relative flex h-48 w-full cursor-pointer items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed bg-slate-50 transition hover:border-blue-300 hover:bg-blue-50 dark:bg-navy-800 dark:hover:border-blue-500/40 dark:hover:bg-navy-700 sm:h-56 ${isThumbnailDragActive ? "border-blue-400 bg-blue-50 dark:border-blue-500/50 dark:bg-blue-500/10" : "border-slate-200 dark:border-navy-700"}`}
         >
           {thumbnail ? (
             <>
@@ -415,6 +444,41 @@ export default function DevlogEditor({
         placeholder="태그 (쉼표 구분, 예: nextjs, supabase, 사이드프로젝트)"
         className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm placeholder-slate-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:bg-navy-800 dark:border-navy-700 dark:text-slate-100 dark:placeholder-slate-500"
       />
+
+      {/* 공개 범위와 Work Folder */}
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="rounded-2xl border border-slate-200 p-4 dark:border-navy-800 dark:bg-navy-900/40">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">공개 설정</p>
+          <div className="flex gap-2">
+            {(["public", "private"] as const).map((value) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setVisibility(value)}
+                className={`flex-1 rounded-xl border px-3 py-2 text-sm font-semibold transition ${visibility === value ? "border-blue-500 bg-blue-600 text-white" : "border-slate-200 text-slate-500 hover:border-blue-300 dark:border-navy-700 dark:text-slate-400"}`}
+              >
+                {value === "public" ? "전체 공개" : "비공개"}
+              </button>
+            ))}
+          </div>
+          <p className="mt-2 text-xs text-slate-400">비공개 글은 나와 관리자만 볼 수 있습니다.</p>
+        </div>
+        <div className="rounded-2xl border border-slate-200 p-4 dark:border-navy-800 dark:bg-navy-900/40">
+          <label htmlFor="devlog-folder" className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-400">Work Folder <span className="font-normal normal-case">선택</span></label>
+          <select id="devlog-folder" value={folderId} onChange={(e) => setFolderId(e.target.value)} className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-400 dark:border-navy-700 dark:bg-navy-800 dark:text-slate-100">
+            <option value="">지정하지 않음</option>
+            {folders.map((folder) => <option key={folder.id} value={folder.id}>{folder.name}</option>)}
+          </select>
+          {isCreatingFolder ? (
+            <div className="mt-2 flex gap-2">
+              <input value={newFolderName} onChange={(e) => setNewFolderName(e.target.value)} placeholder="새 folder 이름" maxLength={40} className="min-w-0 flex-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-sm dark:border-navy-700 dark:bg-navy-800 dark:text-slate-100" />
+              <button type="button" onClick={handleCreateFolder} className="rounded-lg bg-navy-900 px-3 text-xs font-semibold text-white dark:bg-blue-600">추가</button>
+            </div>
+          ) : (
+            <button type="button" onClick={() => setIsCreatingFolder(true)} className="mt-2 text-xs font-semibold text-blue-600 hover:underline dark:text-blue-400">+ 새 Work Folder 만들기</button>
+          )}
+        </div>
+      </div>
 
       {/* 에디터 */}
       <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-navy-800">
@@ -701,29 +765,17 @@ function MarkdownPreview({ content }: { content: string }) {
             {children}
           </blockquote>
         ),
-        code: ({
-          inline,
-          children,
-          ...props
-        }: {
-          inline?: boolean;
-          className?: string;
-          children?: React.ReactNode;
-        }) =>
-          inline ? (
-            <code
-              className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-pink-600 dark:bg-navy-800 dark:text-pink-400"
-              {...props}
-            >
-              {children}
-            </code>
-          ) : (
-            <pre className="my-3 overflow-x-auto rounded-xl bg-slate-900 px-4 py-3">
-              <code className="font-mono text-xs text-slate-100" {...props}>
-                {children}
-              </code>
-            </pre>
-          ),
+        code: ({ children, className, ...props }: { className?: string; children?: React.ReactNode }) => (
+          <code
+            className={className ? `font-mono text-xs text-slate-100 ${className}` : "rounded bg-slate-100 px-1.5 py-0.5 font-mono text-xs text-pink-600 dark:bg-navy-800 dark:text-pink-400"}
+            {...props}
+          >
+            {children}
+          </code>
+        ),
+        pre: ({ children }: { children?: React.ReactNode }) => (
+          <pre className="my-3 overflow-x-auto rounded-xl bg-slate-900 px-4 py-3">{children}</pre>
+        ),
         ul: ({ children }) => (
           <ul className="mb-3 ml-5 list-disc space-y-1 text-slate-700 dark:text-slate-300">{children}</ul>
         ),
