@@ -34,7 +34,7 @@ export async function renameDevlogFolder(folderId: string, name: string): Promis
 
   const { error } = await supabase
     .from("devlog_folders")
-    .update({ name: trimmed, slug: normalizeFolderSlug(trimmed), updated_at: new Date().toISOString() })
+    .update({ name: trimmed, updated_at: new Date().toISOString() })
     .eq("id", folderId)
     .eq("owner_id", user.id);
   if (error) return { error: error.code === "23505" ? "같은 이름의 Work Folder가 이미 있습니다." : error.message };

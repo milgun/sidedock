@@ -53,10 +53,10 @@ export async function generateMetadata(
 
 export default async function ProfilePage(props: {
   params: Promise<{ username: string }>;
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; folder?: string; folderSlug?: string }>;
 }) {
   const { username } = await props.params;
-  const { tab: initialTab = "about" } = await props.searchParams;
+  const { tab: initialTab = "about", folder: initialFolder, folderSlug } = await props.searchParams;
 
   const supabase = await createClient();
 
@@ -66,6 +66,18 @@ export default async function ProfilePage(props: {
   ]);
 
   if (!profile) notFound();
+
+  let resolvedFolder = initialFolder ?? null;
+  if (folderSlug) {
+    const { data: folder } = await supabase
+      .from("devlog_folders")
+      .select("id")
+      .eq("owner_id", profile.id)
+      .eq("slug", folderSlug)
+      .maybeSingle();
+    if (!folder) notFound();
+    resolvedFolder = folder.id;
+  }
 
   const isOwn = user?.id === profile.id;
   const userId = user?.id ?? null;
@@ -170,6 +182,7 @@ export default async function ProfilePage(props: {
         isAdmin={isAdmin}
         userId={userId}
         initialTab={initialTab}
+        initialFolder={resolvedFolder}
         publishedCount={publishedCount ?? 0}
         profileCreatedAt={profile.created_at as string}
         profileBio={(profile.bio as string) ?? null}

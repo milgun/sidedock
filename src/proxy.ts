@@ -41,6 +41,18 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/onboarding", request.url));
   }
 
+  const folderPath = pathname.match(/^\/profile\/([^/]+)\/devlog\/folder\/([^/]+)$/);
+  if (folderPath) {
+    const [, username, folderSlug] = folderPath;
+    const rewriteUrl = request.nextUrl.clone();
+    rewriteUrl.pathname = `/profile/${username}`;
+    rewriteUrl.searchParams.set("tab", "devlog");
+    rewriteUrl.searchParams.set("folderSlug", decodeURIComponent(folderSlug));
+    const rewriteResponse = NextResponse.rewrite(rewriteUrl, { request });
+    supabaseResponse.cookies.getAll().forEach((cookie) => rewriteResponse.cookies.set(cookie));
+    return rewriteResponse;
+  }
+
   return supabaseResponse;
 }
 

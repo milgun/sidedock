@@ -73,6 +73,7 @@ interface ProfileTabsClientProps {
   isAdmin: boolean;
   userId: string | null;
   initialTab: string;
+  initialFolder: string | null;
   publishedCount: number;
   profileCreatedAt: string;
   profileBio: string | null;
@@ -85,6 +86,7 @@ export default function ProfileTabsClient({
   isAdmin,
   userId,
   initialTab,
+  initialFolder,
   publishedCount,
   profileCreatedAt,
   profileBio,
@@ -183,12 +185,14 @@ export default function ProfileTabsClient({
         <TabContent
           tab={activeTab}
           data={currentData}
+          username={username}
           isOwn={isOwn}
           isAdmin={isAdmin}
           userId={userId}
           publishedCount={publishedCount}
           profileCreatedAt={profileCreatedAt}
           profileBio={profileBio}
+          initialFolder={initialFolder}
           onDevlogDeleted={(id) => {
             setTabData((prev) => {
               const cur = prev["devlog"] as DevlogData | undefined;
@@ -209,22 +213,26 @@ export default function ProfileTabsClient({
 function TabContent({
   tab,
   data,
+  username,
   isOwn,
   isAdmin,
   userId,
   publishedCount,
   profileCreatedAt,
   profileBio,
+  initialFolder,
   onDevlogDeleted,
 }: {
   tab: TabId;
   data: TabData | undefined;
+  username: string;
   isOwn: boolean;
   isAdmin: boolean;
   userId: string | null;
   publishedCount: number;
   profileCreatedAt: string;
   profileBio: string | null;
+  initialFolder: string | null;
   onDevlogDeleted: (id: string) => void;
 }) {
   if (!data) return null;
@@ -412,6 +420,8 @@ function TabContent({
       <DevlogTabContent
         devlogs={devlogs}
         folders={(data as DevlogData).folders ?? []}
+        username={username}
+        initialFolder={initialFolder}
         isOwn={isOwn}
         onDevlogDeleted={onDevlogDeleted}
       />
@@ -444,16 +454,20 @@ function TabContent({
 function DevlogTabContent({
   devlogs,
   folders,
+  username,
+  initialFolder,
   isOwn,
   onDevlogDeleted,
 }: {
   devlogs: DevlogData["devlogs"];
   folders: NonNullable<DevlogData["folders"]>;
+  username: string;
+  initialFolder: string | null;
   isOwn: boolean;
   onDevlogDeleted: (id: string) => void;
 }) {
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
-  const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
+  const [selectedFolder, setSelectedFolder] = useState<string | null>(initialFolder);
   const [menuFolderId, setMenuFolderId] = useState<string | null>(null);
   const [folderMenuPosition, setFolderMenuPosition] = useState<{ top: number; left: number } | null>(null);
   const folderMenuRef = useRef<HTMLDivElement>(null);
@@ -482,6 +496,15 @@ function DevlogTabContent({
     : folderFiltered;
 
   const tagRows = Array.from({ length: 3 }, (_, rowIndex) => allTags.filter((_, index) => index % 3 === rowIndex));
+
+  const setFolderFilter = (folderId: string | null, folderSlug?: string) => {
+    setSelectedFolder(folderId);
+    setSelectedTag(null);
+    const base = `/profile/${encodeURIComponent(username)}`;
+    window.history.replaceState(null, "", folderSlug
+      ? `${base}/devlog/folder/${encodeURIComponent(folderSlug)}`
+      : `${base}?tab=devlog`);
+  };
 
   useEffect(() => {
     if (!menuFolderId) return;
@@ -553,11 +576,11 @@ function DevlogTabContent({
       {folderOptions.length > 0 && (
         <div className="relative -mx-1">
           <div className="flex gap-2 overflow-x-auto px-1 pb-1 scrollbar-none">
-            <button onClick={() => setSelectedFolder(null)} className={`flex-shrink-0 rounded-xl border px-3 py-2 text-xs font-semibold transition ${selectedFolder === null ? "border-blue-500 bg-blue-600 text-white" : "border-slate-200 text-slate-500 hover:border-blue-300 dark:border-navy-700 dark:text-slate-400"}`}>전체 글 <span className="ml-1 opacity-70">{devlogs.length}</span></button>
+            <button type="button" onClick={() => setFolderFilter(null)} className={`flex-shrink-0 rounded-xl border px-3 py-2 text-xs font-semibold transition ${selectedFolder === null ? "border-blue-500 bg-blue-600 text-white" : "border-slate-200 text-slate-500 hover:border-blue-300 dark:border-navy-700 dark:text-slate-400"}`}>전체 글 <span className="ml-1 opacity-70">{devlogs.length}</span></button>
             {folderOptions.map((folder) => {
               const count = devlogs.filter((post) => post.folder_id === folder.id).length;
               return <div key={folder.id} className="relative flex flex-shrink-0" ref={menuFolderId === folder.id ? folderMenuRef : undefined}>
-                <button type="button" onClick={() => { setSelectedFolder(selectedFolder === folder.id ? null : folder.id); setSelectedTag(null); }} className={`rounded-l-xl border py-2 pl-3 pr-2 text-xs font-semibold transition ${selectedFolder === folder.id ? "border-blue-500 bg-blue-600 text-white" : "border-slate-200 text-slate-500 hover:border-blue-300 dark:border-navy-700 dark:text-slate-400"}`}>{folder.name} <span className="ml-1 opacity-70">{count}</span></button>
+                <button type="button" onClick={() => setFolderFilter(selectedFolder === folder.id ? null : folder.id, selectedFolder === folder.id ? undefined : folder.slug)} className={`${isOwn ? "rounded-l-xl pl-3 pr-2" : "rounded-xl px-3"} border py-2 text-xs font-semibold transition ${selectedFolder === folder.id ? "border-blue-500 bg-blue-600 text-white" : "border-slate-200 text-slate-500 hover:border-blue-300 dark:border-navy-700 dark:text-slate-400"}`}>{folder.name} <span className="ml-1 opacity-70">{count}</span></button>
                 {isOwn && <button type="button" onMouseDown={(event) => event.stopPropagation()} onClick={(event) => {
                   if (menuFolderId === folder.id) {
                     setMenuFolderId(null);
@@ -570,7 +593,7 @@ function DevlogTabContent({
                 }} aria-label={`${folder.name} 관리`} className={`rounded-r-xl border border-l-0 px-2 py-2 text-xs transition ${selectedFolder === folder.id ? "border-blue-500 bg-blue-600 text-white" : "border-slate-200 text-slate-400 hover:border-blue-300 hover:text-blue-600 dark:border-navy-700"}`}>···</button>}
               </div>;
             })}
-            {isOwn && <button onClick={() => setSelectedFolder(selectedFolder === "__uncategorized" ? null : "__uncategorized")} className={`flex-shrink-0 rounded-xl border px-3 py-2 text-xs font-semibold transition ${selectedFolder === "__uncategorized" ? "border-blue-500 bg-blue-600 text-white" : "border-dashed border-slate-300 text-slate-500 hover:border-blue-300 dark:border-navy-700 dark:text-slate-400"}`}>미분류 <span className="ml-1 opacity-70">{devlogs.filter((post) => !post.folder_id).length}</span></button>}
+            {isOwn && <button type="button" onClick={() => setFolderFilter(selectedFolder === "__uncategorized" ? null : "__uncategorized")} className={`flex-shrink-0 rounded-xl border px-3 py-2 text-xs font-semibold transition ${selectedFolder === "__uncategorized" ? "border-blue-500 bg-blue-600 text-white" : "border-dashed border-slate-300 text-slate-500 hover:border-blue-300 dark:border-navy-700 dark:text-slate-400"}`}>미분류 <span className="ml-1 opacity-70">{devlogs.filter((post) => !post.folder_id).length}</span></button>}
           </div>
         </div>
       )}

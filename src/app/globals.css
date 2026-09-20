@@ -75,3 +75,15 @@ a,
 button:disabled {
   cursor: not-allowed;
 }
+
+.devlog-folder-collapse-label {
+  display: none !important;
+}
+
+.devlog-folder-details[open] .devlog-folder-expand-label {
+  display: none !important;
+}
+
+.devlog-folder-details[open] .devlog-folder-collapse-label {
+  display: inline !important;
+}

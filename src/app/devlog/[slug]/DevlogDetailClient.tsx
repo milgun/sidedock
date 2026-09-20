@@ -21,6 +21,8 @@ interface Props {
   userId: string | null;
   isOwner: boolean;
   comments: (DevlogComment & { author: Profile })[];
+  previousPost: { slug: string; title: string } | null;
+  nextPost: { slug: string; title: string } | null;
 }
 
 function timeAgo(dateStr: string) {
@@ -95,6 +97,8 @@ export default function DevlogDetailClient({
   userId,
   isOwner,
   comments: initialComments,
+  previousPost,
+  nextPost,
 }: Props) {
   const router = useRouter();
   const [hasLiked, setHasLiked] = useState(initialHasLiked);
@@ -340,6 +344,23 @@ export default function DevlogDetailClient({
           </div>
         )}
       </div>
+
+      {(previousPost || nextPost) && (
+        <nav className="mt-12 grid gap-3 border-t border-slate-100 pt-6 dark:border-navy-800 sm:grid-cols-2" aria-label="Dev Log 이동">
+          {previousPost ? (
+            <Link href={`/devlog/${previousPost.slug}`} className="group rounded-xl border border-slate-200 p-4 transition hover:border-blue-400 dark:border-navy-800">
+              <span className="text-xs text-slate-400">이전 포스트</span>
+              <span className="mt-1 block truncate text-sm font-semibold text-slate-700 group-hover:text-blue-600 dark:text-slate-200 dark:group-hover:text-blue-400">← {previousPost.title}</span>
+            </Link>
+          ) : <div />}
+          {nextPost && (
+            <Link href={`/devlog/${nextPost.slug}`} className="group rounded-xl border border-slate-200 p-4 text-right transition hover:border-blue-400 dark:border-navy-800">
+              <span className="text-xs text-slate-400">다음 포스트</span>
+              <span className="mt-1 block truncate text-sm font-semibold text-slate-700 group-hover:text-blue-600 dark:text-slate-200 dark:group-hover:text-blue-400">{nextPost.title} →</span>
+            </Link>
+          )}
+        </nav>
+      )}
     </>
   );
 }

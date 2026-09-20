@@ -89,7 +89,37 @@ export default async function DevlogDetailPage(props: {
 
   if (!rawPost) notFound();
 
+  const { data: folder } = rawPost.folder_id
+    ? await supabase
+        .from("devlog_folders")
+        .select("id, name, slug")
+        .eq("id", rawPost.folder_id)
+        .maybeSingle()
+    : { data: null };
+
   const { data: { user } } = await supabase.auth.getUser();
+
+  const [{ data: folderPosts }, { data: authorPosts }] = await Promise.all([
+    rawPost.folder_id
+      ? supabase
+          .from("devlog_posts")
+          .select("id, slug, title, created_at, visibility")
+          .eq("folder_id", rawPost.folder_id)
+          .order("created_at", { ascending: true })
+          .limit(100)
+      : Promise.resolve({ data: [] as Array<{ id: string; slug: string; title: string; created_at: string; visibility: string }> }),
+    supabase
+      .from("devlog_posts")
+      .select("id, slug, title, created_at")
+      .eq("author_id", rawPost.author_id)
+      .order("created_at", { ascending: true })
+      .limit(100),
+  ]);
+  const authorPostIndex = (authorPosts ?? []).findIndex((item) => item.id === rawPost.id);
+  const previousPost = authorPostIndex > 0 ? authorPosts?.[authorPostIndex - 1] : null;
+  const nextPost = authorPostIndex >= 0 && authorPostIndex < (authorPosts?.length ?? 0) - 1
+    ? authorPosts?.[authorPostIndex + 1]
+    : null;
 
   let hasLiked = false;
   if (user) {
@@ -180,8 +210,8 @@ export default async function DevlogDetailPage(props: {
 
         {(post.folder_id || (user?.id === post.author_id && post.visibility === "private")) && (
           <div className="mt-3 flex items-center gap-2 text-xs">
-            {post.folder_id && <span className="rounded-full border border-blue-200 px-2.5 py-1 font-semibold text-blue-600 dark:border-blue-500/40 dark:text-blue-400">Work Folder</span>}
-            {user?.id === post.author_id && post.visibility === "private" && <span className="rounded-full border border-amber-200 px-2.5 py-1 font-semibold text-amber-600 dark:border-amber-500/40 dark:text-amber-400">비공개</span>}
+            {post.folder_id && folder && post.author?.username && <Link href={`/profile/${encodeURIComponent(post.author.username)}/devlog/folder/${encodeURIComponent(folder.slug)}`} className="rounded-full border border-blue-200 px-2.5 py-1 font-semibold text-blue-600 transition hover:border-blue-400 hover:bg-blue-50 dark:border-blue-500/40 dark:text-blue-400 dark:hover:bg-blue-500/10">Work Folder · {folder.name}</Link>}
+            {user?.id === post.author_id && post.visibility === "private" && <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 px-2.5 py-1 font-semibold text-amber-600 dark:border-amber-500/40 dark:text-amber-400"><svg viewBox="0 0 16 16" className="h-3 w-3" fill="currentColor" aria-hidden="true"><path d="M4.5 7V5.5a3.5 3.5 0 0 1 7 0V7h.75c.414 0 .75.336.75.75v6.5a.75.75 0 0 1-.75.75h-9.5a.75.75 0 0 1-.75-.75v-6.5c0-.414.336-.75.75-.75h.75Zm1.5 0h4V5.5a2 2 0 1 0-4 0V7Z" /></svg>비공개</span>}
           </div>
         )}
 
@@ -215,6 +245,28 @@ export default async function DevlogDetailPage(props: {
           </div>
         </div>
 
+        {folder && folderPosts && folderPosts.length > 0 && post.author?.username && (
+          <details className="devlog-folder-details mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-navy-800 dark:bg-navy-900">
+            <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 text-sm font-bold text-slate-800 marker:hidden dark:text-slate-100">
+              <span className="flex items-center gap-2"><span className="text-blue-500">▣</span>{folder.name}<span className="text-xs font-normal text-slate-400">{folderPosts.length}개 기록</span></span>
+              <span className="devlog-folder-expand-label text-xs font-semibold text-slate-400">▼ 목록 보기</span>
+              <span className="devlog-folder-collapse-label text-xs font-semibold text-slate-400">▲ 목록 접기</span>
+            </summary>
+            <div className="border-t border-slate-100 px-4 py-2 dark:border-navy-800">
+              <div className="mb-1 flex justify-end">
+                <Link href={`/profile/${encodeURIComponent(post.author.username)}/devlog/folder/${encodeURIComponent(folder.slug)}`} className="text-xs font-semibold text-blue-600 hover:underline dark:text-blue-400">전체 보기</Link>
+              </div>
+              {folderPosts.map((folderPost, index) => (
+                <Link key={folderPost.id} href={`/devlog/${folderPost.slug}`} className={`flex items-center gap-3 py-2.5 text-xs transition hover:text-blue-600 dark:hover:text-blue-400 ${folderPost.id === post.id ? "font-semibold text-blue-600 dark:text-blue-400" : "text-slate-500 dark:text-slate-400"}`}>
+                  <span className="w-5 text-slate-300 dark:text-slate-600">{index + 1}</span>
+                  <span className="min-w-0 flex-1 truncate">{folderPost.title}</span>
+                  {folderPost.visibility === "private" && <span className="text-amber-500" aria-label="비공개">🔒</span>}
+                </Link>
+              ))}
+            </div>
+          </details>
+        )}
+
         {/* Markdown content */}
         <DevlogDetailClient
           postId={post.id}
@@ -226,6 +278,8 @@ export default async function DevlogDetailPage(props: {
           userId={userId}
           isOwner={userId === post.author_id}
           comments={comments}
+          previousPost={previousPost ? { slug: previousPost.slug, title: previousPost.title } : null}
+          nextPost={nextPost ? { slug: nextPost.slug, title: nextPost.title } : null}
         />
       </article>
     </div>
