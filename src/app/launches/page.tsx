@@ -12,6 +12,8 @@ export const metadata = {
 
 type Period = "week" | "month" | "year" | "all";
 
+const PAGE_SIZE = 10;
+
 export default async function LaunchesPage(props: {
   searchParams: Promise<{ period?: string }>;
 }) {
@@ -37,15 +39,20 @@ export default async function LaunchesPage(props: {
   } else if (period === "month") {
     const monthAgo = new Date(now.getTime() - 30 * 24 * 3_600_000).toISOString();
     query = query.gte("created_at", monthAgo).order("upvote_count", { ascending: false });
+  } else if (period === "year") {
+    const yearAgo = new Date(now.getTime() - 365 * 24 * 3_600_000).toISOString();
+    query = query.gte("created_at", yearAgo).order("upvote_count", { ascending: false });
   } else {
     // all: 역대 인기순 (boost + 댓글)
     query = query
       .order("upvote_count", { ascending: false })
       .order("comment_count", { ascending: false });
   }
+  // tiebreaker: keep pagination order stable when sort columns tie
+  query = query.order("id", { ascending: true });
 
   const [{ data: rawProducts }, { data: upvotes }] = await Promise.all([
-    query.limit(50),
+    query.range(0, PAGE_SIZE - 1),
     user
       ? supabase.from("upvotes").select("product_id").eq("user_id", user.id)
       : Promise.resolve({ data: [] as { product_id: string }[] }),
@@ -82,6 +89,7 @@ export default async function LaunchesPage(props: {
       <LaunchesClient
         initialPeriod={period}
         initialProducts={initialProducts}
+        initialHasMore={initialProducts.length === PAGE_SIZE}
         initialNowMs={nowMs}
         userId={user?.id ?? null}
       />

@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Vercel 배포 시 next-server 트레이싱이 sharp/libvips 네이티브 바이너리를 기본적으로 제외하므로
+  // /api/upload 함수 번들에 강제로 포함시켜 ERR_DLOPEN_FAILED(sharp linux-x64)를 방지
+  outputFileTracingIncludes: {
+    "/api/upload": ["./node_modules/sharp/**/*", "./node_modules/@img/**/*"],
+  },
   images: {
     remotePatterns: [
       {

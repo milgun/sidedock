@@ -3,10 +3,13 @@ import { createClient, getUser } from "@/lib/supabase/server";
 
 type Period = "week" | "month" | "year" | "all";
 
+const PAGE_SIZE = 10;
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const rawPeriod = searchParams.get("period") ?? "all";
   const period = (["week", "month", "year", "all"].includes(rawPeriod) ? rawPeriod : "all") as Period;
+  const offset = Math.max(0, Number(searchParams.get("offset")) || 0);
 
   const supabase = await createClient();
   const user = await getUser();
@@ -33,9 +36,11 @@ export async function GET(req: NextRequest) {
       .order("upvote_count", { ascending: false })
       .order("comment_count", { ascending: false });
   }
+  // tiebreaker: keep pagination order stable when sort columns tie
+  query = query.order("id", { ascending: true });
 
   const [{ data: rawProducts }, { data: upvotes }] = await Promise.all([
-    query.limit(50),
+    query.range(offset, offset + PAGE_SIZE - 1),
     user
       ? supabase.from("upvotes").select("product_id").eq("user_id", user.id)
       : Promise.resolve({ data: [] as { product_id: string }[] }),
@@ -50,5 +55,10 @@ export async function GET(req: NextRequest) {
     has_upvoted: upvotedIds.has((p as { id: string }).id),
   }));
 
-  return NextResponse.json({ products, userId: user?.id ?? null, nowMs: Date.now() });
+  return NextResponse.json({
+    products,
+    userId: user?.id ?? null,
+    nowMs: Date.now(),
+    hasMore: products.length === PAGE_SIZE,
+  });
 }

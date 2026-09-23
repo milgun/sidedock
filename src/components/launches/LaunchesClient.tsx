@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 import type { ProductWithMaker } from "@/types";
 import ProductCard from "@/components/product/ProductCard";
@@ -17,6 +17,7 @@ const PERIOD_TABS: { value: Period; label: string; icon: string; desc: string }[
 interface LaunchesClientProps {
   initialPeriod: Period;
   initialProducts: ProductWithMaker[];
+  initialHasMore: boolean;
   initialNowMs: number;
   userId: string | null;
 }
@@ -24,14 +25,18 @@ interface LaunchesClientProps {
 export default function LaunchesClient({
   initialPeriod,
   initialProducts,
+  initialHasMore,
   initialNowMs,
   userId: initialUserId,
 }: LaunchesClientProps) {
   const [period, setPeriod] = useState(initialPeriod);
   const [products, setProducts] = useState(initialProducts);
+  const [hasMore, setHasMore] = useState(initialHasMore);
   const [nowMs, setNowMs] = useState(initialNowMs);
   const [userId, setUserId] = useState(initialUserId);
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
   const fetchProducts = useCallback(async (p: Period) => {
     setLoading(true);
@@ -40,6 +45,7 @@ export default function LaunchesClient({
       if (res.ok) {
         const data = await res.json();
         setProducts(data.products ?? []);
+        setHasMore(Boolean(data.hasMore));
         setNowMs(data.nowMs ?? Date.now());
         setUserId(data.userId);
       }
@@ -48,6 +54,34 @@ export default function LaunchesClient({
     }
     window.history.replaceState(null, "", `/launches?period=${p}`);
   }, []);
+
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    try {
+      const res = await fetch(`/api/products/launches?period=${period}&offset=${products.length}`);
+      if (res.ok) {
+        const data = await res.json();
+        setProducts((prev) => [...prev, ...(data.products ?? [])]);
+        setHasMore(Boolean(data.hasMore));
+      }
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [loadingMore, hasMore, period, products.length]);
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) loadMore();
+      },
+      { rootMargin: "400px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [loadMore]);
 
   const handlePeriodChange = (p: Period) => {
     setPeriod(p);
@@ -108,6 +142,12 @@ export default function LaunchesClient({
             </div>
           ) : (
             <EmptyState period={period} />
+          )}
+
+          {hasMore && (
+            <div ref={sentinelRef} className="flex justify-center py-8">
+              <span className="text-sm text-slate-400">{loadingMore ? "불러오는 중..." : ""}</span>
+            </div>
           )}
         </>
       )}
