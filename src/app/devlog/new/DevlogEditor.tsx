@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState, useRef, useTransition, useCallback } from "react";
+import { useState, useRef, useTransition, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import ReactMarkdown from "react-markdown";
@@ -140,6 +140,9 @@ export default function DevlogEditor({
 
   // 에디터 이미지 업로드
   const [isUploading, setIsUploading] = useState(false);
+  const [previewSources, setPreviewSources] = useState<Record<string, string>>({});
+  const previewSourcesRef = useRef<Record<string, string>>({});
+  const uploadingCountRef = useRef(0);
   const imageInputRef = useRef<HTMLInputElement>(null);
 
   // 썸네일 업로드
@@ -153,6 +156,13 @@ export default function DevlogEditor({
   const [linkUrl, setLinkUrl] = useState("");
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    const sources = previewSourcesRef.current;
+    return () => {
+      Object.values(sources).forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, []);
 
   const insert = useCallback((mode: InsertMode) => {
     if (!textareaRef.current) return;
@@ -240,17 +250,33 @@ export default function DevlogEditor({
   }, []);
 
   const uploadImageFile = useCallback(async (file: File) => {
+    const previewUrl = URL.createObjectURL(file);
+    insert({ type: "block", text: `![이미지 설명](${previewUrl})\n` });
+    uploadingCountRef.current += 1;
     setIsUploading(true);
     const fd = new FormData();
     fd.append("file", file);
     try {
       const res = await fetch("/api/upload", { method: "POST", body: fd });
-      const data = (await res.json()) as { url?: string };
+      const data = (await res.json()) as { url?: string; error?: string };
       if (res.ok && data.url) {
-        insert({ type: "block", text: `![이미지 설명](${data.url})\n` });
+        previewSourcesRef.current[data.url] = previewUrl;
+        setPreviewSources((current) => ({ ...current, [data.url!]: previewUrl }));
+        setContent((current) => current.replace(previewUrl, data.url!));
+      } else {
+        setContent((current) =>
+          current.replace(`![이미지 설명](${previewUrl})\n`, ""),
+        );
+        setError(data.error ?? "이미지 업로드에 실패했습니다.");
       }
+    } catch {
+      setContent((current) =>
+        current.replace(`![이미지 설명](${previewUrl})\n`, ""),
+      );
+      setError("이미지 업로드에 실패했습니다.");
     } finally {
-      setIsUploading(false);
+      uploadingCountRef.current -= 1;
+      if (uploadingCountRef.current === 0) setIsUploading(false);
     }
   }, [insert]);
 
@@ -701,7 +727,10 @@ export default function DevlogEditor({
               style={{ minHeight: 440, maxHeight: 600 }}
             >
               {content ? (
-                <MarkdownPreview content={withSoftBreaks(content)} />
+                <MarkdownPreview
+                  content={withSoftBreaks(content)}
+                  previewSources={previewSources}
+                />
               ) : (
                 <p className="text-sm text-slate-400">미리볼 내용이 없습니다.</p>
               )}
@@ -718,7 +747,7 @@ export default function DevlogEditor({
         <p className="text-xs text-slate-400">마크다운(Markdown) 문법을 지원합니다.</p>
         <button
           onClick={handleSubmit}
-          disabled={isPending || !title.trim() || !content.trim()}
+          disabled={isPending || isUploading || !title.trim() || !content.trim()}
           className="rounded-xl bg-slate-900 px-8 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:opacity-40 dark:bg-blue-600 dark:hover:bg-blue-700"
         >
           {isPending
@@ -760,10 +789,17 @@ function withSoftBreaks(content: string): string {
     .join("");
 }
 
-function MarkdownPreview({ content }: { content: string }) {
+function MarkdownPreview({
+  content,
+  previewSources,
+}: {
+  content: string;
+  previewSources: Record<string, string>;
+}) {
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm, remarkCjkFriendly]}
+      urlTransform={(url) => url}
 
       components={{
         h1: ({ children }) => (
@@ -820,7 +856,11 @@ function MarkdownPreview({ content }: { content: string }) {
         ),
         img: ({ src, alt }) => (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={src} alt={alt ?? ""} className="my-3 max-w-full rounded-xl" />
+          <img
+            src={typeof src === "string" ? previewSources[src] ?? src : undefined}
+            alt={alt ?? ""}
+            className="my-3 max-w-full rounded-xl"
+          />
         ),
         table: ({ children }) => (
           <div className="my-3 overflow-x-auto">
