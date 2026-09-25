@@ -239,9 +239,7 @@ export default function DevlogEditor({
     }
   }, []);
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const uploadImageFile = useCallback(async (file: File) => {
     setIsUploading(true);
     const fd = new FormData();
     fd.append("file", file);
@@ -253,9 +251,34 @@ export default function DevlogEditor({
       }
     } finally {
       setIsUploading(false);
+    }
+  }, [insert]);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      await uploadImageFile(file);
+    } finally {
       e.target.value = "";
     }
   };
+
+  // 클립보드에 복사된 이미지를 붙여넣으면 바로 업로드 후 삽입
+  const handleContentPaste = useCallback(
+    (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+      const imageItems = Array.from(e.clipboardData.items).filter((item) =>
+        item.type.startsWith("image/"),
+      );
+      if (imageItems.length === 0) return;
+      e.preventDefault();
+      for (const item of imageItems) {
+        const file = item.getAsFile();
+        if (file) void uploadImageFile(file);
+      }
+    },
+    [uploadImageFile],
+  );
 
   const handleThumbnailFiles = async (files: FileList | File[]) => {
     const file = Array.from(files)[0];
@@ -659,6 +682,7 @@ export default function DevlogEditor({
               value={content}
               onChange={(e) => setContent(e.target.value)}
               onKeyDown={handleKeyDown}
+              onPaste={handleContentPaste}
               placeholder={
                 "마크다운으로 작성하세요.\n\n## 오늘 배운 것\n\n- 항목 1\n- 항목 2\n\n```ts\nconst hello = \"world\";\n```"
               }
