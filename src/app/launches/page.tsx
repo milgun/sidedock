@@ -19,7 +19,7 @@ export default async function LaunchesPage(props: {
 }) {
   const { period: rawPeriod } = await props.searchParams;
   const period = (
-    ["week", "month", "year", "all"].includes(rawPeriod ?? "") ? rawPeriod : "all"
+    ["week", "month", "year", "all"].includes(rawPeriod ?? "") ? rawPeriod : "week"
   ) as Period;
 
   const supabase = await createClient();
