@@ -3,6 +3,28 @@ import Link from "next/link";
 import type { DevlogPostWithAuthor } from "@/types";
 import DevlogListClient from "@/components/devlog/DevlogListClient";
 
+export const metadata = {
+  title: "메이커 Dev Log: 개발기와 런칭 스토리",
+  description:
+    "Sidedock 메이커와 개발자들의 개발 과정, 제품 제작기, 런칭 스토리를 읽고 경험을 나누세요.",
+  alternates: { canonical: "/devlog" },
+  openGraph: {
+    title: "메이커 Dev Log: 개발기와 런칭 스토리",
+    description:
+      "Sidedock 메이커와 개발자들의 개발 과정, 제품 제작기, 런칭 스토리를 읽고 경험을 나누세요.",
+    type: "website",
+    locale: "ko_KR",
+    images: [{ url: "/og-default.png", width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary",
+    title: "메이커 Dev Log: 개발기와 런칭 스토리",
+    description:
+      "Sidedock 메이커와 개발자들의 개발 과정, 제품 제작기, 런칭 스토리를 읽고 경험을 나누세요.",
+    images: ["/og-default.png"],
+  },
+};
+
 const PAGE_SIZE = 9;
 
 export default async function DevlogPage() {

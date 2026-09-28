@@ -9,6 +9,15 @@ import { matchesSearchQuery, sortSearchResults } from "@/lib/search";
 import { CATEGORY_COLORS, CATEGORY_LABELS } from "@/components/product/ProductCard";
 import UpvoteButton from "@/components/product/UpvoteButton";
 
+export const metadata = {
+  title: "Sidedock 검색",
+  description: "Sidedock에서 AI 툴, SaaS, 사이드 프로젝트와 메이커 Dev Log를 검색하세요.",
+  robots: {
+    index: false,
+    follow: true,
+  },
+};
+
 function ResultIconPlaceholder({
   label,
   size = "md",

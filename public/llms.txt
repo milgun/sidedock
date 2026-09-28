@@ -4,7 +4,7 @@
 
 Sidedock is a Korean product discovery and launch platform for solo developers (indie makers) and startups. Makers submit and launch their AI tools, SaaS, and side projects to get discovered, upvoted, reviewed, and promoted. It is similar in category to Product Hunt, 디스콰이엇(Disquiet), 긱뉴스(GeekNews), and 사이드(SYDE), but focused on the Korean maker ecosystem.
 
-- 웹사이트 (Website): https://www.sidedock.io
+- 웹사이트 (Website): https://sidedock.io
 - 문의 (Contact): contact@sidedock.io
 
 ## 핵심 개념 (Key concepts)

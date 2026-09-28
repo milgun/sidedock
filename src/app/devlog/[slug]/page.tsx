@@ -29,7 +29,7 @@ export async function generateMetadata(
   const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
   const { data: post } = await supabase
     .from("devlog_posts")
-    .select("title, content, thumbnail_url, tags, author:profiles(username, display_name)")
+    .select("slug, title, content, thumbnail_url, tags, author:profiles(username, display_name)")
     .eq(isUUID ? "id" : "slug", slug)
     .maybeSingle();
 
@@ -46,6 +46,9 @@ export async function generateMetadata(
     title,
     description,
     keywords: (post.tags as string[] | null) ?? undefined,
+    alternates: {
+      canonical: `/devlog/${encodeURIComponent((post.slug as string | null) || slug)}`,
+    },
     openGraph: {
       title: `${title} — Sidedock Dev Log`,
       description,
