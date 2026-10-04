@@ -115,13 +115,16 @@ export async function updateDevlogPost(postId: string, formData: FormData): Prom
   }
   const slug = await generateUniqueSlug(title, supabase as never, postId, "devlog_posts");
 
-  const { error } = await supabase
+  const { data: updatedPost, error } = await supabase
     .from("devlog_posts")
     .update({ title, content, tags, thumbnail_url, slug, visibility, folder_id: folderId, updated_at: new Date().toISOString() })
     .eq("id", postId)
-    .eq("author_id", user.id);
+    .eq("author_id", user.id)
+    .select("id")
+    .maybeSingle();
 
   if (error) return { error: error.message };
+  if (!updatedPost) return { error: "Dev Log를 저장하지 못했습니다. 작성자 권한을 확인해주세요." };
 
   revalidatePath(`/devlog/${slug}`);
   return { slug };

@@ -7,6 +7,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkCjkFriendly from "remark-cjk-friendly";
 import { createDevlogFolder, createDevlogPost, updateDevlogPost } from "@/lib/actions/devlog";
+import { formatDevlogMarkdown } from "@/lib/devlog-markdown";
 
 export interface DevlogFolderOption {
   id: string;
@@ -49,13 +50,16 @@ function applyInsert(
     newSe = newSs + inner.length;
   } else if (mode.type === "line") {
     const lineStart = value.lastIndexOf("\n", ss - 1) + 1;
-    const lineEnd = value.indexOf("\n", ss);
+    const lineEnd = value.indexOf("\n", se);
     const end = lineEnd === -1 ? value.length : lineEnd;
-    const lineContent = value.slice(lineStart, end) || "텍스트";
-    newText =
-      value.slice(0, lineStart) + mode.prefix + lineContent + value.slice(end);
+    const selectedLines = value.slice(lineStart, end).split("\n");
+    const prefixedLines = selectedLines.map((line) =>
+      mode.prefix + (line || (ss === se ? "텍스트" : "")),
+    );
+    const prefixedContent = prefixedLines.join("\n");
+    newText = value.slice(0, lineStart) + prefixedContent + value.slice(end);
     newSs = lineStart + mode.prefix.length;
-    newSe = newSs + lineContent.length;
+    newSe = lineStart + prefixedContent.length;
   } else if (mode.type === "block") {
     const needNewline = ss > 0 && value[ss - 1] !== "\n";
     const prefix = needNewline ? "\n" : "";
@@ -239,6 +243,25 @@ export default function DevlogEditor({
         } else {
           const nextNum = parseInt(numStr) + 1;
           const prefix = `\n${indent}${nextNum}. `;
+          const newValue = value.slice(0, ss) + prefix + value.slice(ss);
+          setContent(newValue);
+          const newPos = ss + prefix.length;
+          requestAnimationFrame(() => textarea.setSelectionRange(newPos, newPos));
+        }
+        return;
+      }
+
+      // 인용문 계속 / 빈 인용문에서 탈출
+      const quoteMatch = currentLine.match(/^([ \t]*)>[ \t]?(.*)$/);
+      if (quoteMatch) {
+        e.preventDefault();
+        const [, indent, rest] = quoteMatch;
+        if (!rest.trim()) {
+          const newValue = value.slice(0, lineStart) + "\n" + value.slice(end);
+          setContent(newValue);
+          requestAnimationFrame(() => textarea.setSelectionRange(lineStart + 1, lineStart + 1));
+        } else {
+          const prefix = `\n${indent}> `;
           const newValue = value.slice(0, ss) + prefix + value.slice(ss);
           setContent(newValue);
           const newPos = ss + prefix.length;
@@ -728,7 +751,7 @@ export default function DevlogEditor({
             >
               {content ? (
                 <MarkdownPreview
-                  content={withSoftBreaks(content)}
+                  content={formatDevlogMarkdown(content)}
                   previewSources={previewSources}
                 />
               ) : (
@@ -761,34 +784,6 @@ export default function DevlogEditor({
 
 // ── 마크다운 미리보기 ─────────────────────────────────────────────────────────
 
-/**
- * 단일 줄바꿈(엔터 1번)을 마크다운 소프트 브레이크(줄 끝 공백 2개)로 변환.
- * 코드 블록 내부와 빈 줄은 그대로 유지.
- */
-function withSoftBreaks(content: string): string {
-  const parts = content.split(/(```[\s\S]*?```)/g);
-  return parts
-    .map((part, i) => {
-      if (i % 2 === 1) return part; // 코드 블록은 건드리지 않음
-      const lines = part.split("\n");
-      return lines
-        .map((line, j) => {
-          const next = lines[j + 1] ?? "";
-          // 테이블 행(현재 또는 다음 줄이 |로 시작)은 soft break 제외
-          if (line.trimStart().startsWith("|") || next.trimStart().startsWith("|")) {
-            return line;
-          }
-          // 현재 줄이 비어있지 않고 다음 줄도 비어있지 않으면 soft break
-          if (line !== "" && next !== "") {
-            return line + "  ";
-          }
-          return line;
-        })
-        .join("\n");
-    })
-    .join("");
-}
-
 function MarkdownPreview({
   content,
   previewSources,
@@ -798,7 +793,7 @@ function MarkdownPreview({
 }) {
   return (
     <ReactMarkdown
-      remarkPlugins={[remarkGfm, remarkCjkFriendly]}
+      remarkPlugins={[[remarkGfm, { singleTilde: false }], remarkCjkFriendly]}
       urlTransform={(url) => url}
 
       components={{
@@ -812,7 +807,7 @@ function MarkdownPreview({
           <h3 className="mb-2 mt-5 text-base font-bold text-slate-800 dark:text-slate-200">{children}</h3>
         ),
         p: ({ children }) => (
-          <p className="mb-3 leading-7 text-slate-700 dark:text-slate-300">{children}</p>
+          <p className="mb-3 leading-7 break-all text-slate-700 dark:text-slate-300">{children}</p>
         ),
         strong: ({ children }) => (
           <strong className="font-bold text-slate-900 dark:text-slate-100">{children}</strong>
@@ -821,7 +816,7 @@ function MarkdownPreview({
           <em className="italic text-slate-700 dark:text-slate-300">{children}</em>
         ),
         blockquote: ({ children }) => (
-          <blockquote className="my-3 border-l-4 border-blue-300 pl-4 italic text-slate-500 dark:border-blue-500/40 dark:text-slate-400">
+          <blockquote className="my-3 rounded-r-md border-l-4 border-emerald-400 bg-slate-50 px-4 py-3 not-italic text-slate-700 dark:border-emerald-400 dark:bg-white/5 dark:text-slate-300">
             {children}
           </blockquote>
         ),

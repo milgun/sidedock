@@ -6,6 +6,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkCjkFriendly from "remark-cjk-friendly";
 import { toggleDevlogLike, createDevlogComment, deleteDevlogPost } from "@/lib/actions/devlog";
+import { formatDevlogMarkdown } from "@/lib/devlog-markdown";
 import type { DevlogComment, Profile } from "@/types";
 import Link from "next/link";
 import ShareButton from "@/components/product/ShareButton";
@@ -33,30 +34,6 @@ function timeAgo(dateStr: string) {
   if (hours < 24) return `${hours}시간 전`;
   const days = Math.floor(hours / 24);
   return days < 30 ? `${days}일 전` : new Date(dateStr).toLocaleDateString("ko-KR");
-}
-
-function withSoftBreaks(content: string): string {
-  const parts = content.split(/(```[\s\S]*?```)/g);
-  return parts
-    .map((part, i) => {
-      if (i % 2 === 1) return part;
-      const lines = part.split("\n");
-      return lines
-        .map((line, j) => {
-          const next = lines[j + 1] ?? "";
-          // 테이블 행(현재 또는 다음 줄이 |로 시작)은 soft break 제외
-          if (line.trimStart().startsWith("|") || next.trimStart().startsWith("|")) {
-            return line;
-          }
-          // 현재 줄이 비어있지 않고 다음 줄도 비어있지 않으면 soft break
-          if (line !== "" && next !== "") {
-            return line + "  ";
-          }
-          return line;
-        })
-        .join("\n");
-    })
-    .join("");
 }
 
 function nestComments(comments: (DevlogComment & { author: Profile })[]) {
@@ -176,7 +153,7 @@ export default function DevlogDetailClient({
       {/* Markdown body */}
       <div className="mt-8 max-w-none">
         <ReactMarkdown
-          remarkPlugins={[remarkGfm, remarkCjkFriendly]}
+          remarkPlugins={[[remarkGfm, { singleTilde: false }], remarkCjkFriendly]}
           components={{
             h1: ({ children }) => (
               <h1 className="mb-3 mt-8 text-2xl font-black text-slate-900 first:mt-0 dark:text-slate-100">{children}</h1>
@@ -188,7 +165,7 @@ export default function DevlogDetailClient({
               <h3 className="mb-2 mt-5 text-base font-bold text-slate-800 dark:text-slate-200">{children}</h3>
             ),
             p: ({ children }) => (
-              <p className="mb-4 leading-7 text-slate-700 dark:text-slate-300">{children}</p>
+              <p className="mb-4 leading-7 break-all text-slate-700 dark:text-slate-300">{children}</p>
             ),
             strong: ({ children }) => (
               <strong className="font-bold text-slate-900 dark:text-slate-100">{children}</strong>
@@ -197,7 +174,7 @@ export default function DevlogDetailClient({
               <em className="italic text-slate-700 dark:text-slate-300">{children}</em>
             ),
             blockquote: ({ children }) => (
-              <blockquote className="my-4 border-l-4 border-blue-300 pl-4 italic text-slate-500 dark:border-blue-500/40 dark:text-slate-400">
+              <blockquote className="my-4 rounded-r-md border-l-4 border-emerald-400 bg-slate-50 px-4 py-3 not-italic text-slate-700 dark:border-emerald-400 dark:bg-white/5 dark:text-slate-300">
                 {children}
               </blockquote>
             ),
@@ -262,7 +239,7 @@ export default function DevlogDetailClient({
             ),
           }}
         >
-          {withSoftBreaks(content)}
+          {formatDevlogMarkdown(content)}
         </ReactMarkdown>
       </div>
 
