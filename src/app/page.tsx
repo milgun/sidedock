@@ -33,7 +33,7 @@ export default async function HomePage() {
       .select("*, maker:profiles(id, username, avatar_url, display_name)")
       .eq("source", "launch")
       .eq("status", "published")
-      .order("created_at", { ascending: false })
+      .order("launched_at", { ascending: false })
       .limit(50),
     supabase
       .from("devlog_posts")

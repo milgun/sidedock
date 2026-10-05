@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient, getUser } from "@/lib/supabase/server";
 
 type Period = "week" | "month" | "year" | "all";
+type Sort = "popular" | "latest";
 
 const PAGE_SIZE = 10;
 
@@ -9,6 +10,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const rawPeriod = searchParams.get("period") ?? "all";
   const period = (["week", "month", "year", "all"].includes(rawPeriod) ? rawPeriod : "all") as Period;
+  const sort: Sort = searchParams.get("sort") === "latest" ? "latest" : "popular";
   const offset = Math.max(0, Number(searchParams.get("offset")) || 0);
 
   const supabase = await createClient();
@@ -23,18 +25,24 @@ export async function GET(req: NextRequest) {
 
   if (period === "week") {
     const weekAgo = new Date(now.getTime() - 7 * 24 * 3_600_000).toISOString();
-    query = query.gte("created_at", weekAgo).order("upvote_count", { ascending: false });
+    query = query.gte("launched_at", weekAgo);
   } else if (period === "month") {
     const monthAgo = new Date(now.getTime() - 30 * 24 * 3_600_000).toISOString();
-    query = query.gte("created_at", monthAgo).order("upvote_count", { ascending: false });
+    query = query.gte("launched_at", monthAgo);
   } else if (period === "year") {
     const yearAgo = new Date(now.getTime() - 365 * 24 * 3_600_000).toISOString();
-    query = query.gte("created_at", yearAgo).order("upvote_count", { ascending: false });
-  } else {
+    query = query.gte("launched_at", yearAgo);
+  }
+
+  if (sort === "latest") {
+    query = query.order("launched_at", { ascending: false });
+  } else if (period === "all") {
     // all: 역대 인기순 (boost + 댓글)
     query = query
       .order("upvote_count", { ascending: false })
       .order("comment_count", { ascending: false });
+  } else {
+    query = query.order("upvote_count", { ascending: false });
   }
   // tiebreaker: keep pagination order stable when sort columns tie
   query = query.order("id", { ascending: true });

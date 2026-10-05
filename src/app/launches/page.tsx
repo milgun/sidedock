@@ -11,16 +11,18 @@ export const metadata = {
 };
 
 type Period = "week" | "month" | "year" | "all";
+type Sort = "popular" | "latest";
 
 const PAGE_SIZE = 10;
 
 export default async function LaunchesPage(props: {
-  searchParams: Promise<{ period?: string }>;
+  searchParams: Promise<{ period?: string; sort?: string }>;
 }) {
-  const { period: rawPeriod } = await props.searchParams;
+  const { period: rawPeriod, sort: rawSort } = await props.searchParams;
   const period = (
     ["week", "month", "year", "all"].includes(rawPeriod ?? "") ? rawPeriod : "week"
   ) as Period;
+  const sort = (rawSort === "latest" ? "latest" : "popular") as Sort;
 
   const supabase = await createClient();
   const user = await getUser();
@@ -35,18 +37,24 @@ export default async function LaunchesPage(props: {
 
   if (period === "week") {
     const weekAgo = new Date(now.getTime() - 7 * 24 * 3_600_000).toISOString();
-    query = query.gte("created_at", weekAgo).order("upvote_count", { ascending: false });
+    query = query.gte("launched_at", weekAgo);
   } else if (period === "month") {
     const monthAgo = new Date(now.getTime() - 30 * 24 * 3_600_000).toISOString();
-    query = query.gte("created_at", monthAgo).order("upvote_count", { ascending: false });
+    query = query.gte("launched_at", monthAgo);
   } else if (period === "year") {
     const yearAgo = new Date(now.getTime() - 365 * 24 * 3_600_000).toISOString();
-    query = query.gte("created_at", yearAgo).order("upvote_count", { ascending: false });
-  } else {
+    query = query.gte("launched_at", yearAgo);
+  }
+
+  if (sort === "latest") {
+    query = query.order("launched_at", { ascending: false });
+  } else if (period === "all") {
     // all: 역대 인기순 (boost + 댓글)
     query = query
       .order("upvote_count", { ascending: false })
       .order("comment_count", { ascending: false });
+  } else {
+    query = query.order("upvote_count", { ascending: false });
   }
   // tiebreaker: keep pagination order stable when sort columns tie
   query = query.order("id", { ascending: true });
@@ -88,6 +96,7 @@ export default async function LaunchesPage(props: {
 
       <LaunchesClient
         initialPeriod={period}
+        initialSort={sort}
         initialProducts={initialProducts}
         initialHasMore={initialProducts.length === PAGE_SIZE}
         initialNowMs={nowMs}
@@ -96,4 +105,3 @@ export default async function LaunchesPage(props: {
     </div>
   );
 }
-

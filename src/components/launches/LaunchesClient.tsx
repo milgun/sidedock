@@ -6,16 +6,18 @@ import type { ProductWithMaker } from "@/types";
 import ProductCard from "@/components/product/ProductCard";
 
 type Period = "week" | "month" | "year" | "all";
+type Sort = "popular" | "latest";
 
 const PERIOD_TABS: { value: Period; label: string; icon: string; desc: string }[] = [
-  { value: "week",  label: "이번 주", icon: "📈", desc: "이번 주 가장 많은 주목을 받은 제품들" },
-  { value: "month", label: "이번 달", icon: "🏆", desc: "이번 달 가장 인기 있었던 제품들" },
-  { value: "year",  label: "이번 해", icon: "📅", desc: "이번 해 가장 인기 있었던 제품들" },
+  { value: "week",  label: "이번 주", icon: "📈", desc: "최근 7일간 런치된 제품들" },
+  { value: "month", label: "이번 달", icon: "🏆", desc: "최근 30일간 런치된 제품들" },
+  { value: "year",  label: "이번 해", icon: "📅", desc: "최근 1년간 런치된 제품들" },
   { value: "all",   label: "역대 인기", icon: "🔥", desc: "Boost · 댓글 기준 역대 인기 런치" },
 ];
 
 interface LaunchesClientProps {
   initialPeriod: Period;
+  initialSort: Sort;
   initialProducts: ProductWithMaker[];
   initialHasMore: boolean;
   initialNowMs: number;
@@ -24,12 +26,14 @@ interface LaunchesClientProps {
 
 export default function LaunchesClient({
   initialPeriod,
+  initialSort,
   initialProducts,
   initialHasMore,
   initialNowMs,
   userId: initialUserId,
 }: LaunchesClientProps) {
   const [period, setPeriod] = useState(initialPeriod);
+  const [sort, setSort] = useState(initialSort);
   const [products, setProducts] = useState(initialProducts);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [nowMs, setNowMs] = useState(initialNowMs);
@@ -38,10 +42,10 @@ export default function LaunchesClient({
   const [loadingMore, setLoadingMore] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
-  const fetchProducts = useCallback(async (p: Period) => {
+  const fetchProducts = useCallback(async (p: Period, s: Sort) => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/products/launches?period=${p}`);
+      const res = await fetch(`/api/products/launches?period=${p}&sort=${s}`);
       if (res.ok) {
         const data = await res.json();
         setProducts(data.products ?? []);
@@ -52,14 +56,14 @@ export default function LaunchesClient({
     } finally {
       setLoading(false);
     }
-    window.history.replaceState(null, "", `/launches?period=${p}`);
+    window.history.replaceState(null, "", `/launches?period=${p}&sort=${s}`);
   }, []);
 
   const loadMore = useCallback(async () => {
     if (loadingMore || !hasMore) return;
     setLoadingMore(true);
     try {
-      const res = await fetch(`/api/products/launches?period=${period}&offset=${products.length}`);
+      const res = await fetch(`/api/products/launches?period=${period}&sort=${sort}&offset=${products.length}`);
       if (res.ok) {
         const data = await res.json();
         setProducts((prev) => [...prev, ...(data.products ?? [])]);
@@ -68,7 +72,7 @@ export default function LaunchesClient({
     } finally {
       setLoadingMore(false);
     }
-  }, [loadingMore, hasMore, period, products.length]);
+  }, [loadingMore, hasMore, period, sort, products.length]);
 
   useEffect(() => {
     const el = sentinelRef.current;
@@ -85,11 +89,16 @@ export default function LaunchesClient({
 
   const handlePeriodChange = (p: Period) => {
     setPeriod(p);
-    fetchProducts(p);
+    fetchProducts(p, sort);
+  };
+
+  const handleSortChange = (s: Sort) => {
+    setSort(s);
+    fetchProducts(period, s);
   };
 
   const currentTab = PERIOD_TABS.find((t) => t.value === period)!;
-  const isRanked = true;
+  const isRanked = sort === "popular";
 
   return (
     <>
@@ -114,7 +123,34 @@ export default function LaunchesClient({
         })}
       </div>
 
-      <p className="mb-6 text-slate-500 dark:text-slate-400">{currentTab.desc}</p>
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          {sort === "popular" ? currentTab.desc : `${currentTab.label} 런치를 최신순으로 보여드려요`}
+        </p>
+        <div
+          className="flex gap-1 rounded-xl border border-slate-100 bg-slate-50 p-1 dark:border-navy-800 dark:bg-navy-800"
+          aria-label="정렬 방식"
+        >
+          {([
+            { value: "popular", label: "관심도순" },
+            { value: "latest", label: "최신순" },
+          ] as const).map(({ value, label }) => (
+            <button
+              key={value}
+              type="button"
+              aria-pressed={sort === value}
+              onClick={() => handleSortChange(value)}
+              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                sort === value
+                  ? "bg-white text-slate-900 shadow-sm dark:bg-navy-700 dark:text-slate-100"
+                  : "text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {loading ? (
         <div className="flex justify-center py-16">
@@ -123,7 +159,9 @@ export default function LaunchesClient({
       ) : (
         <>
           {isRanked && products.length > 0 && (
-            <p className="mb-3 text-xs text-slate-400">업보트 기준 상위 {products.length}개</p>
+            <p className="mb-3 text-xs text-slate-400">
+              {period === "all" ? "Boost · 댓글 기준 상위" : "업보트 기준 상위"} {products.length}개
+            </p>
           )}
 
           {products.length > 0 ? (

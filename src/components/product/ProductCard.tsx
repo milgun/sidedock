@@ -175,10 +175,11 @@ function ListCard({
   nowMs?: number;
 }) {
   const cats = product.categories?.length ? product.categories : [product.category];
+  const launchDate = context === "launch-feed" ? product.launched_at : product.created_at;
   const isNew =
     context === "launch-feed" &&
     nowMs > 0 &&
-    nowMs - new Date(product.created_at).getTime() < 72 * 3_600_000;
+    nowMs - new Date(launchDate).getTime() < 72 * 3_600_000;
 
   return (
     <div className="relative flex cursor-pointer items-center gap-3 border-b border-slate-100 bg-white px-3 py-3.5 transition last:border-0 hover:bg-slate-50/70 first:rounded-t-2xl last:rounded-b-2xl dark:border-navy-800 dark:bg-navy-900 dark:hover:bg-navy-800/50">
@@ -215,7 +216,7 @@ function ListCard({
             </span>
           ) : (
             <span className="text-center text-[10px] leading-tight text-slate-300">
-              {timeAgo(product.created_at, nowMs)}
+              {timeAgo(launchDate, nowMs)}
             </span>
           )}
         </div>
@@ -242,7 +243,7 @@ function ListCard({
           ))}
           {context === "launch-feed" && (
             <span className="text-xs text-blue-400">
-              {timeAgo(product.created_at, nowMs)}
+              {timeAgo(launchDate, nowMs)}
             </span>
           )}
         </div>
@@ -313,4 +314,3 @@ function CommentIcon() {
     </svg>
   );
 }
-
