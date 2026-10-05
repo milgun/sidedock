@@ -200,7 +200,7 @@ export default function DevlogDetailClient({
                 </code>
               ),
             pre: ({ children }) => (
-              <pre className="my-4 overflow-x-auto rounded-xl bg-slate-900 px-5 py-4">{children}</pre>
+              <pre className="my-4 overflow-x-auto rounded-xl bg-slate-900 px-5 py-4 [&>code]:block [&>code]:rounded-none [&>code]:bg-transparent [&>code]:p-0 [&>code]:text-slate-100">{children}</pre>
             ),
             ul: ({ children }) => (
               <ul className="mb-4 ml-6 list-disc space-y-1.5 text-slate-700 dark:text-slate-300">{children}</ul>

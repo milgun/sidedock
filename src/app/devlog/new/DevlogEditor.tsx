@@ -829,7 +829,7 @@ function MarkdownPreview({
           </code>
         ),
         pre: ({ children }: { children?: React.ReactNode }) => (
-          <pre className="my-3 overflow-x-auto rounded-xl bg-slate-900 px-4 py-3">{children}</pre>
+          <pre className="my-3 overflow-x-auto rounded-xl bg-slate-900 px-4 py-3 [&>code]:block [&>code]:rounded-none [&>code]:bg-transparent [&>code]:p-0 [&>code]:text-slate-100">{children}</pre>
         ),
         ul: ({ children }) => (
           <ul className="mb-3 ml-5 list-disc space-y-1 text-slate-700 dark:text-slate-300">{children}</ul>
