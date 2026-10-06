@@ -85,7 +85,7 @@ export default function LaunchesClient({
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [loadMore]);
+  }, [loadMore, loading]);
 
   const handlePeriodChange = (p: Period) => {
     setPeriod(p);
