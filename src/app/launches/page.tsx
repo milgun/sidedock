@@ -4,9 +4,9 @@ import type { ProductWithMaker } from "@/types";
 import LaunchesClient from "@/components/launches/LaunchesClient";
 
 export const metadata = {
-  title: "오늘의 신규 런칭 — AI 툴·SaaS·사이드 프로젝트",
+  title: "최근 출시·업데이트 — AI 툴·SaaS·사이드 프로젝트",
   description:
-    "한국 메이커들이 오늘 새로 런칭한 AI 툴, SaaS, 사이드 프로젝트를 가장 먼저 만나보세요.",
+    "한국 메이커들이 최근 출시하거나 업데이트한 AI 툴, SaaS, 사이드 프로젝트를 만나보세요.",
   alternates: { canonical: "/launches" },
 };
 
@@ -37,17 +37,19 @@ export default async function LaunchesPage(props: {
 
   if (period === "week") {
     const weekAgo = new Date(now.getTime() - 7 * 24 * 3_600_000).toISOString();
-    query = query.gte("launched_at", weekAgo);
+    query = query.gte("last_bumped_at", weekAgo);
   } else if (period === "month") {
     const monthAgo = new Date(now.getTime() - 30 * 24 * 3_600_000).toISOString();
-    query = query.gte("launched_at", monthAgo);
+    query = query.gte("last_bumped_at", monthAgo);
   } else if (period === "year") {
     const yearAgo = new Date(now.getTime() - 365 * 24 * 3_600_000).toISOString();
-    query = query.gte("launched_at", yearAgo);
+    query = query.gte("last_bumped_at", yearAgo);
   }
 
   if (sort === "latest") {
-    query = query.order("launched_at", { ascending: false });
+    query = query
+      .order("last_bumped_at", { ascending: false, nullsFirst: false })
+      .order("launched_at", { ascending: false });
   } else if (period === "all") {
     // all: 역대 인기순 (boost + 댓글)
     query = query

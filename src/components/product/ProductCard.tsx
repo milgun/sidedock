@@ -94,11 +94,15 @@ function ProductIcon({
 function GridCard({
   product,
   userId,
+  context,
 }: {
   product: ProductWithMaker;
   userId: string | null;
+  context?: "hot" | "launch-feed" | "launch-rank";
 }) {
   const cats = product.categories?.length ? product.categories : [product.category];
+  const wasBumped = context === "launch-feed" &&
+    new Date(product.last_bumped_at ?? product.launched_at).getTime() > new Date(product.launched_at).getTime();
 
   return (
     <div className="group relative flex flex-col gap-3 rounded-2xl border border-slate-100 bg-white p-4 transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-lg cursor-pointer dark:border-navy-800 dark:bg-navy-900 dark:hover:border-blue-500/40">
@@ -109,6 +113,11 @@ function GridCard({
         aria-hidden="true"
         tabIndex={-1}
       />
+      {wasBumped && (
+        <span className="absolute right-3 top-3 z-10 rounded-full bg-amber-500 px-2 py-1 text-[10px] font-bold leading-none text-white">
+          끌올
+        </span>
+      )}
       <ProductIcon url={product.thumbnail_url} name={product.name} size={64} />
       <div className="min-w-0 flex-1">
         <p className="font-semibold leading-tight text-slate-900 group-hover:text-blue-700 dark:text-slate-100 dark:group-hover:text-blue-400">
@@ -175,7 +184,11 @@ function ListCard({
   nowMs?: number;
 }) {
   const cats = product.categories?.length ? product.categories : [product.category];
-  const launchDate = context === "launch-feed" ? product.launched_at : product.created_at;
+  const launchDate = context === "launch-feed"
+    ? product.last_bumped_at ?? product.launched_at
+    : product.created_at;
+  const wasBumped = context === "launch-feed" &&
+    new Date(product.last_bumped_at ?? product.launched_at).getTime() > new Date(product.launched_at).getTime();
   const isNew =
     context === "launch-feed" &&
     nowMs > 0 &&
@@ -211,8 +224,8 @@ function ListCard({
       {context === "launch-feed" && (
         <div className="flex w-10 flex-shrink-0 items-center justify-center">
           {isNew ? (
-            <span className="rounded-full bg-blue-500 px-1.5 py-0.5 text-[9px] font-black leading-none tracking-wide text-white">
-              NEW
+            <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-black leading-none tracking-wide text-white ${wasBumped ? "bg-amber-500" : "bg-blue-500"}`}>
+              {wasBumped ? "끌올" : "NEW"}
             </span>
           ) : (
             <span className="text-center text-[10px] leading-tight text-slate-300">
@@ -302,7 +315,7 @@ export default function ProductCard({
   nowMs,
 }: ProductCardProps) {
   if (variant === "grid") {
-    return <GridCard product={product} userId={userId} />;
+    return <GridCard product={product} userId={userId} context={context} />;
   }
   return <ListCard product={product} rank={rank} userId={userId} context={context} nowMs={nowMs} />;
 }

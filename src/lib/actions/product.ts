@@ -323,11 +323,13 @@ export async function approveProduct(
   if (!profile?.is_admin) return { error: "관리자 권한이 필요합니다." };
 
   // 제품 승인
+  const launchedAt = new Date().toISOString();
   const { data: product, error } = await supabase
     .from("products")
     .update({
       status: "published",
-      launched_at: new Date().toISOString(),
+      launched_at: launchedAt,
+      last_bumped_at: launchedAt,
       rejection_reason: null,
     })
     .eq("id", productId)

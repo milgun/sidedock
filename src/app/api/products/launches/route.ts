@@ -25,17 +25,19 @@ export async function GET(req: NextRequest) {
 
   if (period === "week") {
     const weekAgo = new Date(now.getTime() - 7 * 24 * 3_600_000).toISOString();
-    query = query.gte("launched_at", weekAgo);
+    query = query.gte("last_bumped_at", weekAgo);
   } else if (period === "month") {
     const monthAgo = new Date(now.getTime() - 30 * 24 * 3_600_000).toISOString();
-    query = query.gte("launched_at", monthAgo);
+    query = query.gte("last_bumped_at", monthAgo);
   } else if (period === "year") {
     const yearAgo = new Date(now.getTime() - 365 * 24 * 3_600_000).toISOString();
-    query = query.gte("launched_at", yearAgo);
+    query = query.gte("last_bumped_at", yearAgo);
   }
 
   if (sort === "latest") {
-    query = query.order("launched_at", { ascending: false });
+    query = query
+      .order("last_bumped_at", { ascending: false, nullsFirst: false })
+      .order("launched_at", { ascending: false });
   } else if (period === "all") {
     // all: 역대 인기순 (boost + 댓글)
     query = query

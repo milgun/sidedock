@@ -55,6 +55,7 @@ export interface Product {
   discovery_picked_at: string | null;
   slug: string;
   source: 'curated' | 'launch';
+  last_bumped_at: string | null;
   gallery_images: string[];
   is_open_source: boolean;
   repo_url: string | null;
@@ -194,6 +195,7 @@ export interface DevlogPost {
   home_featured_at: string | null;
   visibility: "public" | "private";
   folder_id: string | null;
+  product_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -205,6 +207,12 @@ export interface DevlogFolder {
   slug: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface DevlogProductOption {
+  id: string;
+  name: string;
+  slug: string;
 }
 
 export interface Notification {

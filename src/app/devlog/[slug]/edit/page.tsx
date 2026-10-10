@@ -17,7 +17,7 @@ export default async function DevlogEditPage(props: {
   const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
   const { data: post } = await supabase
     .from("devlog_posts")
-    .select("id, author_id, slug, title, content, tags, thumbnail_url, visibility, folder_id")
+    .select("id, author_id, slug, title, content, tags, thumbnail_url, visibility, folder_id, product_id")
     .eq(isUUID ? "id" : "slug", slug)
     .maybeSingle();
 
@@ -29,6 +29,13 @@ export default async function DevlogEditPage(props: {
     .select("id, name")
     .eq("owner_id", user.id)
     .order("created_at", { ascending: true });
+  const { data: products } = await supabase
+    .from("products")
+    .select("id, name, slug")
+    .eq("maker_id", user.id)
+    .eq("source", "launch")
+    .eq("status", "published")
+    .order("name");
 
   const postSlug = (post.slug as string) || (post.id as string);
 
@@ -39,6 +46,7 @@ export default async function DevlogEditPage(props: {
     thumbnail_url: (post.thumbnail_url as string | null) ?? null,
     visibility: post.visibility === "private" ? "private" : "public",
     folder_id: (post.folder_id as string | null) ?? null,
+    product_id: (post.product_id as string | null) ?? null,
   };
 
   return (
@@ -53,7 +61,7 @@ export default async function DevlogEditPage(props: {
 
       <h1 className="mb-6 text-2xl font-black text-slate-900 dark:text-slate-100">Dev Log 수정</h1>
 
-      <DevlogEditor mode="edit" postId={post.id as string} initialData={initialData} initialFolders={folders ?? []} />
+      <DevlogEditor mode="edit" postId={post.id as string} initialData={initialData} initialFolders={folders ?? []} initialProducts={products ?? []} />
     </div>
   );
 }

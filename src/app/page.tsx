@@ -33,6 +33,7 @@ export default async function HomePage() {
       .select("*, maker:profiles(id, username, avatar_url, display_name)")
       .eq("source", "launch")
       .eq("status", "published")
+      .order("last_bumped_at", { ascending: false, nullsFirst: false })
       .order("launched_at", { ascending: false })
       .limit(50),
     supabase
@@ -100,7 +101,7 @@ export default async function HomePage() {
             <SectionHeader
               icon="🚀"
               title="신규 런치"
-              desc="메이커들이 새롭게 공개한 제품들"
+              desc="메이커들이 새롭게 출시하거나 업데이트한 제품들"
               href="/launches?period=week"
               linkText="런치 전체 보기"
             />
@@ -110,6 +111,7 @@ export default async function HomePage() {
                 initialCount={6}
                 pageSize={6}
                 userId={userId}
+                context="launch-feed"
                 variant="grid"
               />
             ) : (

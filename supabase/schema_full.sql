@@ -78,6 +78,7 @@ CREATE TABLE IF NOT EXISTS public.products (
   rejection_reason text,                                     -- v4
   slug             text,                                     -- v8
   launched_at      timestamptz DEFAULT now() NOT NULL,
+  last_bumped_at   timestamptz,
   created_at       timestamptz DEFAULT now() NOT NULL,
   search_vector    tsvector GENERATED ALWAYS AS (
     to_tsvector('simple', COALESCE(name, '') || ' ' || COALESCE(tagline, '') || ' ' || COALESCE(description, ''))
@@ -89,9 +90,12 @@ UPDATE public.products
 SET slug = regexp_replace(lower(name), '[^a-z0-9가-힣]+', '-', 'g') || '-' || substring(id::text, 1, 6)
 WHERE slug IS NULL;
 ALTER TABLE public.products ALTER COLUMN slug SET NOT NULL;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS last_bumped_at timestamptz;
+UPDATE public.products SET last_bumped_at = launched_at WHERE last_bumped_at IS NULL;
 
 CREATE INDEX IF NOT EXISTS products_search_idx           ON public.products USING gin(search_vector);
 CREATE INDEX IF NOT EXISTS products_launched_at_idx      ON public.products(launched_at DESC);
+CREATE INDEX IF NOT EXISTS products_last_bumped_at_idx   ON public.products(last_bumped_at DESC);
 CREATE INDEX IF NOT EXISTS products_upvote_count_idx     ON public.products(upvote_count DESC);
 CREATE INDEX IF NOT EXISTS products_is_featured_idx      ON public.products(is_featured) WHERE is_featured = true;
 CREATE INDEX IF NOT EXISTS products_discovery_pick_idx   ON public.products(discovery_picked_at DESC) WHERE is_discovery_pick = true;
@@ -249,6 +253,7 @@ CREATE TABLE IF NOT EXISTS public.devlog_posts (
   home_featured_at timestamptz,
   visibility text DEFAULT 'public' NOT NULL CHECK (visibility IN ('public', 'private')),
   folder_id uuid REFERENCES public.devlog_folders(id) ON DELETE SET NULL,
+  product_id uuid REFERENCES public.products(id) ON DELETE SET NULL,
   created_at    timestamptz DEFAULT now() NOT NULL,
   updated_at    timestamptz DEFAULT now() NOT NULL,
   search_vector tsvector GENERATED ALWAYS AS (
@@ -260,6 +265,7 @@ UPDATE public.devlog_posts
 SET slug = regexp_replace(lower(title), '[^a-z0-9가-힣]+', '-', 'g') || '-' || substring(id::text, 1, 6)
 WHERE slug IS NULL;
 ALTER TABLE public.devlog_posts ALTER COLUMN slug SET NOT NULL;
+ALTER TABLE public.devlog_posts ADD COLUMN IF NOT EXISTS product_id uuid REFERENCES public.products(id) ON DELETE SET NULL;
 
 CREATE INDEX IF NOT EXISTS devlog_posts_author_idx    ON public.devlog_posts(author_id);
 CREATE INDEX IF NOT EXISTS devlog_posts_created_at_idx ON public.devlog_posts(created_at DESC);
@@ -269,6 +275,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS devlog_posts_slug_idx ON public.devlog_posts(s
 CREATE INDEX IF NOT EXISTS devlog_folders_owner_idx ON public.devlog_folders(owner_id, created_at);
 CREATE INDEX IF NOT EXISTS devlog_posts_folder_idx ON public.devlog_posts(folder_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS devlog_posts_public_idx ON public.devlog_posts(visibility, created_at DESC);
+CREATE INDEX IF NOT EXISTS devlog_posts_product_idx ON public.devlog_posts(product_id, created_at DESC) WHERE visibility = 'public';
 
 -- ── 10. devlog_likes ──────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.devlog_likes (

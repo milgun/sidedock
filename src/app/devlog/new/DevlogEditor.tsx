@@ -8,6 +8,7 @@ import remarkGfm from "remark-gfm";
 import remarkCjkFriendly from "remark-cjk-friendly";
 import { createDevlogFolder, createDevlogPost, updateDevlogPost } from "@/lib/actions/devlog";
 import { formatDevlogMarkdown } from "@/lib/devlog-markdown";
+import type { DevlogProductOption } from "@/types";
 
 export interface DevlogFolderOption {
   id: string;
@@ -21,6 +22,7 @@ export interface DevlogInitialData {
   thumbnail_url: string | null;
   visibility?: "public" | "private";
   folder_id?: string | null;
+  product_id?: string | null;
 }
 
 // ── 커서 삽입 헬퍼 ────────────────────────────────────────────────────────────
@@ -122,11 +124,15 @@ export default function DevlogEditor({
   postId,
   initialData,
   initialFolders,
+  initialProducts,
+  initialProductId,
 }: {
   mode?: "create" | "edit";
   postId?: string;
   initialData?: DevlogInitialData;
   initialFolders?: DevlogFolderOption[];
+  initialProducts?: DevlogProductOption[];
+  initialProductId?: string;
 }) {
   const router = useRouter();
   const [title, setTitle] = useState(initialData?.title ?? "");
@@ -135,6 +141,8 @@ export default function DevlogEditor({
   const [thumbnail, setThumbnail] = useState<string | null>(initialData?.thumbnail_url ?? null);
   const [visibility, setVisibility] = useState<"public" | "private">(initialData?.visibility ?? "public");
   const [folderId, setFolderId] = useState(initialData?.folder_id ?? "");
+  const [productId, setProductId] = useState(initialData?.product_id ?? initialProductId ?? "");
+  const [bumpLaunch, setBumpLaunch] = useState(false);
   const [folders, setFolders] = useState<DevlogFolderOption[]>(initialFolders ?? []);
   const [newFolderName, setNewFolderName] = useState("");
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
@@ -389,6 +397,8 @@ export default function DevlogEditor({
       fd.append("tags", tags);
       fd.append("visibility", visibility);
       if (folderId) fd.append("folder_id", folderId);
+      if (productId) fd.append("product_id", productId);
+      if (bumpLaunch) fd.append("bump_launch", "true");
       if (thumbnail) fd.append("thumbnail_url", thumbnail);
 
       let result: { error?: string; slug?: string } | undefined;
@@ -526,7 +536,10 @@ export default function DevlogEditor({
               <button
                 key={value}
                 type="button"
-                onClick={() => setVisibility(value)}
+                onClick={() => {
+                  setVisibility(value);
+                  if (value === "private") setBumpLaunch(false);
+                }}
                 className={`flex-1 rounded-xl border px-3 py-2 text-sm font-semibold transition ${visibility === value ? "border-blue-500 bg-blue-600 text-white" : "border-slate-200 text-slate-500 hover:border-blue-300 dark:border-navy-700 dark:text-slate-400"}`}
               >
                 {value === "public" ? "전체 공개" : "비공개"}
@@ -550,6 +563,23 @@ export default function DevlogEditor({
             <button type="button" onClick={() => setIsCreatingFolder(true)} className="mt-2 text-xs font-semibold text-blue-600 hover:underline dark:text-blue-400">+ 새 Work Folder 만들기</button>
           )}
         </div>
+      </div>
+
+      <div className="rounded-2xl border border-slate-200 p-4 dark:border-navy-800 dark:bg-navy-900/40">
+        <label htmlFor="devlog-product" className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-400">제품 업데이트 <span className="font-normal normal-case">선택</span></label>
+        <select id="devlog-product" value={productId} onChange={(e) => {
+          setProductId(e.target.value);
+          if (!e.target.value) setBumpLaunch(false);
+        }} className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-blue-400 dark:border-navy-700 dark:bg-navy-800 dark:text-slate-100">
+          <option value="">일반 Dev Log</option>
+          {initialProducts?.map((product) => <option key={product.id} value={product.id}>{product.name}</option>)}
+        </select>
+        {productId && (
+          <label className={`mt-3 flex items-start gap-2 text-sm ${visibility === "public" ? "text-slate-700 dark:text-slate-300" : "text-slate-400"}`}>
+            <input type="checkbox" checked={bumpLaunch} disabled={visibility !== "public"} onChange={(e) => setBumpLaunch(e.target.checked)} className="mt-0.5 accent-blue-600" />
+            <span><span className="font-semibold">Launches 최신순에 올리기</span><span className="mt-0.5 block text-xs text-slate-400">공개 업데이트를 게시하면 제품이 최근 활동 목록에 다시 노출됩니다.</span></span>
+          </label>
+        )}
       </div>
 
       {/* 에디터 */}

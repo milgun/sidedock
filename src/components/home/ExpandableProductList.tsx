@@ -39,6 +39,7 @@ export default function ExpandableProductList({
               product={p}
               variant="grid"
               userId={userId}
+              context={context}
             />
           ))}
         </div>

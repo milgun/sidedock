@@ -130,7 +130,7 @@ export default async function ProductDetailPage(props: {
     notFound();
   }
 
-  const [{ data: rawComments }, { data: rawLinks }, { data: rawTeam }, { data: rawShoutouts }, { data: rawReviews }, { data: rawReactions }] =
+  const [{ data: rawComments }, { data: rawLinks }, { data: rawTeam }, { data: rawShoutouts }, { data: rawReviews }, { data: rawReactions }, { data: rawUpdates }] =
     await Promise.all([
       supabase.from("comments").select("*, profile:profiles(*)").eq("product_id", product.id).order("created_at", { ascending: true }),
       supabase.from("product_links").select("*").eq("product_id", product.id).order("sort_order"),
@@ -141,6 +141,7 @@ export default async function ProductDetailPage(props: {
         "comment_id",
         ((await supabase.from("comments").select("id").eq("product_id", product.id)).data ?? []).map((c: { id: string }) => c.id)
       ),
+      supabase.from("devlog_posts").select("id, slug, title, content, created_at").eq("product_id", product.id).eq("visibility", "public").order("created_at", { ascending: false }).limit(100),
     ]);
 
   // 메이커가 출시한 다른 제품 — Launches 제품에만 표시 (curated 제외)
@@ -239,6 +240,7 @@ export default async function ProductDetailPage(props: {
   const teamMembers = (rawTeam ?? []) as unknown as (ProductTeamMember & { profile: Pick<Profile, "id" | "username" | "display_name" | "avatar_url"> | null })[];
   const shoutouts = (rawShoutouts ?? []) as unknown as ProductShoutout[];
   const reviews = (rawReviews ?? []) as unknown as { id: string; rating: number; content: string; created_at: string; profile: Pick<Profile, "username" | "display_name" | "avatar_url"> | null }[];
+  const updates = (rawUpdates ?? []) as { id: string; slug: string; title: string; content: string; created_at: string }[];
   const makerProducts = (rawMakerProducts ?? []) as { id: string; name: string; thumbnail_url: string | null }[];
   const userId = user?.id ?? null;
   const isCurated = productSource === "curated";
@@ -464,11 +466,13 @@ export default async function ProductDetailPage(props: {
         maker={typedProduct.maker ?? null}
         makerType={typedProduct.maker_type}
         isCurated={isCurated}
+        isProductOwner={isProductOwner}
         makerProducts={makerProducts}
         teamMembers={teamMembers}
         shoutouts={shoutouts}
         reviews={reviews}
         comments={comments}
+        updates={updates}
         userId={userId}
         userHasReview={userHasReview}
       />

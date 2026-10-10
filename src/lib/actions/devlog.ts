@@ -68,6 +68,8 @@ export async function createDevlogPost(formData: FormData): Promise<{ error?: st
   const thumbnail_url = (formData.get("thumbnail_url") as string) || null;
   const visibility = formData.get("visibility") === "private" ? "private" : "public";
   const folderId = (formData.get("folder_id") as string) || null;
+  const productId = (formData.get("product_id") as string)?.trim() || null;
+  const bumpLaunch = formData.get("bump_launch") === "true";
 
   if (!title || !content) return { error: "제목과 내용을 입력해주세요." };
   if (title.length < 5) return { error: "제목은 5자 이상 입력해주세요." };
@@ -78,17 +80,44 @@ export async function createDevlogPost(formData: FormData): Promise<{ error?: st
     const { data: folder } = await supabase.from("devlog_folders").select("id").eq("id", folderId).eq("owner_id", user.id).maybeSingle();
     if (!folder) return { error: "Work Folder를 확인해주세요." };
   }
+  let productSlug: string | null = null;
+  if (productId) {
+    const { data: product } = await supabase
+      .from("products")
+      .select("slug")
+      .eq("id", productId)
+      .eq("maker_id", user.id)
+      .eq("source", "launch")
+      .eq("status", "published")
+      .maybeSingle();
+    if (!product) return { error: "본인이 소유한 공개 Launch 제품만 연결할 수 있습니다." };
+    productSlug = product.slug;
+  }
+  if (bumpLaunch && (!productId || visibility !== "public")) {
+    return { error: "공개 제품 업데이트만 Launches 최신순으로 올릴 수 있습니다." };
+  }
   const slug = await generateUniqueSlug(title, supabase as never, undefined, "devlog_posts");
 
   const { data, error } = await supabase
     .from("devlog_posts")
-    .insert({ author_id: user.id, title, content, tags, thumbnail_url, slug, visibility, folder_id: folderId })
+    .insert({ author_id: user.id, title, content, tags, thumbnail_url, slug, visibility, folder_id: folderId, product_id: productId })
     .select("id, slug")
     .single();
 
   if (error) return { error: error.message };
 
   revalidatePath("/devlog");
+  if (productSlug) revalidatePath(`/products/${encodeURIComponent(productSlug)}`);
+  if (bumpLaunch && productId) {
+    const { error: bumpError } = await supabase
+      .from("products")
+      .update({ last_bumped_at: new Date().toISOString() })
+      .eq("id", productId)
+      .eq("maker_id", user.id);
+    if (bumpError) return { error: `Dev Log는 게시되었지만 Launches 끌어올림에 실패했습니다: ${bumpError.message}` };
+    revalidatePath("/launches");
+  }
+
   return { slug: data.slug };
 }
 
@@ -103,6 +132,8 @@ export async function updateDevlogPost(postId: string, formData: FormData): Prom
   const thumbnail_url = (formData.get("thumbnail_url") as string) || null;
   const visibility = formData.get("visibility") === "private" ? "private" : "public";
   const folderId = (formData.get("folder_id") as string) || null;
+  const productId = (formData.get("product_id") as string)?.trim() || null;
+  const bumpLaunch = formData.get("bump_launch") === "true";
 
   if (!title || !content) return { error: "제목과 내용을 입력해주세요." };
   if (title.length < 5) return { error: "제목은 5자 이상 입력해주세요." };
@@ -113,11 +144,34 @@ export async function updateDevlogPost(postId: string, formData: FormData): Prom
     const { data: folder } = await supabase.from("devlog_folders").select("id").eq("id", folderId).eq("owner_id", user.id).maybeSingle();
     if (!folder) return { error: "Work Folder를 확인해주세요." };
   }
+  const { data: previousPost } = await supabase
+    .from("devlog_posts")
+    .select("product_id")
+    .eq("id", postId)
+    .eq("author_id", user.id)
+    .maybeSingle();
+  if (!previousPost) return { error: "수정할 Dev Log를 찾을 수 없습니다." };
+  let productSlug: string | null = null;
+  if (productId) {
+    const { data: product } = await supabase
+      .from("products")
+      .select("slug")
+      .eq("id", productId)
+      .eq("maker_id", user.id)
+      .eq("source", "launch")
+      .eq("status", "published")
+      .maybeSingle();
+    if (!product) return { error: "본인이 소유한 공개 Launch 제품만 연결할 수 있습니다." };
+    productSlug = product.slug;
+  }
+  if (bumpLaunch && (!productId || visibility !== "public")) {
+    return { error: "공개 제품 업데이트만 Launches 최신순으로 올릴 수 있습니다." };
+  }
   const slug = await generateUniqueSlug(title, supabase as never, postId, "devlog_posts");
 
   const { data: updatedPost, error } = await supabase
     .from("devlog_posts")
-    .update({ title, content, tags, thumbnail_url, slug, visibility, folder_id: folderId, updated_at: new Date().toISOString() })
+    .update({ title, content, tags, thumbnail_url, slug, visibility, folder_id: folderId, product_id: productId, updated_at: new Date().toISOString() })
     .eq("id", postId)
     .eq("author_id", user.id)
     .select("id")
@@ -127,6 +181,27 @@ export async function updateDevlogPost(postId: string, formData: FormData): Prom
   if (!updatedPost) return { error: "Dev Log를 저장하지 못했습니다. 작성자 권한을 확인해주세요." };
 
   revalidatePath(`/devlog/${slug}`);
+  if (productSlug) revalidatePath(`/products/${encodeURIComponent(productSlug)}`);
+  if (previousPost.product_id && previousPost.product_id !== productId) {
+    const { data: previousProduct } = await supabase
+      .from("products")
+      .select("slug")
+      .eq("id", previousPost.product_id)
+      .maybeSingle();
+    if (previousProduct?.slug) {
+      revalidatePath(`/products/${encodeURIComponent(previousProduct.slug)}`);
+    }
+  }
+  if (bumpLaunch && productId) {
+    const { error: bumpError } = await supabase
+      .from("products")
+      .update({ last_bumped_at: new Date().toISOString() })
+      .eq("id", productId)
+      .eq("maker_id", user.id);
+    if (bumpError) return { error: `Dev Log는 저장되었지만 Launches 끌어올림에 실패했습니다: ${bumpError.message}` };
+    revalidatePath("/launches");
+  }
+
   return { slug };
 }
 

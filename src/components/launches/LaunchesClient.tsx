@@ -9,9 +9,9 @@ type Period = "week" | "month" | "year" | "all";
 type Sort = "popular" | "latest";
 
 const PERIOD_TABS: { value: Period; label: string; icon: string; desc: string }[] = [
-  { value: "week",  label: "이번 주", icon: "📈", desc: "최근 7일간 런치된 제품들" },
-  { value: "month", label: "이번 달", icon: "🏆", desc: "최근 30일간 런치된 제품들" },
-  { value: "year",  label: "이번 해", icon: "📅", desc: "최근 1년간 런치된 제품들" },
+  { value: "week",  label: "이번 주", icon: "📈", desc: "최근 7일간 출시되거나 업데이트된 제품들" },
+  { value: "month", label: "이번 달", icon: "🏆", desc: "최근 30일간 출시되거나 업데이트된 제품들" },
+  { value: "year",  label: "이번 해", icon: "📅", desc: "최근 1년간 출시되거나 업데이트된 제품들" },
   { value: "all",   label: "역대 인기", icon: "🔥", desc: "Boost · 댓글 기준 역대 인기 런치" },
 ];
 
@@ -125,7 +125,7 @@ export default function LaunchesClient({
 
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          {sort === "popular" ? currentTab.desc : `${currentTab.label} 런치를 최신순으로 보여드려요`}
+          {sort === "popular" ? currentTab.desc : `${currentTab.label} 출시·업데이트를 최신순으로 보여드려요`}
         </p>
         <div
           className="flex gap-1 rounded-xl border border-slate-100 bg-slate-50 p-1 dark:border-navy-800 dark:bg-navy-800"
@@ -195,9 +195,9 @@ export default function LaunchesClient({
 
 function EmptyState({ period }: { period: Period }) {
   const config: Record<Period, { icon: string; message: string }> = {
-    week:  { icon: "📈", message: "이번 주 런치된 제품이 없습니다." },
-    month: { icon: "🏆", message: "이번 달 런치된 제품이 없습니다." },
-    year:  { icon: "📅", message: "이번 해 런치된 제품이 없습니다." },
+    week:  { icon: "📈", message: "이번 주 출시되거나 업데이트된 제품이 없습니다." },
+    month: { icon: "🏆", message: "이번 달 출시되거나 업데이트된 제품이 없습니다." },
+    year:  { icon: "📅", message: "이번 해 출시되거나 업데이트된 제품이 없습니다." },
     all:   { icon: "🔥", message: "아직 등록된 런치 제품이 없습니다." },
   };
   const { icon, message } = config[period];

@@ -29,7 +29,7 @@ type TeamMemberWithProfile = ProductTeamMember & {
   profile?: Pick<Profile, "id" | "username" | "display_name" | "avatar_url"> | null;
 };
 
-type Tab = "overview" | "team" | "shoutouts" | "reviews";
+type Tab = "overview" | "team" | "shoutouts" | "updates" | "reviews";
 
 export interface ProductTabsProps {
   productId: string;
@@ -39,11 +39,13 @@ export interface ProductTabsProps {
   maker: MakerInfo | null;
   makerType: "maker" | "hunter";
   isCurated?: boolean;
+  isProductOwner: boolean;
   makerProducts?: { id: string; slug?: string; name: string; thumbnail_url: string | null }[];
   teamMembers: TeamMemberWithProfile[];
   shoutouts: ProductShoutout[];
   reviews: ReviewWithProfile[];
   comments: CommentWithProfile[];
+  updates: { id: string; slug: string; title: string; content: string; created_at: string }[];
   userId: string | null;
   userHasReview: boolean;
 }
@@ -188,8 +190,10 @@ export default function ProductTabs({
   shoutouts,
   reviews,
   comments,
+  updates,
   userId,
   userHasReview,
+  isProductOwner,
 }: ProductTabsProps) {
   const [activeTab, setActiveTab] = useState<Tab>("overview");
 
@@ -198,6 +202,7 @@ export default function ProductTabs({
     ...(!isCurated ? [
       { id: "team" as Tab, label: "팀", count: teamMembers.length },
       { id: "shoutouts" as Tab, label: "추천 도구", count: shoutouts.length },
+      { id: "updates" as Tab, label: "업데이트", count: updates.length },
     ] : []),
     { id: "reviews", label: "리뷰", count: reviews.length },
   ];
@@ -445,6 +450,36 @@ export default function ProductTabs({
                     </p>
                   </div>
                 </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── 제품 업데이트 ── */}
+      {activeTab === "updates" && (
+        <div>
+          <div className="mb-5 flex items-center justify-between gap-3">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">제품 업데이트</h2>
+            {isProductOwner && (
+              <Link href={`/devlog/new?product=${encodeURIComponent(productId)}`} className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-blue-700">
+                업데이트 작성
+              </Link>
+            )}
+          </div>
+          {updates.length === 0 ? (
+            <div className="border-y border-dashed border-slate-200 py-12 text-center dark:border-navy-800">
+              <p className="text-sm text-slate-500 dark:text-slate-400">아직 등록된 업데이트가 없습니다.</p>
+              {isProductOwner && <p className="mt-1 text-xs text-slate-400">새 기능이나 개선 사항을 공유해 보세요.</p>}
+            </div>
+          ) : (
+            <div className="divide-y divide-slate-100 dark:divide-navy-800">
+              {updates.map((update) => (
+                <Link key={update.id} href={`/devlog/${encodeURIComponent(update.slug)}`} className="block py-4 transition hover:text-blue-700 dark:hover:text-blue-400">
+                  <p className="text-xs text-slate-400">{new Date(update.created_at).toLocaleDateString("ko-KR")}</p>
+                  <h3 className="mt-1 font-semibold text-slate-900 dark:text-slate-100">{update.title}</h3>
+                  <p className="mt-1 line-clamp-2 text-sm text-slate-500 dark:text-slate-400">{update.content.replace(/[#>*_`~\[\]()]/g, " ").replace(/\s+/g, " ").trim()}</p>
+                </Link>
               ))}
             </div>
           )}
