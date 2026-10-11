@@ -6,7 +6,9 @@ ALTER TABLE public.products
 
 UPDATE public.products
 SET last_bumped_at = launched_at
-WHERE last_bumped_at IS NULL;
+WHERE last_bumped_at IS NULL
+  AND source = 'launch'
+  AND (status = 'published' OR launched_at > created_at);
 
 CREATE INDEX IF NOT EXISTS devlog_posts_product_idx
   ON public.devlog_posts(product_id, created_at DESC)

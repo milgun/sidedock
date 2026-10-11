@@ -302,7 +302,7 @@ export async function submitProductForReview(
 }
 
 // ── approveProduct ────────────────────────────────────────────────────────────
-// 관리자: 제품 승인 → status='published', launched_at=now()
+// 관리자: 최초 승인 시 출시일을 기록하고, 재승인 시에는 끌어올림 시각만 갱신
 
 export async function approveProduct(
   productId: string
@@ -322,16 +322,31 @@ export async function approveProduct(
 
   if (!profile?.is_admin) return { error: "관리자 권한이 필요합니다." };
 
-  // 제품 승인
-  const launchedAt = new Date().toISOString();
+  const { data: existingProduct, error: lookupError } = await supabase
+    .from("products")
+    .select("last_bumped_at")
+    .eq("id", productId)
+    .maybeSingle();
+
+  if (lookupError) return { error: lookupError.message };
+  if (!existingProduct) return { error: "제품을 찾을 수 없습니다." };
+
+  const approvedAt = new Date().toISOString();
+  const update: {
+    status: "published";
+    launched_at?: string;
+    last_bumped_at: string;
+    rejection_reason: null;
+  } = {
+    status: "published",
+    last_bumped_at: approvedAt,
+    rejection_reason: null,
+  };
+  if (!existingProduct.last_bumped_at) update.launched_at = approvedAt;
+
   const { data: product, error } = await supabase
     .from("products")
-    .update({
-      status: "published",
-      launched_at: launchedAt,
-      last_bumped_at: launchedAt,
-      rejection_reason: null,
-    })
+    .update(update)
     .eq("id", productId)
     .select("name, slug, maker_id")
     .single();

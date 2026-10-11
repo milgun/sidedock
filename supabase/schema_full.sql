@@ -91,7 +91,11 @@ SET slug = regexp_replace(lower(name), '[^a-z0-9가-힣]+', '-', 'g') || '-' || 
 WHERE slug IS NULL;
 ALTER TABLE public.products ALTER COLUMN slug SET NOT NULL;
 ALTER TABLE public.products ADD COLUMN IF NOT EXISTS last_bumped_at timestamptz;
-UPDATE public.products SET last_bumped_at = launched_at WHERE last_bumped_at IS NULL;
+UPDATE public.products
+SET last_bumped_at = launched_at
+WHERE last_bumped_at IS NULL
+  AND source = 'launch'
+  AND (status = 'published' OR launched_at > created_at);
 
 CREATE INDEX IF NOT EXISTS products_search_idx           ON public.products USING gin(search_vector);
 CREATE INDEX IF NOT EXISTS products_launched_at_idx      ON public.products(launched_at DESC);
