@@ -29,6 +29,7 @@ type DevlogResult = {
   content: string;
   thumbnail_url: string | null;
   tags: string[] | null;
+  created_at?: string | null;
   author?: { display_name?: string | null; username?: string | null } | null;
 };
 
@@ -41,6 +42,7 @@ export default function QuickSearch() {
   const [products, setProducts] = useState<ProductResult[]>([]);
   const [devlogs, setDevlogs] = useState<DevlogResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasSearchError, setHasSearchError] = useState(false);
 
   useEffect(() => {
     const handler = (event: MouseEvent) => {
@@ -55,49 +57,52 @@ export default function QuickSearch() {
   useEffect(() => {
     if (!open) return;
 
+    let cancelled = false;
+    const trimmed = query.trim();
+    if (!trimmed) return;
     const timer = window.setTimeout(() => {
-      const trimmed = query.trim();
-      if (!trimmed) {
-        setProducts([]);
-        setDevlogs([]);
-        setIsLoading(false);
-        return;
-      }
-
       const runSearch = async () => {
-        setIsLoading(true);
-        const supabase = createClient();
-        const search = trimmed;
+        try {
+          const supabase = createClient();
+          const [productsRes, devlogsRes] = await Promise.all([
+            supabase
+              .from("products")
+              .select("id, slug, name, tagline, description, thumbnail_url, category, categories, created_at")
+              .eq("status", "published")
+              .limit(100),
+            supabase
+              .from("devlog_posts")
+              .select("id, slug, title, content, thumbnail_url, tags, created_at, author:profiles(display_name, username)")
+              .eq("visibility", "public")
+              .limit(100),
+          ]);
 
-        const [productsRes, devlogsRes] = await Promise.all([
-          supabase
-            .from("products")
-            .select("id, slug, name, tagline, description, thumbnail_url, category, categories, created_at")
-            .eq("status", "published")
-            .limit(50),
-          supabase
-            .from("devlog_posts")
-            .select("id, slug, title, content, thumbnail_url, tags, author:profiles(display_name, username)")
-            .limit(50),
-        ]);
+          if (productsRes.error) throw productsRes.error;
+          if (devlogsRes.error) throw devlogsRes.error;
+          if (cancelled) return;
 
-        const allProducts = ((productsRes.data ?? []) as Array<Record<string, unknown>>)
-          .filter((item) => matchesSearchQuery(item, "products", search)) as ProductResult[];
-        const allDevlogs = ((devlogsRes.data ?? []) as Array<Record<string, unknown>>)
-          .filter((item) => matchesSearchQuery(item, "devlogs", search)) as DevlogResult[];
+          const allProducts = ((productsRes.data ?? []) as Array<Record<string, unknown>>)
+            .filter((item) => matchesSearchQuery(item, "products", trimmed)) as ProductResult[];
+          const allDevlogs = ((devlogsRes.data ?? []) as Array<Record<string, unknown>>)
+            .filter((item) => matchesSearchQuery(item, "devlogs", trimmed)) as DevlogResult[];
 
-        const rankedProducts = sortSearchResults(allProducts, "products", search, "relevance");
-        const rankedDevlogs = sortSearchResults(allDevlogs, "devlogs", search, "relevance");
-
-        setProducts(rankedProducts.slice(0, 12));
-        setDevlogs(rankedDevlogs.slice(0, 12));
-        setIsLoading(false);
+          setProducts(sortSearchResults(allProducts, "products", trimmed, "relevance"));
+          setDevlogs(sortSearchResults(allDevlogs, "devlogs", trimmed, "relevance"));
+        } catch (error) {
+          console.error("Quick search failed:", error);
+          if (!cancelled) setHasSearchError(true);
+        } finally {
+          if (!cancelled) setIsLoading(false);
+        }
       };
 
       void runSearch();
     }, 220);
 
-    return () => window.clearTimeout(timer);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
   }, [open, query]);
 
   const handleSelect = (href: string) => {
@@ -135,7 +140,18 @@ export default function QuickSearch() {
     <div className="relative" ref={panelRef}>
       <button
         type="button"
-        onClick={() => setOpen((prev) => !prev)}
+        onClick={() => {
+          const nextOpen = !open;
+          if (nextOpen) {
+            setProducts([]);
+            setDevlogs([]);
+            setHasSearchError(false);
+            setIsLoading(Boolean(query.trim()));
+          } else {
+            setIsLoading(false);
+          }
+          setOpen(nextOpen);
+        }}
         className="inline-flex items-center justify-center rounded-full border border-slate-200 px-2.5 py-1.5 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 sm:px-3.5 dark:border-navy-700 dark:text-slate-200 dark:hover:border-navy-600 dark:hover:bg-navy-800"
       >
         <span aria-hidden="true">🔎</span>
@@ -149,7 +165,14 @@ export default function QuickSearch() {
               <span className="sr-only">검색어</span>
               <input
                 value={query}
-                onChange={(event) => setQuery(event.target.value)}
+                onChange={(event) => {
+                  const nextQuery = event.target.value;
+                  setQuery(nextQuery);
+                  setProducts([]);
+                  setDevlogs([]);
+                  setHasSearchError(false);
+                  setIsLoading(Boolean(nextQuery.trim()));
+                }}
                 onKeyDown={handleInputKeyDown}
                 placeholder={tab === "products" ? "제품 이름이나 설명으로 검색" : "게시글 제목이나 내용으로 검색"}
                 className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-base text-slate-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100 sm:text-sm dark:border-navy-700 dark:bg-navy-800 dark:text-slate-100 dark:placeholder-slate-500"
@@ -169,7 +192,7 @@ export default function QuickSearch() {
               >
                 <span className="flex items-center justify-center gap-2">
                   <span>Product</span>
-                  {query.trim() ? <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold">{products.length}</span> : null}
+                  {query.trim() && !isLoading && !hasSearchError ? <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold">{products.length}</span> : null}
                 </span>
               </button>
               <button
@@ -183,7 +206,7 @@ export default function QuickSearch() {
               >
                 <span className="flex items-center justify-center gap-2">
                   <span>Dev Log</span>
-                  {query.trim() ? <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold">{devlogs.length}</span> : null}
+                  {query.trim() && !isLoading && !hasSearchError ? <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold">{devlogs.length}</span> : null}
                 </span>
               </button>
             </div>
@@ -192,6 +215,12 @@ export default function QuickSearch() {
           <div className="max-h-[min(70vh,640px)] overflow-y-auto p-2 pb-4">
             {isLoading && (
               <div className="px-3 py-4 text-sm text-slate-500 dark:text-slate-400">검색 중...</div>
+            )}
+
+            {!isLoading && hasSearchError && (
+              <div className="px-3 py-6 text-center text-sm text-red-500">
+                검색 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.
+              </div>
             )}
 
             {!isLoading && !query.trim() && (
@@ -203,19 +232,19 @@ export default function QuickSearch() {
               </div>
             )}
 
-            {!isLoading && query.trim() && tab === "products" && products.length === 0 && (
+            {!isLoading && !hasSearchError && query.trim() && tab === "products" && products.length === 0 && (
               <div className="px-3 py-6 text-center text-sm text-slate-500 dark:text-slate-400">
                 일치하는 제품이 없습니다.
               </div>
             )}
 
-            {!isLoading && query.trim() && tab === "devlogs" && devlogs.length === 0 && (
+            {!isLoading && !hasSearchError && query.trim() && tab === "devlogs" && devlogs.length === 0 && (
               <div className="px-3 py-6 text-center text-sm text-slate-500 dark:text-slate-400">
                 일치하는 Dev Log가 없습니다.
               </div>
             )}
 
-            {tab === "products" && products.map((item) => (
+            {tab === "products" && products.slice(0, 12).map((item) => (
               <div
                 key={item.id}
                 className="rounded-xl px-3 py-2.5 transition hover:bg-slate-50 dark:hover:bg-navy-800"
@@ -269,7 +298,7 @@ export default function QuickSearch() {
               </div>
             ))}
 
-            {tab === "devlogs" && devlogs.map((item) => (
+            {tab === "devlogs" && devlogs.slice(0, 12).map((item) => (
               <div
                 key={item.id}
                 className="rounded-xl px-3 py-2.5 transition hover:bg-slate-50 dark:hover:bg-navy-800"
