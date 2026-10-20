@@ -108,7 +108,7 @@ export default async function HomePage() {
             {newLaunches.length > 0 ? (
               <ExpandableProductList
                 products={newLaunches}
-                initialCount={6}
+                initialCount={12}
                 pageSize={6}
                 userId={userId}
                 context="launch-feed"
