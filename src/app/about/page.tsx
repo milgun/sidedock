@@ -82,20 +82,80 @@ function FeatureRow({
    Page
 ───────────────────────────────────────────── */
 
-const MAKER_GOAL = 100;
+const FEEDBACK_GOAL = 1000;
+const SUCCESS_STORY_GOAL = 100;
+const FEEDBACK_PAGE_SIZE = 1000;
+
+type FeedbackRow = {
+  user_id: string;
+  product: { maker_id: string } | null;
+};
+
+async function countCommunityFeedback(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  table: "comments" | "reviews",
+) {
+  let count = 0;
+  let offset = 0;
+
+  while (true) {
+    const { data, error } = await supabase
+      .from(table)
+      .select("user_id, product:products!inner(maker_id)")
+      .eq("product.status", "published")
+      .order("created_at", { ascending: true })
+      .order("id", { ascending: true })
+      .range(offset, offset + FEEDBACK_PAGE_SIZE - 1);
+
+    if (error) {
+      throw new Error(`Failed to count ${table}: ${error.message}`);
+    }
+    if (!data) {
+      throw new Error(`Failed to count ${table}: no data was returned`);
+    }
+
+    // supabase-js 타입은 임베드를 배열로 추론하지만 many-to-one 관계는 런타임에 객체로 반환됨
+    const rows = data as unknown as FeedbackRow[];
+    count += rows.filter(
+      (row) => row.product && row.user_id !== row.product.maker_id,
+    ).length;
+
+    if (rows.length < FEEDBACK_PAGE_SIZE) break;
+    offset += FEEDBACK_PAGE_SIZE;
+  }
+
+  return count;
+}
 
 export default async function AboutPage() {
   const supabase = await createClient();
 
-  // 실제 launch 등록 메이커 수 (source='launch' & status='published' 기준 unique maker_id)
-  const { count: makerCount } = await supabase
-    .from("products")
-    .select("maker_id", { count: "exact", head: true })
-    .eq("source", "launch")
-    .eq("status", "published");
+  const [
+    { count: productCount, error: productCountError },
+    commentCount,
+    reviewCount,
+  ] = await Promise.all([
+    supabase
+      .from("products")
+      .select("id", { count: "exact", head: true })
+      .eq("source", "launch")
+      .eq("status", "published"),
+    countCommunityFeedback(supabase, "comments"),
+    countCommunityFeedback(supabase, "reviews"),
+  ]);
 
-  const joined = Math.max(1, makerCount ?? 1); // 0이어도 최소 1 표시 (운영자 포함)
-  const pct = Math.min(Math.round((joined / MAKER_GOAL) * 100), 100);
+  if (productCountError) {
+    throw new Error(`Failed to count products: ${productCountError.message}`);
+  }
+  if (productCount === null) {
+    throw new Error("Failed to count products: no count was returned");
+  }
+
+  const feedbackCount = commentCount + reviewCount;
+  const feedbackPct = Math.min(
+    Math.round((feedbackCount / FEEDBACK_GOAL) * 100),
+    100,
+  );
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-16">
@@ -221,56 +281,90 @@ export default async function AboutPage() {
           </div>
         </section>
 
-        {/* ── First 100 Makers ── */}
+        {/* ── Community milestones ── */}
         <section>
-          <SectionLabel>04 — Early Access</SectionLabel>
+          <SectionLabel>04 — 다음 마일스톤</SectionLabel>
           <h2 className="mb-2 text-xl font-black text-slate-900 dark:text-slate-100">
-            🎁 First 100 Makers
+            제품이 사용자와 만나는 순간을 함께 만듭니다
           </h2>
           <p className="mb-6 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-            초기 등록 메이커에게만 제공되는 혜택입니다. 지금 바로 합류하세요.
+            제품 등록을 넘어, 실제 사용자 반응과 메이커의 성장 이야기를 만들어갑니다.
           </p>
-          <div className="overflow-hidden rounded-2xl border border-amber-100 bg-gradient-to-br from-amber-50 to-orange-50 p-6 dark:border-amber-500/20 dark:from-amber-500/10 dark:to-orange-500/10">
-            {/* Live counter */}
-            <div className="mb-6">
-              <div className="mb-2 flex items-end justify-between">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 font-mono text-xs font-bold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
-                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500" />
-                  모집 중
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="rounded-2xl border border-cyan-100 bg-gradient-to-br from-cyan-50 to-blue-50 p-6 dark:border-cyan-500/20 dark:from-cyan-500/10 dark:to-blue-500/10">
+              <div className="mb-5 flex items-start justify-between gap-3">
+                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-cyan-100 text-2xl dark:bg-cyan-500/20">
+                  💬
                 </span>
-                <span className="font-mono text-sm font-bold text-slate-700 dark:text-slate-200">
-                  <span className="text-2xl text-amber-600 dark:text-amber-400">{joined}</span>
-                  <span className="text-slate-400"> / {MAKER_GOAL}</span>
+                <span className="rounded-full bg-cyan-100 px-3 py-1 font-mono text-xs font-bold text-cyan-700 dark:bg-cyan-500/20 dark:text-cyan-300">
+                  함께 만드는 목표
                 </span>
               </div>
-              {/* Progress bar */}
-              <div className="h-2 overflow-hidden rounded-full bg-amber-100 dark:bg-amber-500/20">
+              <h3 className="text-lg font-black text-slate-900 dark:text-slate-100">
+                첫 1,000개의 피드백
+              </h3>
+              <p className="mt-2 min-h-10 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+                공개 제품에 남긴 리뷰와 댓글을 모읍니다. 제품 메이커의 글은 집계에서 제외합니다.
+              </p>
+              <div className="mt-5 flex items-baseline gap-1 font-mono">
+                <span className="text-2xl font-black text-cyan-700 dark:text-cyan-300">
+                  {feedbackCount.toLocaleString("ko-KR")}
+                </span>
+                <span className="text-sm font-semibold text-slate-400">
+                  / {FEEDBACK_GOAL.toLocaleString("ko-KR")}
+                </span>
+              </div>
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-cyan-100 dark:bg-cyan-500/20">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-400 transition-all"
-                  style={{ width: `${pct}%` }}
+                  className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 transition-all"
+                  style={{ width: `${feedbackPct}%` }}
                 />
               </div>
-              <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                당신이 <strong className="text-amber-700 dark:text-amber-300">{joined + 1}번째 메이커</strong>가 될 수 있습니다.
-              </p>
+              <Link
+                href="/launches"
+                className="mt-5 inline-flex text-sm font-bold text-cyan-700 transition hover:text-cyan-900 dark:text-cyan-300 dark:hover:text-cyan-200"
+              >
+                제품 둘러보고 의견 남기기 →
+              </Link>
             </div>
-            {/* Benefits */}
-            <ul className="space-y-3">
-              {[
-                "메인 페이지 우선 노출",
-                "운영자 큐레이션 후보 선정",
-                "Product of the Week 선정 대상",
-                "영구 무료 이용",
-                "운영자 직접 피드백 제공",
-              ].map((item) => (
-                <li key={item} className="flex items-center gap-3 text-sm font-medium text-slate-700 dark:text-slate-200">
-                  <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-amber-200 font-mono text-xs font-bold text-amber-700 dark:bg-amber-500/20 dark:text-amber-300">
-                    ✓
-                  </span>
-                  {item}
-                </li>
-              ))}
-            </ul>
+
+            <div className="rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50 to-fuchsia-50 p-6 dark:border-violet-500/20 dark:from-violet-500/10 dark:to-fuchsia-500/10">
+              <div className="mb-5 flex items-start justify-between gap-3">
+                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-violet-100 text-2xl dark:bg-violet-500/20">
+                  🏆
+                </span>
+                <span className="rounded-full bg-violet-100 px-3 py-1 font-mono text-xs font-bold text-violet-700 dark:bg-violet-500/20 dark:text-violet-300">
+                  함께 만드는 목표
+                </span>
+              </div>
+              <h3 className="text-lg font-black text-slate-900 dark:text-slate-100">
+                100개의 성공 스토리
+              </h3>
+              <p className="mt-2 min-h-10 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+                출시부터 사용자 성장까지, 메이커와 제품이 만들어낸 성과를 기록합니다.
+              </p>
+              <p className="mt-5 font-mono text-2xl font-black text-violet-700 dark:text-violet-300">
+                목표 {SUCCESS_STORY_GOAL}개
+              </p>
+              <p className="mt-2 text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+                성공 사례의 집계 기준은 운영 정책을 정한 뒤 공개합니다.
+              </p>
+              <Link
+                href="/devlog/new"
+                className="mt-5 inline-flex text-sm font-bold text-violet-700 transition hover:text-violet-900 dark:text-violet-300 dark:hover:text-violet-200"
+              >
+                개발 로그로 성장 기록하기 →
+              </Link>
+            </div>
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-5 py-4 dark:border-navy-800 dark:bg-navy-900">
+            <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+              🚀 현재 SideDock에 등록된 제품
+            </p>
+            <p className="font-mono text-lg font-black text-blue-600 dark:text-blue-400">
+              {productCount.toLocaleString("ko-KR")}개
+            </p>
           </div>
         </section>
 
@@ -355,7 +449,7 @@ export default async function AboutPage() {
                 </p>
                 <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 font-mono text-xs font-semibold text-amber-700">
                   <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-400" />
-                  현재 First 100 Makers를 모집 중입니다
+                  현재 등록 제품 {productCount.toLocaleString("ko-KR")}개
                 </p>
               </div>
             </div>
