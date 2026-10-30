@@ -2,6 +2,7 @@ import { createClient, getUser } from "@/lib/supabase/server";
 import Link from "next/link";
 import type { ProductWithMaker } from "@/types";
 import LaunchesClient from "@/components/launches/LaunchesClient";
+import { getLaunchesFirstPage } from "@/lib/public-data";
 
 export const metadata = {
   title: "최근 출시·업데이트 — AI 툴·SaaS·사이드 프로젝트",
@@ -24,47 +25,12 @@ export default async function LaunchesPage(props: {
   ) as Period;
   const sort = (rawSort === "latest" ? "latest" : "popular") as Sort;
 
-  const supabase = await createClient();
   const user = await getUser();
-  const now = new Date();
-  const nowMs = now.getTime();
 
-  let query = supabase
-    .from("products")
-    .select("*, maker:profiles(id, username, avatar_url, display_name)")
-    .eq("source", "launch")
-    .eq("status", "published");
-
-  if (period === "week") {
-    const weekAgo = new Date(now.getTime() - 7 * 24 * 3_600_000).toISOString();
-    query = query.gte("last_bumped_at", weekAgo);
-  } else if (period === "month") {
-    const monthAgo = new Date(now.getTime() - 30 * 24 * 3_600_000).toISOString();
-    query = query.gte("last_bumped_at", monthAgo);
-  } else if (period === "year") {
-    const yearAgo = new Date(now.getTime() - 365 * 24 * 3_600_000).toISOString();
-    query = query.gte("last_bumped_at", yearAgo);
-  }
-
-  if (sort === "latest") {
-    query = query
-      .order("last_bumped_at", { ascending: false, nullsFirst: false })
-      .order("launched_at", { ascending: false });
-  } else if (period === "all") {
-    // all: 역대 인기순 (boost + 댓글)
-    query = query
-      .order("upvote_count", { ascending: false })
-      .order("comment_count", { ascending: false });
-  } else {
-    query = query.order("upvote_count", { ascending: false });
-  }
-  // tiebreaker: keep pagination order stable when sort columns tie
-  query = query.order("id", { ascending: true });
-
-  const [{ data: rawProducts }, { data: upvotes }] = await Promise.all([
-    query.range(0, PAGE_SIZE - 1),
+  const [{ products: rawProducts, nowMs }, { data: upvotes }] = await Promise.all([
+    getLaunchesFirstPage(period, sort, PAGE_SIZE),
     user
-      ? supabase.from("upvotes").select("product_id").eq("user_id", user.id)
+      ? (await createClient()).from("upvotes").select("product_id").eq("user_id", user.id)
       : Promise.resolve({ data: [] as { product_id: string }[] }),
   ]);
 

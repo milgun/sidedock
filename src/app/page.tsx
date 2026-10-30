@@ -7,75 +7,25 @@ import WelcomeBanner from "@/components/home/WelcomeBanner";
 import DevlogHomeList from "@/components/home/DevlogHomeList";
 import type { DevlogPostWithAuthor } from "@/types";
 import { CATEGORY_COLORS, CATEGORY_LABELS } from "@/components/product/ProductCard";
-
-// 목록 카드에 필요한 컬럼만 조회해 PostgREST egress를 줄입니다 (description, gallery_images 등 제외).
-const PRODUCT_CARD_COLUMNS =
-  "id, name, tagline, thumbnail_url, category, categories, tags, maker_id, upvote_count, comment_count, is_featured, featured_label, is_discovery_pick, discovery_picked_at, slug, source, maker_type, status, last_bumped_at, launched_at, created_at, maker:profiles(id, username, avatar_url, display_name)";
-const DEVLOG_CARD_COLUMNS =
-  "id, author_id, title, slug, content, tags, thumbnail_url, like_count, comment_count, is_home_featured, home_featured_at, visibility, folder_id, product_id, created_at, updated_at, author:profiles(id, username, avatar_url, display_name)";
+import { getHomeData } from "@/lib/public-data";
 
 export default async function HomePage() {
-  const supabase = await createClient();
   const user = await getUser();
 
-  const [
-    { data: rawCurated },
-    { data: rawNew },
-    { data: rawDevlogs },
-    { data: rawHomeDevlogs },
-    { data: rawHot },
-    { data: rawDiscovery },
-    { data: upvotes },
-  ] = await Promise.all([
-    supabase
-      .from("products")
-      .select(PRODUCT_CARD_COLUMNS)
-      .eq("source", "curated")
-      .eq("status", "published")
-      .order("upvote_count", { ascending: false })
-      .limit(50),
-    supabase
-      .from("products")
-      .select(PRODUCT_CARD_COLUMNS)
-      .eq("source", "launch")
-      .eq("status", "published")
-      .order("last_bumped_at", { ascending: false, nullsFirst: false })
-      .order("launched_at", { ascending: false })
-      .limit(50),
-    supabase
-      .from("devlog_posts")
-      .select(DEVLOG_CARD_COLUMNS)
-      .eq("visibility", "public")
-      .order("created_at", { ascending: false })
-      .limit(20),
-    supabase
-      .from("devlog_posts")
-      .select(DEVLOG_CARD_COLUMNS)
-      .eq("is_home_featured", true)
-      .eq("visibility", "public")
-      .order("home_featured_at", { ascending: false })
-      .limit(3),
-    supabase
-      .from("products")
-      .select(PRODUCT_CARD_COLUMNS)
-      .eq("source", "launch")
-      .eq("status", "published")
-      .order("upvote_count", { ascending: false })
-      .order("comment_count", { ascending: false })
-      .limit(50),
-    supabase
-      .from("products")
-      .select(PRODUCT_CARD_COLUMNS)
-      .eq("source", "launch")
-      .eq("status", "published")
-      .eq("is_discovery_pick", true)
-      .order("discovery_picked_at", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
+  const [home, { data: upvotes }] = await Promise.all([
+    getHomeData(),
     user
-      ? supabase.from("upvotes").select("product_id").eq("user_id", user.id)
+      ? (await createClient()).from("upvotes").select("product_id").eq("user_id", user.id)
       : Promise.resolve({ data: [] as { product_id: string }[] }),
   ]);
+  const {
+    curated: rawCurated,
+    newLaunches: rawNew,
+    devlogs: rawDevlogs,
+    homeDevlogs: rawHomeDevlogs,
+    hot: rawHot,
+    discovery: rawDiscovery,
+  } = home;
 
   const upvotedIds = new Set<string>(
     (upvotes ?? []).map((u: { product_id: string }) => u.product_id),

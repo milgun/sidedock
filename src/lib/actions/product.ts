@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidatePublicData } from "@/lib/cache";
 import { redirect } from "next/navigation";
 import { generateUniqueSlug } from "@/lib/slug";
 import { resend, EMAIL_FROM } from "@/lib/resend";
@@ -298,6 +298,7 @@ export async function submitProductForReview(
     );
   }
 
+  revalidatePublicData();
   return {};
 }
 
@@ -381,6 +382,7 @@ export async function approveProduct(
     }
   }
 
+  revalidatePublicData();
   return {};
 }
 
@@ -500,6 +502,7 @@ export async function rejectProduct(
     }
   }
 
+  revalidatePublicData();
   return {};
 }
 
@@ -585,6 +588,7 @@ export async function deleteMyProduct(
     .eq("maker_id", user.id);
 
   if (error) return { error: error.message };
+  revalidatePublicData();
   return {};
 }
 
@@ -615,6 +619,7 @@ export async function deleteAdminProduct(
     .eq("id", productId);
 
   if (error) return { error: error.message };
+  revalidatePublicData();
   return {};
 }
 
@@ -702,6 +707,7 @@ export async function createCuratedProduct(
     }
   }
 
+  revalidatePublicData();
   redirect(`/products/${data.slug}`);
 }
 
@@ -768,6 +774,7 @@ export async function updateCuratedProduct(
     }
   }
 
+  revalidatePublicData();
   redirect(`/products/${slug}`);
 }
 
@@ -895,6 +902,7 @@ export async function createProduct(
     });
   }
 
+  revalidatePublicData();
   redirect(`/products/${productId}`);
 }
 

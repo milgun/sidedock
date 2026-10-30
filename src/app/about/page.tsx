@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { createClient } from "@/lib/supabase/server";
+import { getAboutStats } from "@/lib/public-data";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://sidedock.io";
 
@@ -84,74 +84,10 @@ function FeatureRow({
 
 const FEEDBACK_GOAL = 1000;
 const SUCCESS_STORY_GOAL = 100;
-const FEEDBACK_PAGE_SIZE = 1000;
-
-type FeedbackRow = {
-  user_id: string;
-  product: { maker_id: string } | null;
-};
-
-async function countCommunityFeedback(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  table: "comments" | "reviews",
-) {
-  let count = 0;
-  let offset = 0;
-
-  while (true) {
-    const { data, error } = await supabase
-      .from(table)
-      .select("user_id, product:products!inner(maker_id)")
-      .eq("product.status", "published")
-      .order("created_at", { ascending: true })
-      .order("id", { ascending: true })
-      .range(offset, offset + FEEDBACK_PAGE_SIZE - 1);
-
-    if (error) {
-      throw new Error(`Failed to count ${table}: ${error.message}`);
-    }
-    if (!data) {
-      throw new Error(`Failed to count ${table}: no data was returned`);
-    }
-
-    // supabase-js 타입은 임베드를 배열로 추론하지만 many-to-one 관계는 런타임에 객체로 반환됨
-    const rows = data as unknown as FeedbackRow[];
-    count += rows.filter(
-      (row) => row.product && row.user_id !== row.product.maker_id,
-    ).length;
-
-    if (rows.length < FEEDBACK_PAGE_SIZE) break;
-    offset += FEEDBACK_PAGE_SIZE;
-  }
-
-  return count;
-}
 
 export default async function AboutPage() {
-  const supabase = await createClient();
+  const { productCount, feedbackCount } = await getAboutStats();
 
-  const [
-    { count: productCount, error: productCountError },
-    commentCount,
-    reviewCount,
-  ] = await Promise.all([
-    supabase
-      .from("products")
-      .select("id", { count: "exact", head: true })
-      .eq("source", "launch")
-      .eq("status", "published"),
-    countCommunityFeedback(supabase, "comments"),
-    countCommunityFeedback(supabase, "reviews"),
-  ]);
-
-  if (productCountError) {
-    throw new Error(`Failed to count products: ${productCountError.message}`);
-  }
-  if (productCount === null) {
-    throw new Error("Failed to count products: no count was returned");
-  }
-
-  const feedbackCount = commentCount + reviewCount;
   const feedbackPct = Math.min(
     Math.round((feedbackCount / FEEDBACK_GOAL) * 100),
     100,

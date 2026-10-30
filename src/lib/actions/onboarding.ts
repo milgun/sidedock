@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { resend, EMAIL_FROM } from "@/lib/resend";
 import { WelcomeEmail } from "@/lib/emails/welcome";
-import { revalidatePath } from "next/cache";
+import { revalidatePath } from "@/lib/cache";
 import { redirect } from "next/navigation";
 
 export async function completeOnboarding(_prevState: unknown, formData: FormData) {

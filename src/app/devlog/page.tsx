@@ -2,6 +2,7 @@
 import Link from "next/link";
 import type { DevlogPostWithAuthor } from "@/types";
 import DevlogListClient from "@/components/devlog/DevlogListClient";
+import { getDevlogFirstPage } from "@/lib/public-data";
 
 export const metadata = {
   title: "메이커 Dev Log: 개발기와 런칭 스토리",
@@ -28,18 +29,12 @@ export const metadata = {
 const PAGE_SIZE = 9;
 
 export default async function DevlogPage() {
-  const supabase = await createClient();
   const user = await getUser();
 
-  const [{ data: rawPosts }, { data: likes }] = await Promise.all([
-    supabase
-      .from("devlog_posts")
-      .select("*, author:profiles(id, username, avatar_url, display_name)")
-      .eq("visibility", "public")
-      .order("created_at", { ascending: false })
-      .range(0, PAGE_SIZE - 1),
+  const [rawPosts, { data: likes }] = await Promise.all([
+    getDevlogFirstPage(PAGE_SIZE),
     user
-      ? supabase.from("devlog_likes").select("post_id").eq("user_id", user.id)
+      ? (await createClient()).from("devlog_likes").select("post_id").eq("user_id", user.id)
       : Promise.resolve({ data: [] as { post_id: string }[] }),
   ]);
 

@@ -2,6 +2,7 @@
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { revalidatePublicData } from "@/lib/cache";
 
 export type NotificationPreferences = {
   email_comments: boolean;
@@ -54,5 +55,7 @@ export async function deleteAccount(): Promise<{ error?: string }> {
 
   const admin = createAdminClient();
   const { error } = await admin.auth.admin.deleteUser(user.id);
-  return error ? { error: "계정을 삭제하지 못했습니다. 잠시 후 다시 시도해주세요." } : {};
+  if (error) return { error: "계정을 삭제하지 못했습니다. 잠시 후 다시 시도해주세요." };
+  revalidatePublicData();
+  return {};
 }

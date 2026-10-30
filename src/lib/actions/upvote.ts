@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { sendNotificationEmail } from "@/lib/emails/notification";
+import { revalidatePublicData } from "@/lib/cache";
 
 export async function toggleUpvote(
   productId: string
@@ -26,12 +27,14 @@ export async function toggleUpvote(
       .delete()
       .eq("id", existing.id);
     if (error) return { success: false };
+    revalidatePublicData();
     return { success: true, hasUpvoted: false };
   } else {
     const { error } = await supabase
       .from("upvotes")
       .insert({ user_id: user.id, product_id: productId });
     if (error) return { success: false };
+    revalidatePublicData();
 
     // 업보트 알림 — 제품 제작자에게 (본인 제품 제외)
     const [{ data: product }, { data: actorProfile }] = await Promise.all([

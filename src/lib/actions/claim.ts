@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
+import { revalidatePath } from "@/lib/cache";
 
 // ── requestProductClaim ───────────────────────────────────────────────────────
 // 로그인 사용자가 선등록(curated) 제품의 소유권을 요청. status='pending' 클레임 생성 + 어드민 알림.

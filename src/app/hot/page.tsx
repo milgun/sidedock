@@ -1,6 +1,7 @@
 ﻿import { createClient, getUser } from "@/lib/supabase/server";
 import type { ProductWithMaker } from "@/types";
 import HotProductsClient from "@/components/hot/HotProductsClient";
+import { getHotProducts } from "@/lib/public-data";
 
 export const metadata = {
   title: "지금 인기 있는 AI 툴·SaaS·사이드 프로젝트",
@@ -13,23 +14,12 @@ export default async function HotProductsPage(props: {
   searchParams: Promise<{ category?: string }>;
 }) {
   const { category = "" } = await props.searchParams;
-  const supabase = await createClient();
   const user = await getUser();
 
-  let query = supabase
-    .from("products")
-    .select("*, maker:profiles(id, username, avatar_url, display_name)")
-    .eq("source", "curated")
-    .eq("status", "published")
-    .order("upvote_count", { ascending: false })
-    .limit(50);
-
-  if (category) query = query.or(`category.eq.${category},categories.cs.{${category}}`);
-
-  const [{ data: rawProducts }, { data: upvotes }] = await Promise.all([
-    query,
+  const [rawProducts, { data: upvotes }] = await Promise.all([
+    getHotProducts(category),
     user
-      ? supabase.from("upvotes").select("product_id").eq("user_id", user.id)
+      ? (await createClient()).from("upvotes").select("product_id").eq("user_id", user.id)
       : Promise.resolve({ data: [] as { product_id: string }[] }),
   ]);
 

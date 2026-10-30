@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { getProductMetadata, getPublicProductBundle } from "@/lib/public-data";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -41,13 +42,7 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { slug: rawSlug } = await props.params;
   const slug = decodeURIComponent(rawSlug);
-  const supabase = await createClient();
-  const { data: product } = await supabase
-    .from("products")
-    .select("name, tagline, thumbnail_url, description, category")
-    .eq("slug", slug)
-    .single();
-
+  const product = await getProductMetadata(slug);
   if (!product) return {};
 
   const name = product.name as string;
@@ -102,36 +97,70 @@ export default async function ProductDetailPage(props: {
 
   // slug 먼저 조회, 없으면 UUID 폴백
   const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
-  const { data: product, error } = await supabase
-    .from("products")
-    .select("*, maker:profiles(*)")
-    .eq(isUUID ? "id" : "slug", slug)
-    .single();
 
-  if (!product || error) notFound();
+  // 게시된 제품은 공개 캐시(60초)에서, 그 외(작성자·관리자 미리보기)는 로그인 사용자 권한으로 직접 조회
+  const bundle = await getPublicProductBundle(slug, isUUID);
 
-  // Block access to non-published products unless viewer is the maker or an admin
-  const isProductOwner = earlyUser?.id === (product.maker_id as string);
-  const { data: viewerProfile } = earlyUser
-    ? await supabase
+  let product: NonNullable<typeof bundle>["product"];
+  let rawComments: unknown[] | null;
+  let rawLinks: unknown[] | null;
+  let rawTeam: unknown[] | null;
+  let rawShoutouts: unknown[] | null;
+  let rawReviews: unknown[] | null;
+  let rawReactions: unknown[] | null;
+  let rawUpdates: { id: string; slug: string; title: string; content: string; created_at: string }[] | null;
+  let rawMakerProducts: { id: string; name: string; slug: string; thumbnail_url: string | null }[] | null = null;
+  let viewerProfile: { is_admin?: boolean } | null = null;
+
+  if (bundle) {
+    product = bundle.product;
+    rawComments = bundle.comments;
+    rawLinks = bundle.links;
+    rawTeam = bundle.team;
+    rawShoutouts = bundle.shoutouts;
+    rawReviews = bundle.reviews;
+    rawReactions = bundle.reactions;
+    rawUpdates = bundle.updates;
+    rawMakerProducts = bundle.makerProducts;
+    if (earlyUser) {
+      const { data } = await supabase
         .from("profiles")
         .select("is_admin")
         .eq("id", earlyUser.id)
-        .single()
-    : { data: null };
+        .single();
+      viewerProfile = data;
+    }
+  } else {
+    const { data: fetchedProduct, error } = await supabase
+      .from("products")
+      .select("*, maker:profiles(*)")
+      .eq(isUUID ? "id" : "slug", slug)
+      .single();
 
-  const productStatus = product.status as string | undefined;
-  if (
-    productStatus &&
-    productStatus !== "published" &&
-    !isProductOwner &&
-    !viewerProfile?.is_admin
-  ) {
-    notFound();
-  }
+    if (!fetchedProduct || error) notFound();
+    product = fetchedProduct;
 
-  const [{ data: rawComments }, { data: rawLinks }, { data: rawTeam }, { data: rawShoutouts }, { data: rawReviews }, { data: rawReactions }, { data: rawUpdates }] =
-    await Promise.all([
+    // Block access to non-published products unless viewer is the maker or an admin
+    const { data: fetchedViewer } = earlyUser
+      ? await supabase
+          .from("profiles")
+          .select("is_admin")
+          .eq("id", earlyUser.id)
+          .single()
+      : { data: null };
+    viewerProfile = fetchedViewer;
+
+    const productStatus = product.status as string | undefined;
+    if (
+      productStatus &&
+      productStatus !== "published" &&
+      earlyUser?.id !== (product.maker_id as string) &&
+      !viewerProfile?.is_admin
+    ) {
+      notFound();
+    }
+
+    const [c, l, t, s, r, re, u] = await Promise.all([
       supabase.from("comments").select("*, profile:profiles(*)").eq("product_id", product.id).order("created_at", { ascending: true }),
       supabase.from("product_links").select("*").eq("product_id", product.id).order("sort_order"),
       supabase.from("product_team_members").select("*, profile:profiles(id, username, display_name, avatar_url)").eq("product_id", product.id),
@@ -143,23 +172,31 @@ export default async function ProductDetailPage(props: {
       ),
       supabase.from("devlog_posts").select("id, slug, title, content, created_at").eq("product_id", product.id).eq("visibility", "public").order("created_at", { ascending: false }).limit(100),
     ]);
+    rawComments = c.data;
+    rawLinks = l.data;
+    rawTeam = t.data;
+    rawShoutouts = s.data;
+    rawReviews = r.data;
+    rawReactions = re.data;
+    rawUpdates = u.data;
 
-  // 메이커가 출시한 다른 제품 — Launches 제품에만 표시 (curated 제외)
-  const productSource = product.source as string;
-  const makerId = product.maker_id as string;
-  let rawMakerProducts: { id: string; name: string; slug: string; thumbnail_url: string | null }[] | null = null;
-  if (productSource === "launch") {
-    const { data } = await supabase
-      .from("products")
-      .select("id, name, slug, thumbnail_url")
-      .eq("maker_id", makerId)
-      .eq("status", "published")
-      .eq("source", "launch")
-      .neq("id", product.id)
-      .order("launched_at", { ascending: false })
-      .limit(5);
-    rawMakerProducts = data as typeof rawMakerProducts;
+    // 메이커가 출시한 다른 제품 — Launches 제품에만 표시 (curated 제외)
+    if ((product.source as string) === "launch") {
+      const { data } = await supabase
+        .from("products")
+        .select("id, name, slug, thumbnail_url")
+        .eq("maker_id", product.maker_id as string)
+        .eq("status", "published")
+        .eq("source", "launch")
+        .neq("id", product.id)
+        .order("launched_at", { ascending: false })
+        .limit(5);
+      rawMakerProducts = data as typeof rawMakerProducts;
+    }
   }
+
+  const productSource = product.source as string;
+  const isProductOwner = earlyUser?.id === (product.maker_id as string);
 
   const user = earlyUser;
 
