@@ -1,6 +1,7 @@
 import { unstable_cache } from "next/cache";
 import { createPublicClient } from "@/lib/supabase/public";
 import { PUBLIC_CACHE_SECONDS, PUBLIC_CACHE_TAG } from "@/lib/cache";
+import type { HomePromotion } from "@/types";
 
 // 로그인과 무관한 공개 데이터만 캐시한다. 사용자별 정보(업보트·좋아요 여부 등)는 각 페이지에서 따로 조회한다.
 const cacheOptions = { revalidate: PUBLIC_CACHE_SECONDS, tags: [PUBLIC_CACHE_TAG] };
@@ -89,7 +90,7 @@ export const getAboutStats = unstable_cache(
 export const getHomeData = unstable_cache(
   async () => {
     const supabase = createPublicClient();
-    const [curated, launches, devlogs, homeDevlogs, hot, discovery] = await Promise.all([
+    const [curated, launches, devlogs, homeDevlogs, hot, discovery, promotions] = await Promise.all([
       supabase
         .from("products")
         .select(PRODUCT_CARD_COLUMNS)
@@ -135,6 +136,14 @@ export const getHomeData = unstable_cache(
         .order("discovery_picked_at", { ascending: false })
         .limit(1)
         .maybeSingle(),
+      // 종료 시각이 지난 홍보는 제외하되, 캐시 시간 차이로 인한 오차는 페이지에서 한 번 더 걸러낸다.
+      supabase
+        .from("home_promotions")
+        .select("*")
+        .eq("is_enabled", true)
+        .gt("ends_at", new Date(Date.now() - 3_600_000).toISOString())
+        .order("starts_at", { ascending: false })
+        .limit(10),
     ]);
     return {
       curated: curated.data ?? [],
@@ -143,9 +152,10 @@ export const getHomeData = unstable_cache(
       homeDevlogs: homeDevlogs.data ?? [],
       hot: hot.data ?? [],
       discovery: discovery.data ?? null,
+      promotions: (promotions.data ?? []) as HomePromotion[],
     };
   },
-  ["home-data-v1"],
+  ["home-data-v2"],
   cacheOptions,
 );
 

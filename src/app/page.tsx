@@ -4,6 +4,8 @@ import Link from "next/link";
 import type { ProductWithMaker } from "@/types";
 import ExpandableProductList from "@/components/home/ExpandableProductList";
 import WelcomeBanner from "@/components/home/WelcomeBanner";
+import PromotionBanner from "@/components/home/PromotionBanner";
+import { pickActivePromotion } from "@/lib/promotions";
 import DevlogHomeList from "@/components/home/DevlogHomeList";
 import type { DevlogPostWithAuthor } from "@/types";
 import { CATEGORY_COLORS, CATEGORY_LABELS } from "@/components/product/ProductCard";
@@ -25,7 +27,11 @@ export default async function HomePage() {
     homeDevlogs: rawHomeDevlogs,
     hot: rawHot,
     discovery: rawDiscovery,
+    promotions: rawPromotions,
   } = home;
+
+  // 캐시된 목록에서 지금 노출 중인 홍보만 고른다. 없으면 기본 환영 배너를 보여준다.
+  const activePromotion = pickActivePromotion(rawPromotions ?? []);
 
   const upvotedIds = new Set<string>(
     (upvotes ?? []).map((u: { product_id: string }) => u.product_id),
@@ -48,7 +54,7 @@ export default async function HomePage() {
     <div className="mx-auto max-w-3xl px-4 py-8 min-[1400px]:max-w-[88rem]">
       <div className="grid grid-cols-1 min-[1400px]:grid-cols-[20rem_minmax(0,46rem)_20rem] min-[1400px]:items-start">
         <div className="order-1 mx-auto w-full max-w-[46rem] min-[1400px]:col-start-2">
-          <WelcomeBanner />
+          {activePromotion ? <PromotionBanner promotion={activePromotion} /> : <WelcomeBanner />}
         </div>
 
         <main className="order-3 min-w-0 min-[1400px]:order-none min-[1400px]:col-start-2 min-[1400px]:row-start-2">

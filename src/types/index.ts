@@ -248,3 +248,18 @@ export interface DevlogPostWithAuthor extends DevlogPost {
   author: Profile;
   has_liked?: boolean;
 }
+
+export interface HomePromotion {
+  id: string;
+  badge: string | null;
+  title: string;
+  description: string | null;
+  cta_label: string | null;
+  cta_url: string | null;
+  image_url: string | null;
+  starts_at: string;
+  ends_at: string;
+  is_enabled: boolean;
+  created_at: string;
+  updated_at: string;
+}

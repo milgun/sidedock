@@ -8,6 +8,7 @@ const tabs = [
   { href: "/admin/moderation", label: "심사 대기열" },
   { href: "/admin/discovery", label: "오늘의 발견" },
   { href: "/admin/devlog", label: "홈 Dev Log" },
+  { href: "/admin/promotions", label: "홍보" },
   { href: "/admin/claims", label: "소유권 요청" },
 ];
 
