@@ -39,30 +39,30 @@ export default function PromotionBanner({ promotion }: { promotion: HomePromotio
         </svg>
       </button>
 
-      <div className="relative flex flex-col gap-6 px-8 py-10 sm:flex-row sm:items-center sm:justify-between">
+      <div className="relative flex items-center justify-between gap-4 px-5 py-6 sm:gap-6 sm:px-8 sm:py-10">
         <div className="min-w-0 flex-1">
           {promotion.badge && (
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium text-cyan-300">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan-400" />
-              {promotion.badge}
+            <div className="mb-3 inline-flex max-w-full items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium text-cyan-300">
+              <span className="h-1.5 w-1.5 flex-shrink-0 animate-pulse rounded-full bg-cyan-400" />
+              <span className="truncate">{promotion.badge}</span>
             </div>
           )}
-          <h2 className="text-2xl font-black text-white sm:text-3xl">{promotion.title}</h2>
-          {promotion.description && <p className="mt-2 text-blue-200">{promotion.description}</p>}
+          <h2 className="text-xl font-black text-white sm:text-3xl">{promotion.title}</h2>
+          {promotion.description && <p className="mt-2 text-sm text-blue-200 sm:text-base">{promotion.description}</p>}
           {promotion.cta_url && (
             <a
               href={promotion.cta_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-5 inline-flex items-center gap-1.5 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-navy-900 transition hover:bg-blue-50"
+              className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-navy-900 transition hover:bg-blue-50 sm:mt-5"
             >
               {promotion.cta_label || "자세히 보기"} <span aria-hidden>→</span>
             </a>
           )}
         </div>
         {promotion.image_url && (
-          <div className="relative h-36 w-36 flex-shrink-0 self-center overflow-hidden rounded-2xl ring-1 ring-white/20 sm:h-40 sm:w-40">
-            <Image src={promotion.image_url} alt={promotion.title} fill sizes="160px" className="object-cover" />
+          <div className="relative mt-8 h-20 w-20 flex-shrink-0 self-start overflow-hidden rounded-xl ring-1 ring-white/20 sm:mt-0 sm:h-40 sm:w-40 sm:self-center sm:rounded-2xl">
+            <Image src={promotion.image_url} alt={promotion.title} fill sizes="(min-width: 640px) 160px, 80px" className="object-cover" />
             {promotion.cta_url && (
               <a
                 href={promotion.cta_url}
