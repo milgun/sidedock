@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { matchesSearchQuery, sortSearchResults } from "@/lib/search";
+import { buildSearchOrFilter, matchesSearchQuery, SEARCH_RESULT_LIMIT, sortSearchResults } from "@/lib/search";
 import HighlightText from "./HighlightText";
 import PopularSearches from "./PopularSearches";
 
@@ -64,17 +64,24 @@ export default function QuickSearch() {
       const runSearch = async () => {
         try {
           const supabase = createClient();
+          const productFilter = buildSearchOrFilter("products", trimmed);
+          const devlogFilter = buildSearchOrFilter("devlogs", trimmed);
+
+          let productsQuery = supabase
+            .from("products")
+            .select("id, slug, name, tagline, description, thumbnail_url, category, categories, tags, created_at")
+            .eq("status", "published");
+          if (productFilter) productsQuery = productsQuery.or(productFilter);
+
+          let devlogsQuery = supabase
+            .from("devlog_posts")
+            .select("id, slug, title, content, thumbnail_url, tags, created_at, author:profiles(display_name, username)")
+            .eq("visibility", "public");
+          if (devlogFilter) devlogsQuery = devlogsQuery.or(devlogFilter);
+
           const [productsRes, devlogsRes] = await Promise.all([
-            supabase
-              .from("products")
-              .select("id, slug, name, tagline, description, thumbnail_url, category, categories, created_at")
-              .eq("status", "published")
-              .limit(100),
-            supabase
-              .from("devlog_posts")
-              .select("id, slug, title, content, thumbnail_url, tags, created_at, author:profiles(display_name, username)")
-              .eq("visibility", "public")
-              .limit(100),
+            productsQuery.order("created_at", { ascending: false }).limit(SEARCH_RESULT_LIMIT),
+            devlogsQuery.order("created_at", { ascending: false }).limit(SEARCH_RESULT_LIMIT),
           ]);
 
           if (productsRes.error) throw productsRes.error;

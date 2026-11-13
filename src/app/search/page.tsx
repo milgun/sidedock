@@ -5,7 +5,7 @@ import HighlightText from "@/components/layout/HighlightText";
 import SearchForm from "@/components/layout/SearchForm";
 import SearchSortSelector from "@/components/layout/SearchSortSelector";
 import PopularSearches from "@/components/layout/PopularSearches";
-import { matchesSearchQuery, sortSearchResults } from "@/lib/search";
+import { buildSearchOrFilter, matchesSearchQuery, SEARCH_RESULT_LIMIT, sortSearchResults } from "@/lib/search";
 import { CATEGORY_COLORS, CATEGORY_LABELS } from "@/components/product/ProductCard";
 import UpvoteButton from "@/components/product/UpvoteButton";
 
@@ -84,19 +84,29 @@ export default async function SearchPage({
   }> = [];
 
   if (query) {
+    const productFilter = buildSearchOrFilter("products", query);
+    const devlogFilter = buildSearchOrFilter("devlogs", query);
+
+    let productsQuery = supabase
+      .from("products")
+      .select("id, slug, name, tagline, description, thumbnail_url, category, categories, tags, created_at, upvote_count, comment_count")
+      .eq("status", "published");
+    if (productFilter) productsQuery = productsQuery.or(productFilter);
+
+    let devlogsQuery = supabase
+      .from("devlog_posts")
+      .select("id, slug, title, content, thumbnail_url, tags, created_at, author:profiles(display_name, username)")
+      .eq("visibility", "public");
+    if (devlogFilter) devlogsQuery = devlogsQuery.or(devlogFilter);
+
     const [productsRes, devlogsRes, userRes] = await Promise.all([
-      supabase
-        .from("products")
-        .select("id, slug, name, tagline, description, thumbnail_url, category, categories, created_at, upvote_count, comment_count")
-        .eq("status", "published")
-        .limit(100),
-      supabase
-        .from("devlog_posts")
-        .select("id, slug, title, content, thumbnail_url, tags, created_at, author:profiles(display_name, username)")
-        .eq("visibility", "public")
-        .limit(100),
+      productsQuery.order("created_at", { ascending: false }).limit(SEARCH_RESULT_LIMIT),
+      devlogsQuery.order("created_at", { ascending: false }).limit(SEARCH_RESULT_LIMIT),
       supabase.auth.getUser(),
     ]);
+
+    if (productsRes.error) console.error("Product search failed:", productsRes.error);
+    if (devlogsRes.error) console.error("Devlog search failed:", devlogsRes.error);
 
     userId = userRes.data.user?.id ?? null;
 

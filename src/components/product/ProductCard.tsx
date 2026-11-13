@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import type { ProductWithMaker } from "@/types";
 import UpvoteButton from "./UpvoteButton";
+import { CATEGORY_LABELS } from "@/lib/categories";
 
 interface ProductCardProps {
   product: ProductWithMaker;
@@ -12,26 +13,7 @@ interface ProductCardProps {
   nowMs?: number;
 }
 
-export const CATEGORY_LABELS: Record<string, string> = {
-  "ai-tool":           "AI 툴",
-  "saas":              "SaaS",
-  "dev-tool":          "개발 툴",
-  "productivity":      "생산성",
-  "design":            "디자인",
-  "marketing":         "마케팅",
-  "mobile-app":        "모바일 앱",
-  "browser-extension": "브라우저 확장",
-  "desktop-app":       "데스크탑 앱",
-  "game":              "게임",
-  "api":               "API / 백엔드",
-  "education":         "교육",
-  "finance":           "금융 / 핀테크",
-  "health":            "헬스 / 웰니스",
-  "social":            "소셜",
-  "ecommerce":         "이커머스",
-  "media":             "미디어",
-  "other":             "기타",
-};
+export { CATEGORY_LABELS };
 
 export const CATEGORY_COLORS: Record<string, string> = {
   "ai-tool":           "bg-purple-50 text-purple-600 dark:bg-purple-500/15 dark:text-purple-300",

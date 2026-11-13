@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { matchesSearchQuery, sortSearchResults } from "../src/lib/search.ts";
+import { buildSearchOrFilter, matchesSearchQuery, sortSearchResults } from "../src/lib/search.ts";
 
 test("sortSearchResults prioritizes exact name matches for relevance", () => {
   const items = [
@@ -82,4 +82,21 @@ test("matchesSearchQuery finds category and tag values", () => {
   assert.equal(matchesSearchQuery(item as Record<string, unknown>, "products", "backend"), true);
   assert.equal(matchesSearchQuery(item as Record<string, unknown>, "products", "api"), true);
   assert.equal(matchesSearchQuery(item as Record<string, unknown>, "devlogs", "postgres"), true);
+});
+
+test("matchesSearchQuery finds products by Korean category label and tags", () => {
+  const item = { name: "Froppy", tagline: "x", category: "desktop-app", categories: ["desktop-app", "social"], tags: ["shortform", "creator"] };
+
+  assert.equal(matchesSearchQuery(item, "products", "데스크탑 앱"), true);
+  assert.equal(matchesSearchQuery(item, "products", "소셜"), true);
+  assert.equal(matchesSearchQuery(item, "products", "shortform"), true);
+});
+
+test("buildSearchOrFilter narrows candidates in the database", () => {
+  const filter = buildSearchOrFilter("products", "데스크탑 앱");
+  assert.ok(filter?.includes('name.ilike."%데스크탑 앱%"'));
+  assert.ok(filter?.includes("category.in.(desktop-app)"));
+  assert.ok(buildSearchOrFilter("products", "shortform")?.includes("tags.cs.{shortform}"));
+  assert.equal(buildSearchOrFilter("devlogs", "a,b)%"), 'title.ilike."%a b%",content.ilike."%a b%"');
+  assert.equal(buildSearchOrFilter("products", "  "), null);
 });
