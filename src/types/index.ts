@@ -142,6 +142,7 @@ export interface Comment {
   user_id: string;
   product_id: string;
   content: string;
+  topic: import("@/lib/comment-topics").CommentTopic | null;
   parent_id: string | null;
   created_at: string;
   profile?: Profile;

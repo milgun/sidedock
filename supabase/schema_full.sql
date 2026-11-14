@@ -109,6 +109,22 @@ CREATE INDEX IF NOT EXISTS products_status_created_at_idx ON public.products(sta
 CREATE INDEX IF NOT EXISTS products_status_maker_id_idx  ON public.products(maker_id, status);
 CREATE UNIQUE INDEX IF NOT EXISTS products_slug_idx      ON public.products(slug);
 
+-- 오늘의 발견 소개 문구는 운영자만 작성한다.
+CREATE TABLE IF NOT EXISTS public.product_discovery_copy (
+  product_id uuid PRIMARY KEY REFERENCES public.products(id) ON DELETE CASCADE,
+  curiosity_text text NOT NULL CHECK (char_length(curiosity_text) <= 180 AND length(trim(curiosity_text)) > 0)
+);
+ALTER TABLE public.product_discovery_copy ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "discovery_copy_read_all" ON public.product_discovery_copy;
+CREATE POLICY "discovery_copy_read_all" ON public.product_discovery_copy FOR SELECT USING (
+  EXISTS (SELECT 1 FROM public.products WHERE id = product_id AND status = 'published' AND is_discovery_pick = true)
+  OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true)
+);
+DROP POLICY IF EXISTS "discovery_copy_admin_write" ON public.product_discovery_copy;
+CREATE POLICY "discovery_copy_admin_write" ON public.product_discovery_copy FOR ALL
+  USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true))
+  WITH CHECK (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true));
+
 -- ── 3. upvotes ────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.upvotes (
   id         uuid DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -135,6 +151,7 @@ CREATE TABLE IF NOT EXISTS public.comments (
   user_id    uuid REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
   product_id uuid REFERENCES public.products(id) ON DELETE CASCADE NOT NULL,
   content    text NOT NULL,
+  topic      text CHECK (topic IN ('question', 'impression', 'idea')),
   parent_id  uuid REFERENCES public.comments(id) ON DELETE CASCADE, -- v7
   created_at timestamptz DEFAULT now() NOT NULL
 );

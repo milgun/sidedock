@@ -145,6 +145,21 @@ export const getHomeData = unstable_cache(
         .order("starts_at", { ascending: false })
         .limit(10),
     ]);
+    let discoveryCopy: string | null = null;
+    if (discovery.error) {
+      throw new Error(`Failed to load today's discovery: ${discovery.error.message}`);
+    }
+    if (discovery.data) {
+      const { data, error } = await supabase
+        .from("product_discovery_copy")
+        .select("curiosity_text")
+        .eq("product_id", discovery.data.id)
+        .maybeSingle();
+      if (error) {
+        throw new Error(`Failed to load discovery copy: ${error.message}`);
+      }
+      discoveryCopy = data?.curiosity_text ?? null;
+    }
     return {
       curated: curated.data ?? [],
       newLaunches: launches.data ?? [],
@@ -152,6 +167,7 @@ export const getHomeData = unstable_cache(
       homeDevlogs: homeDevlogs.data ?? [],
       hot: hot.data ?? [],
       discovery: discovery.data ?? null,
+      discoveryCopy,
       promotions: (promotions.data ?? []) as HomePromotion[],
     };
   },

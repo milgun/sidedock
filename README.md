@@ -265,6 +265,9 @@ npm run dev
 
 > **주의**: 이미 운영 중인 DB에 v4를 적용하면 기존 `draft` 상태 제품이 모두 `published`로 백필됩니다 (의도된 동작).
 
+기존 DB에서 댓글 주제 표시를 사용하려면 배포 전에 `supabase/migrations_comment_topics.sql`을 SQL Editor에서 실행하세요. 기존 댓글의 주제는 비어 있는 상태로 유지됩니다.
+오늘의 발견 호기심 문구를 사용하려면 배포 전에 `supabase/migrations_discovery_copy.sql`을 실행하세요. 관리자가 `/admin/discovery`에서 선정된 제품의 문구를 입력하거나 비워서 기존 소개로 되돌릴 수 있습니다.
+
 ### OAuth 설정 (Google / Kakao 로그인)
 
 1. Supabase Dashboard → **Authentication** → **Providers**

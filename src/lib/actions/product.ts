@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { generateUniqueSlug } from "@/lib/slug";
 import { resend, EMAIL_FROM } from "@/lib/resend";
 import { ProductApprovedEmail, ProductRejectedEmail } from "@/lib/emails/product-review";
+import { parseDiscoveryCopy } from "@/lib/discovery-copy";
 
 // 제출자(maker)의 이메일 주소를 service role로 조회 (profiles엔 email이 없음)
 async function getMakerEmail(makerId: string): Promise<string | null> {
@@ -435,6 +436,45 @@ export async function setDiscoveryPick(
 
   revalidatePath("/");
   revalidatePath("/admin/moderation");
+  revalidatePath("/admin/discovery");
+  return {};
+}
+
+export async function setDiscoveryCopy(productId: string, text: string): Promise<{ error?: string }> {
+  const parsed = parseDiscoveryCopy(text);
+  if ("error" in parsed) return { error: parsed.error };
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "로그인이 필요합니다." };
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("is_admin")
+    .eq("id", user.id)
+    .single();
+  if (!profile?.is_admin) return { error: "관리자 권한이 필요합니다." };
+
+  const { data: product, error: productError } = await supabase
+    .from("products")
+    .select("id")
+    .eq("id", productId)
+    .eq("source", "launch")
+    .eq("status", "published")
+    .eq("is_discovery_pick", true)
+    .maybeSingle();
+  if (productError) return { error: productError.message };
+  if (!product) return { error: "현재 선정된 제품의 문구만 수정할 수 있습니다." };
+
+  const { error } = parsed.value === null
+    ? await supabase.from("product_discovery_copy").delete().eq("product_id", productId)
+    : await supabase.from("product_discovery_copy").upsert({
+        product_id: productId,
+        curiosity_text: parsed.value,
+      });
+  if (error) return { error: error.message };
+
+  revalidatePath("/");
   revalidatePath("/admin/discovery");
   return {};
 }

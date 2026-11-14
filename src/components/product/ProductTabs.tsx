@@ -8,6 +8,7 @@ import type { ProductTeamMember, ProductShoutout, Profile, Comment } from "@/typ
 import MediaGallery from "./MediaGallery";
 import CommentItem from "./CommentItem";
 import { createReview } from "@/lib/actions/review";
+import { COMMENT_TOPICS, type CommentTopic } from "@/lib/comment-topics";
 
 // ── Local Types ────────────────────────────────────────────────────────────────
 
@@ -92,27 +93,71 @@ function Avatar({
 function CommentTopForm({ productId }: { productId: string }) {
   const formRef = useRef<HTMLFormElement>(null);
   const [isPending, startTransition] = useTransition();
+  const [selectedHint, setSelectedHint] = useState<CommentTopic | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     fd.set("product_id", productId);
+    if (selectedHint) fd.set("topic", selectedHint);
+    setError(null);
     startTransition(async () => {
       const { createComment } = await import("@/lib/actions/comment");
-      await createComment(fd);
+      const result = await createComment(fd);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
       formRef.current?.reset();
+      setSelectedHint(null);
     });
   };
 
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="mb-8">
+      <p className="mb-1 text-sm font-semibold text-slate-900 dark:text-slate-100">
+        💬 이 제품에 한마디 남겨보세요
+      </p>
+      <p className="mb-3 text-sm text-slate-500 dark:text-slate-400">
+        신기했던 점이나 궁금한 점을 자유롭게 나눠주세요.
+      </p>
+      <div role="group" aria-label="댓글 작성 힌트" className="mb-3 flex flex-wrap gap-2">
+        {(Object.keys(COMMENT_TOPICS) as CommentTopic[]).map((topic) => (
+          <button
+            key={topic}
+            type="button"
+            disabled={isPending}
+            aria-pressed={selectedHint === topic}
+            onClick={() => setSelectedHint(selectedHint === topic ? null : topic)}
+            className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+              selectedHint === topic
+                ? "border-blue-300 bg-blue-50 text-blue-700 dark:border-blue-500 dark:bg-blue-500/20 dark:text-blue-300"
+                : "border-slate-200 text-slate-600 hover:border-blue-300 hover:text-blue-700 dark:border-navy-700 dark:text-slate-300 dark:hover:border-blue-500 dark:hover:text-blue-300"
+            }`}
+          >
+            {COMMENT_TOPICS[topic].hint}
+          </button>
+        ))}
+      </div>
+      <p className="mb-2 text-xs text-slate-500 dark:text-slate-400">
+        선택한 주제는 댓글에 표시됩니다. 다시 누르면 선택을 해제할 수 있어요.
+      </p>
+      {selectedHint !== null && (
+        <p id="comment-hint" className="mb-2 text-sm text-slate-500 dark:text-slate-400">
+          {COMMENT_TOPICS[selectedHint].prompt}
+        </p>
+      )}
       <textarea
         name="content"
+        aria-label="댓글 내용"
+        aria-describedby={selectedHint !== null ? "comment-hint" : undefined}
         placeholder="이 제품에 대한 생각을 공유해 주세요…"
         rows={3}
         required
         className="w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder-slate-400 transition focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-navy-700 dark:bg-navy-800 dark:text-slate-100 dark:placeholder-slate-500"
       />
+      {error && <p role="alert" className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>}
       <div className="mt-2 flex justify-end">
         <button
           type="submit"

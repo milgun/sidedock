@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { toggleReaction, createComment, updateComment, deleteComment } from "@/lib/actions/comment";
 import type { Comment, ReactionEmoji } from "@/types";
+import { COMMENT_TOPICS, isCommentTopic } from "@/lib/comment-topics";
 
 const REACTIONS: { emoji: ReactionEmoji; label: string; color: string; bg: string; ring: string; darkColor: string; darkBg: string; darkRing: string }[] = [
   { emoji: "🚀", label: "임팩트!",   color: "text-indigo-600",  bg: "bg-indigo-50",  ring: "ring-indigo-300", darkColor: "dark:text-indigo-300", darkBg: "dark:bg-indigo-500/15", darkRing: "dark:ring-indigo-500/30" },
@@ -172,6 +173,7 @@ export default function CommentItem({
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [isPending, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
+  const [replyError, setReplyError] = useState<string | null>(null);
 
   // 수정/삭제 메뉴
   const [showMenu, setShowMenu] = useState(false);
@@ -220,8 +222,13 @@ export default function CommentItem({
     const fd = new FormData(e.currentTarget);
     fd.set("product_id", productId);
     fd.set("parent_id", comment.id);
+    setReplyError(null);
     startTransition(async () => {
-      await createComment(fd);
+      const result = await createComment(fd);
+      if (result.error) {
+        setReplyError(result.error);
+        return;
+      }
       formRef.current?.reset();
       setShowReplyForm(false);
     });
@@ -242,7 +249,7 @@ export default function CommentItem({
 
       <div className="flex-1 min-w-0">
         {/* Header */}
-        <div className="flex items-baseline gap-2">
+        <div className="flex flex-wrap items-baseline gap-2">
           <Link
             href={comment.profile?.username ? `/profile/${comment.profile.username}` : "#"}
             className="text-sm font-semibold text-slate-900 hover:text-blue-700 dark:text-slate-100 dark:hover:text-blue-400"
@@ -252,6 +259,11 @@ export default function CommentItem({
           <span className="text-xs text-slate-400">
             {new Date(comment.created_at).toLocaleDateString("ko-KR")}
           </span>
+          {isCommentTopic(comment.topic) && (
+            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-500/15 dark:text-blue-300">
+              {COMMENT_TOPICS[comment.topic].label}
+            </span>
+          )}
           {/* ... 메뉴 (본인 댓글만) */}
           {isOwn && (
             <div className="relative ml-auto" ref={menuRef}>
@@ -326,25 +338,24 @@ export default function CommentItem({
 
         {/* Inline reply form */}
         {showReplyForm && (
-          <form
-            ref={formRef}
-            onSubmit={handleReplySubmit}
-            className="mt-3 flex gap-2"
-          >
-            <textarea
-              name="content"
-              placeholder="답글을 작성하세요…"
-              rows={2}
-              required
-              className="flex-1 resize-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-navy-700 dark:bg-navy-800 dark:text-slate-100 dark:placeholder-slate-500"
-            />
-            <button
-              type="submit"
-              disabled={isPending}
-              className="self-end rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50"
-            >
-              {isPending ? "…" : "등록"}
-            </button>
+          <form ref={formRef} onSubmit={handleReplySubmit} className="mt-3">
+            <div className="flex gap-2">
+              <textarea
+                name="content"
+                placeholder="답글을 작성하세요…"
+                rows={2}
+                required
+                className="flex-1 resize-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-navy-700 dark:bg-navy-800 dark:text-slate-100 dark:placeholder-slate-500"
+              />
+              <button
+                type="submit"
+                disabled={isPending}
+                className="self-end rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50"
+              >
+                {isPending ? "…" : "등록"}
+              </button>
+            </div>
+            {replyError && <p role="alert" className="mt-2 text-sm text-red-600 dark:text-red-400">{replyError}</p>}
           </form>
         )}
 

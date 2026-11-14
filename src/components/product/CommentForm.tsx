@@ -1,18 +1,24 @@
 "use client";
 
-import { useRef, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { createComment } from "@/lib/actions/comment";
 
 export default function CommentForm({ productId }: { productId: string }) {
   const formRef = useRef<HTMLFormElement>(null);
   const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     formData.set("product_id", productId);
+    setError(null);
     startTransition(async () => {
-      await createComment(formData);
+      const result = await createComment(formData);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
       formRef.current?.reset();
     });
   };
@@ -26,6 +32,7 @@ export default function CommentForm({ productId }: { productId: string }) {
         required
         className="w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder-slate-400 transition focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100 dark:border-navy-700 dark:bg-navy-800 dark:text-slate-100 dark:placeholder-slate-500"
       />
+      {error && <p role="alert" className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>}
       <div className="mt-2 flex justify-end">
         <button
           type="submit"

@@ -10,6 +10,7 @@ import DevlogHomeList from "@/components/home/DevlogHomeList";
 import type { DevlogPostWithAuthor } from "@/types";
 import { CATEGORY_COLORS, CATEGORY_LABELS } from "@/components/product/ProductCard";
 import { getHomeData } from "@/lib/public-data";
+import { getDiscoveryIntro } from "@/lib/discovery-copy";
 
 export default async function HomePage() {
   const user = await getUser();
@@ -27,6 +28,7 @@ export default async function HomePage() {
     homeDevlogs: rawHomeDevlogs,
     hot: rawHot,
     discovery: rawDiscovery,
+    discoveryCopy,
     promotions: rawPromotions,
   } = home;
 
@@ -56,6 +58,12 @@ export default async function HomePage() {
         <div className="order-1 mx-auto w-full max-w-[46rem] min-[1400px]:col-start-2">
           {activePromotion ? <PromotionBanner promotion={activePromotion} /> : <WelcomeBanner />}
         </div>
+
+        {discovery && (
+          <div className="order-2 mt-6 rounded-2xl border border-slate-200 p-4 dark:border-navy-800 dark:bg-navy-900 lg:hidden">
+            <TodayDiscovery product={discovery} curiosityText={discoveryCopy} />
+          </div>
+        )}
 
         <main className="order-3 min-w-0 min-[1400px]:order-none min-[1400px]:col-start-2 min-[1400px]:row-start-2">
           {/* ── Section A: 신규 런치 ── */}
@@ -149,7 +157,7 @@ export default async function HomePage() {
         {(discovery || sidebarDevlogs.length > 0) && (
           <aside className="order-2 mb-10 hidden lg:block min-[1400px]:order-none min-[1400px]:col-start-3 min-[1400px]:row-span-2 min-[1400px]:row-start-1 min-[1400px]:mb-0 min-[1400px]:sticky min-[1400px]:top-20">
             <div className="border-y border-slate-200 py-5 dark:border-navy-800 min-[1400px]:border-y-0 min-[1400px]:py-1 min-[1400px]:pl-7">
-              {discovery && <TodayDiscovery product={discovery} />}
+              {discovery && <TodayDiscovery product={discovery} curiosityText={discoveryCopy} />}
               {sidebarDevlogs.length > 0 && <RecentDevlogs posts={sidebarDevlogs} />}
             </div>
           </aside>
@@ -159,7 +167,7 @@ export default async function HomePage() {
   );
 }
 
-function TodayDiscovery({ product }: { product: ProductWithMaker }) {
+function TodayDiscovery({ product, curiosityText }: { product: ProductWithMaker; curiosityText: string | null }) {
   const categories = product.categories?.length ? product.categories : [product.category];
   const makerName = product.maker?.display_name ?? product.maker?.username ?? "Sidedock";
 
@@ -196,8 +204,8 @@ function TodayDiscovery({ product }: { product: ProductWithMaker }) {
           ))}
         </div>
 
-        <p className="mt-4 border-l-2 border-blue-500 pl-3 text-sm leading-5 text-slate-600 dark:text-slate-300">
-          Sidedock이 발견한 {makerName}의 새 서비스입니다.
+        <p className="mt-4 whitespace-pre-line break-words border-l-2 border-blue-500 pl-3 text-sm leading-5 text-slate-600 dark:text-slate-300">
+          {getDiscoveryIntro(curiosityText, makerName)}
         </p>
         <span className="mt-4 inline-flex text-sm font-semibold text-blue-600 transition group-hover:text-blue-700 dark:text-blue-400">
           제품 자세히 보기 →

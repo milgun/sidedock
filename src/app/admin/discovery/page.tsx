@@ -24,7 +24,19 @@ export default async function DiscoveryPage(props: { searchParams: Promise<{ sco
     .order("launched_at", { ascending: false });
 
   if (scope === "recent") query = query.limit(20);
-  const { data } = await query;
+  const { data, error } = await query;
+  if (error) throw new Error(`Failed to load discovery products: ${error.message}`);
+
+  const productIds = (data ?? []).map((product) => product.id);
+  const copies = productIds.length
+    ? await supabase.from("product_discovery_copy").select("product_id, curiosity_text").in("product_id", productIds)
+    : { data: [], error: null };
+  if (copies.error) throw new Error(`Failed to load discovery copy: ${copies.error.message}`);
+  const copyByProduct = new Map((copies.data ?? []).map((copy) => [copy.product_id, copy.curiosity_text]));
+  const products = (data ?? []).map((product) => ({
+    ...product,
+    curiosity_text: copyByProduct.get(product.id) ?? null,
+  }));
 
   return (
     <div>
@@ -32,7 +44,7 @@ export default async function DiscoveryPage(props: { searchParams: Promise<{ sco
         <h1 className="text-2xl font-black text-slate-900 dark:text-slate-100">오늘의 발견</h1>
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">공개된 Launches 중 하나를 홈에서 소개합니다.</p>
       </div>
-      <DiscoveryClient products={(data ?? []) as unknown as DiscoveryProduct[]} scope={scope} />
+      <DiscoveryClient products={products as unknown as DiscoveryProduct[]} scope={scope} />
     </div>
   );
 }

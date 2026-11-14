@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "@/lib/cache";
 import type { ReactionEmoji } from "@/types";
 import { sendNotificationEmail } from "@/lib/emails/notification";
+import { isValidCommentTopic } from "@/lib/comment-topics";
 
 export async function createComment(formData: FormData) {
   const supabase = await createClient();
@@ -11,20 +12,33 @@ export async function createComment(formData: FormData) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return;
+  if (!user) return { error: "로그인이 필요합니다." };
 
-  const productId = formData.get("product_id") as string;
-  const content = (formData.get("content") as string)?.trim();
-  const parentId = (formData.get("parent_id") as string) || null;
+  const productId = formData.get("product_id");
+  const rawContent = formData.get("content");
+  const rawParentId = formData.get("parent_id");
+  const topic = formData.get("topic");
+  const content = typeof rawContent === "string" ? rawContent.trim() : "";
+  const parentId = typeof rawParentId === "string" && rawParentId ? rawParentId : null;
 
-  if (!content || !productId) return;
+  if (!content || typeof productId !== "string" || !productId) {
+    return { error: "댓글 내용을 입력해주세요." };
+  }
+  if (!isValidCommentTopic(topic, parentId !== null)) {
+    return { error: "올바른 댓글 주제를 선택해주세요." };
+  }
 
-  await supabase.from("comments").insert({
+  const { error } = await supabase.from("comments").insert({
     user_id: user.id,
     product_id: productId,
     content,
     parent_id: parentId,
+    ...(topic !== null ? { topic } : {}),
   });
+  if (error) {
+    console.error("Failed to create comment:", error);
+    return { error: "댓글을 등록하지 못했습니다. 다시 시도해주세요." };
+  }
 
   // 알림 발송
   const [{ data: product }, { data: actorProfile }] = await Promise.all([
@@ -97,6 +111,7 @@ export async function createComment(formData: FormData) {
   }
 
   revalidatePath(`/products/${productId}`);
+  return { ok: true };
 }
 
 export async function updateComment(
